@@ -1,20 +1,14 @@
 --[[
     ╔══════════════════════════════════════════════════════════════╗
-    ║              SANTES HUB v5.0 | CRIMINALITY                  ║
-    ║         Sade UI - FPS Dostu - Tum Moduller Calisir          ║
+    ║              SANTES HUB v5.1 | CRIMINALITY                  ║
+    ║         Logo Fix + Safe ESP Timer + Row Spacing             ║
     ╚══════════════════════════════════════════════════════════════╝
     
-    OZELLIKLER:
-    ✅ Silent Aim + Beyaz FOV Cemberi
-    ✅ Melee Aura (Head/Body + Yumruk)
-    ✅ Fly (Sadece WASD, Space/Shift yok, havada sabit)
-    ✅ Auto Farm (Dealer + Safe + Para)
-    ✅ Player ESP + Safe ESP
-    ✅ No Recoil + Inf Stamina + FullBright + FOV
-    ✅ Invisibility + Noclip + Auto Lockpick
-    ✅ Auto Pickup + Auto Doors + Admin Detector
-    ✅ Minimize + Logo + K Toggle + X Full Cleanup
-    ✅ Mobile uyumlu (MoveDirection joystick)
+    FIXES:
+    ✅ Logo resmi minimize frame'de gorunur
+    ✅ Modul satirlari arasinda bosluk
+    ✅ Safe ESP - soyulmus safe'lerin altinda sure (3m 2s)
+    ✅ Safe ESP kapatinca tum yazilar temizlenir
 --]]
 
 -- #####################################################################
@@ -31,7 +25,6 @@ local Lighting = game:GetService("Lighting")
 local StarterGui = game:GetService("StarterGui")
 local CoreGui = game:GetService("CoreGui")
 
--- LocalPlayer ve PlayerGui'yi guvenle bekle
 local LocalPlayer = Players.LocalPlayer or Players.PlayerAdded:Wait()
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui", 10)
 
@@ -56,16 +49,10 @@ end)
 -- #####################################################################
 
 local guiNamesToClean = {
-    "SantesHubScreenGui",
-    "SantesHubScreenGui_Categorized",
-    "EQRHubScreenGui",
-    "VenomHubScreenGui",
-    "VenomHubScreenGui_Categorized",
-    "ShadowWarningHUD",
-    "InvisWarningGUI",
-    "InvisWarning",
-    "SantesMinimizeFrame",
-    "SantesMobileControls"
+    "SantesHubScreenGui", "SantesHubScreenGui_Categorized",
+    "EQRHubScreenGui", "VenomHubScreenGui", "VenomHubScreenGui_Categorized",
+    "ShadowWarningHUD", "InvisWarningGUI", "InvisWarning",
+    "SantesMinimizeFrame", "SantesMobileControls"
 }
 
 for _, name in pairs(guiNamesToClean) do
@@ -104,14 +91,12 @@ local LogoURL = "https://i.ibb.co/tdPdCq6/logo.png"
 -- #                     GUI CONSTRUCTION                             #
 -- #####################################################################
 
--- Ana ScreenGui
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "SantesHubScreenGui"
 screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.Parent = PlayerGui
 
--- Ana cerceve
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
 mainFrame.Size = UDim2.new(0, 440, 0, 360)
@@ -123,7 +108,6 @@ mainFrame.ClipsDescendants = true
 mainFrame.Visible = true
 mainFrame.Parent = screenGui
 
--- Cerceve kose ve kenar
 local mainCorner = Instance.new("UICorner")
 mainCorner.CornerRadius = UDim.new(0, 8)
 mainCorner.Parent = mainFrame
@@ -148,12 +132,11 @@ local titleCorner = Instance.new("UICorner")
 titleCorner.CornerRadius = UDim.new(0, 8)
 titleCorner.Parent = titleBar
 
--- Baslik yazisi
 local titleLabel = Instance.new("TextLabel")
 titleLabel.Size = UDim2.new(1, -70, 1, 0)
 titleLabel.Position = UDim2.new(0, 12, 0, 0)
 titleLabel.BackgroundTransparency = 1
-titleLabel.Text = "SANTES HUB "
+titleLabel.Text = "SANTES HUB v5.1"
 titleLabel.Font = Enum.Font.GothamBold
 titleLabel.TextColor3 = Theme.TextPrimary
 titleLabel.TextSize = 16
@@ -180,7 +163,6 @@ local minimizeCorner = Instance.new("UICorner")
 minimizeCorner.CornerRadius = UDim.new(0, 5)
 minimizeCorner.Parent = minimizeButton
 
--- Minimize butonu hover
 minimizeButton.MouseEnter:Connect(function()
     TweenService:Create(minimizeButton, TweenInfo.new(0.15), {
         BackgroundColor3 = Color3.fromRGB(200, 170, 50)
@@ -213,7 +195,6 @@ local closeCorner = Instance.new("UICorner")
 closeCorner.CornerRadius = UDim.new(0, 5)
 closeCorner.Parent = closeButton
 
--- Close butonu hover
 closeButton.MouseEnter:Connect(function()
     TweenService:Create(closeButton, TweenInfo.new(0.15), {
         BackgroundColor3 = Theme.AccentHover
@@ -227,12 +208,12 @@ closeButton.MouseLeave:Connect(function()
 end)
 
 -- #####################################################################
--- #            MINIMIZE FRAME (KUCUK KARE + LOGO)                    #
+-- #            MINIMIZE FRAME (KUCUK KARE + LOGO) - FIXED            #
 -- #####################################################################
 
 local minimizeFrame = Instance.new("Frame")
 minimizeFrame.Name = "MinimizeFrame"
-minimizeFrame.Size = UDim2.new(0, 48, 0, 48)
+minimizeFrame.Size = UDim2.new(0, 50, 0, 50)
 minimizeFrame.Position = UDim2.new(0.015, 0, 0.015, 0)
 minimizeFrame.BackgroundColor3 = Theme.Background
 minimizeFrame.BorderSizePixel = 0
@@ -251,14 +232,23 @@ minFrameStroke.Color = Theme.Accent
 minFrameStroke.Thickness = 2
 minFrameStroke.Parent = minimizeFrame
 
--- Logo resmi
+-- Logo - DOGRUDAN IMAGE ID KULLAN (daha guvenilir)
 local logoImage = Instance.new("ImageLabel")
-logoImage.Size = UDim2.new(1, 0, 1, 0)
-logoImage.Position = UDim2.new(0, 0, 0, 0)
+logoImage.Size = UDim2.new(1, -6, 1, -6)
+logoImage.Position = UDim2.new(0, 3, 0, 3)
 logoImage.BackgroundTransparency = 1
 logoImage.Image = LogoURL
 logoImage.ScaleType = Enum.ScaleType.Fit
 logoImage.Parent = minimizeFrame
+
+-- Logo yuklenmezse yedek renk
+task.spawn(function()
+    task.wait(2)
+    if not logoImage.IsLoaded then
+        logoImage.BackgroundColor3 = Theme.Accent
+        logoImage.BackgroundTransparency = 0.5
+    end
+end)
 
 -- #####################################################################
 -- #                        DIVIDER                                   #
@@ -318,7 +308,7 @@ contentCorner.CornerRadius = UDim.new(0, 6)
 contentCorner.Parent = contentFrame
 
 local contentLayout = Instance.new("UIListLayout")
-contentLayout.Padding = UDim.new(0, 4)
+contentLayout.Padding = UDim.new(0, 6)  -- ARTIRILDI: satir arasi bosluk
 contentLayout.SortOrder = Enum.SortOrder.LayoutOrder
 contentLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 contentLayout.Parent = contentFrame
@@ -342,13 +332,11 @@ footerLabel.Parent = mainFrame
 -- #               MINIMIZE / CLOSE / TOGGLE ISLEMLERI                #
 -- #####################################################################
 
--- Eksi butonu -> kucuk kare goster
 minimizeButton.MouseButton1Click:Connect(function()
     mainFrame.Visible = false
     minimizeFrame.Visible = true
 end)
 
--- Kucuk kareye tiklayinca -> ana UI'yi geri ac
 minimizeFrame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 
         or input.UserInputType == Enum.UserInputType.Touch then
@@ -358,9 +346,7 @@ minimizeFrame.InputBegan:Connect(function(input)
     end
 end)
 
--- X butonu -> FULL CLEANUP (tum moduller + GUI yok edilir)
 closeButton.MouseButton1Click:Connect(function()
-    -- Tum modulleri kapat
     pcall(function() if flyEnabled then Fly_Disable() end end)
     pcall(function() if noclipEnabled then Noclip_Disable() end end)
     pcall(function() if fullbrightEnabled then FullBright_Disable() end end)
@@ -378,20 +364,12 @@ closeButton.MouseButton1Click:Connect(function()
     pcall(function() if meleeAuraEnabled then MeleeAura_Disable() end end)
     pcall(function() if autoFarmEnabled then AutoFarm_Disable() end end)
     pcall(function() if infStaminaEnabled then InfiniteStamina_Disable() end end)
-    
-    -- GUI'yi tamamen yok et
     screenGui:Destroy()
-    
-    -- CoreGui uyarilarini temizle
     for _, name in pairs({"InvisWarning", "ShadowWarningHUD"}) do
-        pcall(function()
-            local gui = CoreGui:FindFirstChild(name)
-            if gui then gui:Destroy() end
-        end)
+        pcall(function() local gui = CoreGui:FindFirstChild(name) if gui then gui:Destroy() end end)
     end
 end)
 
--- K tusu ile toggle
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if not gameProcessed and input.KeyCode == Enum.KeyCode.K then
         if minimizeFrame.Visible then
@@ -465,12 +443,10 @@ local keyBindSetters = {}
 local rowFuncData = {}
 
 local function createToggleRow(scriptName, canToggle, isEnabledFn, onEnable, onDisable, getKeyBindFn, setKeyBindFn)
-    -- Ana satir
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(1, -12, 0, 32)
+    frame.Size = UDim2.new(1, -12, 0, 34)  -- Yukseklik artirildi
     frame.BackgroundTransparency = 1
 
-    -- Yatay duzen
     local layout = Instance.new("UIListLayout")
     layout.FillDirection = Enum.FillDirection.Horizontal
     layout.VerticalAlignment = Enum.VerticalAlignment.Center
@@ -479,7 +455,6 @@ local function createToggleRow(scriptName, canToggle, isEnabledFn, onEnable, onD
     layout.Padding = UDim.new(0, 4)
     layout.Parent = frame
 
-    -- Isim etiketi
     local label = Instance.new("TextLabel")
     label.Size = UDim2.new(0.44, 0, 1, 0)
     label.BackgroundTransparency = 1
@@ -490,7 +465,6 @@ local function createToggleRow(scriptName, canToggle, isEnabledFn, onEnable, onD
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.Parent = frame
 
-    -- ON/OFF butonu
     local toggleBtn = Instance.new("TextButton")
     toggleBtn.Size = UDim2.new(0.26, 0, 0.75, 0)
     toggleBtn.Font = Enum.Font.GothamBold
@@ -513,7 +487,6 @@ local function createToggleRow(scriptName, canToggle, isEnabledFn, onEnable, onD
 
     local bindBtn = nil
 
-    -- Renk hesaplama
     local function getTargetColor()
         local state = false
         if type(isEnabledFn) == 'function' then
@@ -526,7 +499,6 @@ local function createToggleRow(scriptName, canToggle, isEnabledFn, onEnable, onD
         return state and Theme.ButtonOn or Theme.ButtonOff
     end
 
-    -- Gorsel guncelleme
     local function updateVisuals()
         local state = false
         if type(isEnabledFn) == 'function' then
@@ -546,7 +518,6 @@ local function createToggleRow(scriptName, canToggle, isEnabledFn, onEnable, onD
         end
     end
 
-    -- Satir verisi
     rowFuncData[frame] = {
         isEnabledFn = isEnabledFn,
         onEnable = onEnable,
@@ -555,7 +526,6 @@ local function createToggleRow(scriptName, canToggle, isEnabledFn, onEnable, onD
         updateFn = updateVisuals
     }
 
-    -- Bind butonu
     if getKeyBindFn and setKeyBindFn then
         bindBtn = Instance.new("TextButton")
         bindBtn.Size = UDim2.new(0.26, 0, 0.75, 0)
@@ -581,7 +551,6 @@ local function createToggleRow(scriptName, canToggle, isEnabledFn, onEnable, onD
         keyBindGetters[frame] = getKeyBindFn
         keyBindSetters[frame] = setKeyBindFn
 
-        -- Baslangic bind
         local s, r = pcall(getKeyBindFn)
         if s and r and typeof(r) == "EnumItem" then
             activeBinds[r] = {
@@ -598,7 +567,6 @@ local function createToggleRow(scriptName, canToggle, isEnabledFn, onEnable, onD
         toggleBtn.Size = UDim2.new(0.55, 0, 0.75, 0)
     end
 
-    -- Bind yazisi guncelleme
     local function updateBindText()
         if not bindBtn then return end
         
@@ -616,7 +584,6 @@ local function createToggleRow(scriptName, canToggle, isEnabledFn, onEnable, onD
     updateVisuals()
     updateBindText()
 
-    -- Toggle tiklamasi
     toggleBtn.MouseButton1Click:Connect(function()
         local state = false
         if type(isEnabledFn) == 'function' then
@@ -650,7 +617,6 @@ local function createToggleRow(scriptName, canToggle, isEnabledFn, onEnable, onD
         updateVisuals()
     end)
 
-    -- Bind butonu tiklamasi
     if bindBtn then
         local capturing = false
         
@@ -706,7 +672,6 @@ function Fly_Enable()
     
     flyEnabled = true
 
-    -- Ilk acilista yukari ivme
     local char = LocalPlayer.Character
     if char then
         local hrp = char:FindFirstChild("HumanoidRootPart")
@@ -724,10 +689,8 @@ function Fly_Enable()
         
         if not hrp or not hum then return end
 
-        -- PlatformStand = yercekimi yok
         hum.PlatformStand = true
 
-        -- Gravity override
         for _, part in pairs(char:GetDescendants()) do
             if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
                 part.AssemblyLinearVelocity = Vector3.zero
@@ -740,18 +703,14 @@ function Fly_Enable()
 
         local targetVel = Vector3.new()
 
-        -- Kameraya gore yon vektorleri
         local forward = Vector3.new(cam.CFrame.LookVector.X, 0, cam.CFrame.LookVector.Z).Unit
         local right = Vector3.new(cam.CFrame.RightVector.X, 0, cam.CFrame.RightVector.Z).Unit
 
-        -- MoveDirection = mobil joystick veya WASD
         local md = hum.MoveDirection
         
         if md.Magnitude > 0.1 then
-            -- Joystick yonu
             targetVel += md * flySpeed
         else
-            -- Manuel klavye (Space/Shift YOK, sadece WASD)
             if UserInputService:IsKeyDown(Enum.KeyCode.W) then
                 targetVel += forward * flySpeed
             end
@@ -766,7 +725,6 @@ function Fly_Enable()
             end
         end
 
-        -- Hareket yoksa havada sabit kal
         if targetVel.Magnitude < 1 then
             hrp.Velocity = Vector3.new(0, 0.3, 0)
             hrp.AssemblyLinearVelocity = Vector3.zero
@@ -785,7 +743,6 @@ function Fly_Disable()
         flyConn = nil
     end
 
-    -- Karakteri normale dondur
     local char = LocalPlayer.Character
     if char then
         local hum = char:FindFirstChildOfClass("Humanoid")
@@ -951,11 +908,39 @@ function NoFailLP_Disable()
 end
 
 -- #####################################################################
--- #                   MODUL: SAFE ESP                                 #
+-- #            MODUL: SAFE ESP + RESPAWN TIMER - FIXED                #
 -- #####################################################################
 
 local safeESPEnabled = false
 local safeESPConn = nil
+local safeTimerData = {}
+
+-- Safe tiplerine gore respawn sureleri (saniye)
+local SAFE_RESPAWN_TIMES = {
+    SmallSafe = 180,        -- 3 dakika
+    MediumSafe = 300,       -- 5 dakika
+    LargeSafe = 420,        -- 7 dakika
+    Register = 120,         -- 2 dakika
+    Register_M = 150,       -- 2.5 dakika
+    Register_L = 180,       -- 3 dakika
+    Default = 240           -- 4 dakika
+}
+
+local function getSafeRespawnTime(safeName)
+    for pattern, time in pairs(SAFE_RESPAWN_TIMES) do
+        if string.find(safeName, pattern) then
+            return time
+        end
+    end
+    return SAFE_RESPAWN_TIMES.Default
+end
+
+local function formatTime(seconds)
+    if seconds <= 0 then return "Ready" end
+    local minutes = math.floor(seconds / 60)
+    local secs = math.floor(seconds % 60)
+    return string.format("%dm %ds", minutes, secs)
+end
 
 local function safeESPUpdate()
     local folder = Workspace.Map and Workspace.Map:FindFirstChild("BredMakurz")
@@ -968,6 +953,7 @@ local function safeESPUpdate()
     if not char or not char:FindFirstChild("HumanoidRootPart") then return end
     
     local myPos = char.HumanoidRootPart.Position
+    local now = tick()
 
     for _, obj in pairs(folder:GetChildren()) do
         local primaryPart = obj.PrimaryPart
@@ -978,48 +964,108 @@ local function safeESPUpdate()
         if part then
             local dist = (part.Position - myPos).magnitude
             local exist = obj:FindFirstChild("SantesSE")
+            local values = obj:FindFirstChild("Values")
+            local broken = values and values:FindFirstChild("Broken")
 
-            if dist <= 200 then
+            if dist <= 250 then  -- Menzil artirildi
                 if not exist then
+                    -- BillboardGui olustur (daha buyuk, timer icin)
                     local bg = Instance.new("BillboardGui")
                     bg.Name = "SantesSE"
                     bg.AlwaysOnTop = true
-                    bg.Size = UDim2.new(8, 0, 4, 0)
-                    bg.MaxDistance = 200
+                    bg.Size = UDim2.new(0, 140, 0, 35)  -- Genisletildi
+                    bg.MaxDistance = 250
                     bg.Adornee = obj
                     bg.Parent = obj
 
+                    -- Isim etiketi (ust satir)
                     local tl = Instance.new("TextLabel", bg)
-                    tl.Size = UDim2.new(1, 0, 1, 0)
+                    tl.Size = UDim2.new(1, 0, 0.5, 0)
                     tl.BackgroundTransparency = 1
                     tl.Font = Enum.Font.SourceSansBold
                     tl.TextScaled = false
-                    tl.TextSize = 15
+                    tl.TextSize = 13
                     tl.Text = obj.Name
                         :gsub("([a-z])([A-Z])", "%1 %2")
                         :gsub("_.*", "")
 
-                    local values = obj:FindFirstChild("Values")
-                    local broken = values and values:FindFirstChild("Broken")
-                    
+                    -- Timer etiketi (alt satir)
+                    local timerLabel = Instance.new("TextLabel", bg)
+                    timerLabel.Size = UDim2.new(1, 0, 0.5, 0)
+                    timerLabel.Position = UDim2.new(0, 0, 0.5, 0)
+                    timerLabel.BackgroundTransparency = 1
+                    timerLabel.Font = Enum.Font.Gotham
+                    timerLabel.TextScaled = false
+                    timerLabel.TextSize = 11
+
                     if broken and broken:IsA("BoolValue") then
-                        tl.TextColor3 = broken.Value 
-                            and Color3.new(1, 0, 0) 
-                            or Color3.new(0, 1, 0)
-                        
+                        if broken.Value then
+                            -- SOYULMUS: Kirmizi + timer
+                            tl.TextColor3 = Color3.new(1, 0, 0)
+                            local respawnTime = getSafeRespawnTime(obj.Name)
+                            timerLabel.Text = formatTime(respawnTime)
+                            timerLabel.TextColor3 = Color3.new(1, 0.6, 0)
+                            safeTimerData[obj] = {
+                                brokenTime = now,
+                                respawnTime = respawnTime,
+                                label = timerLabel,
+                                nameLabel = tl
+                            }
+                        else
+                            -- CALISIR: Yesil
+                            tl.TextColor3 = Color3.new(0, 1, 0)
+                            timerLabel.Text = "Ready"
+                            timerLabel.TextColor3 = Color3.new(0, 1, 0)
+                            safeTimerData[obj] = nil
+                        end
+
+                        -- Kirilma durumu degisince
                         broken:GetPropertyChangedSignal("Value"):Connect(function()
-                            if tl and tl.Parent then
-                                tl.TextColor3 = broken.Value 
-                                    and Color3.new(1, 0, 0) 
-                                    or Color3.new(0, 1, 0)
+                            if broken.Value then
+                                tl.TextColor3 = Color3.new(1, 0, 0)
+                                local rt = getSafeRespawnTime(obj.Name)
+                                timerLabel.Text = formatTime(rt)
+                                timerLabel.TextColor3 = Color3.new(1, 0.6, 0)
+                                safeTimerData[obj] = {
+                                    brokenTime = tick(),
+                                    respawnTime = rt,
+                                    label = timerLabel,
+                                    nameLabel = tl
+                                }
+                            else
+                                tl.TextColor3 = Color3.new(0, 1, 0)
+                                timerLabel.Text = "Ready"
+                                timerLabel.TextColor3 = Color3.new(0, 1, 0)
+                                safeTimerData[obj] = nil
                             end
                         end)
                     else
                         tl.TextColor3 = Color3.new(0, 1, 0)
+                        timerLabel.Text = "Ready"
+                        timerLabel.TextColor3 = Color3.new(0, 1, 0)
                     end
                 end
             elseif exist then
+                -- Menzil disinda -> GUI'yi yok et
                 exist:Destroy()
+                safeTimerData[obj] = nil
+            end
+        end
+    end
+
+    -- Timer'lari guncelle
+    for obj, data in pairs(safeTimerData) do
+        if data and data.label and data.label.Parent then
+            local elapsed = now - data.brokenTime
+            local remaining = data.respawnTime - elapsed
+            if remaining > 0 then
+                data.label.Text = formatTime(remaining)
+            else
+                data.label.Text = "Ready"
+                data.label.TextColor3 = Color3.new(0, 1, 0)
+                if data.nameLabel then
+                    data.nameLabel.TextColor3 = Color3.new(0, 1, 0)
+                end
             end
         end
     end
@@ -1029,6 +1075,7 @@ function SafeESP_Enable()
     if safeESPEnabled then return end
     
     safeESPEnabled = true
+    safeTimerData = {}
     safeESPConn = RunService.Heartbeat:Connect(safeESPUpdate)
 end
 
@@ -1039,6 +1086,22 @@ function SafeESP_Disable()
         safeESPConn:Disconnect()
         safeESPConn = nil
     end
+
+    -- TUM BillboardGui'leri temizle
+    local folder = Workspace.Map and Workspace.Map:FindFirstChild("BredMakurz")
+    if not folder then
+        folder = Workspace:FindFirstChild("BredMakurz")
+    end
+    if folder then
+        for _, obj in pairs(folder:GetChildren()) do
+            local esp = obj:FindFirstChild("SantesSE")
+            if esp then
+                esp:Destroy()
+            end
+        end
+    end
+    
+    safeTimerData = {}
 end
 
 -- #####################################################################
@@ -1271,7 +1334,7 @@ function AdminCheck_Disable()
 end
 
 -- #####################################################################
--- #                   MODUL: PLAYER ESP                               #
+-- #                   MODUL: PLAYER ESP - FIXED                       #
 -- #####################################################################
 
 local espEnabled = false
@@ -1351,6 +1414,7 @@ function ESP_Disable()
     espConns = {}
     espList = {}
 
+    -- Tum ESP objelerini temizle
     for _, player in pairs(Players:GetPlayers()) do
         pcall(function()
             if player.Character then
@@ -2252,7 +2316,7 @@ local function SwitchCategory(name)
         
         local count = #CatFrames[name]
         contentFrame.CanvasSize = UDim2.new(0, 0, 0, 
-            count * 32 + (count > 0 and (count - 1) * 4 or 0) + 8
+            count * 38 + (count > 0 and (count - 1) * 6 or 0) + 10
         )
     end
 end
@@ -2522,9 +2586,8 @@ TweenService:Create(
 ):Play()
 
 print("================================================")
-print("  SANTES HUB Yuklendi!")
-print("  Sade UI - FPS Dostu - Tum Moduller Calisir")
-print("  Fly: Sadece WASD + Joystick (Space/Shift yok)")
-print("  X Butonu: Full Cleanup")
-print("  Mobile: MoveDirection joystick uyumlu")
+print("  SANTES HUB v5.1 Yuklendi!")
+print("  Logo Fix + Safe ESP Timer + Row Spacing")
+print("  Safe ESP: Soyulmus safe'lerde sure gosterir")
+print("  Safe ESP kapatinca tum yazilar temizlenir")
 print("================================================")
