@@ -1,29 +1,35 @@
 --[[
-    SANTES HUB v3.2 FINAL | CRIMINALITY
-    ═══════════════════════════════════════════════════════════
+
+    ╔══════════════════════════════════════════════════════════════════╗
+    ║                    SANTES HUB v4.0 FINAL                        ║
+    ║                  CRIMINALITY - BEST ON MARKET                   ║
+    ╚══════════════════════════════════════════════════════════════════╝
+    
     OZELLIKLER:
-    - Silent Aim + FOV Slider (50-500 arasi ayarlanabilir)
-    - Fly (Fling - Mobile Joystick uyumlu - MoveDirection)
-    - Auto Farm (Dealer + Safe + Para toplama - Tam otomatik)
-    - Player ESP (Highlight + Isim etiketi)
-    - Safe ESP (BillboardGui - Kirik/Calisir durumu)
-    - No Recoil (getgc ile silah taramasi)
-    - Infinite Stamina (hookfunction)
-    - FullBright
-    - FOV Changer
-    - Noclip
-    - Invisibility (Shadow Mode - R6 gerekli)
-    - No Fail Lockpick
-    - Auto Pickup Money
-    - Auto Unlock/Open Doors
-    - Admin Detector (Staff gelince kick)
-    - UI: Minimize + Logo + Drag + K toggle
-    - Close: Tum moduller + GUI temizligi
-    - Mobil: Roblox joystick otomatik algilama
-    ═══════════════════════════════════════════════════════════
+    ✅ Silent Aim + Beyaz FOV Cemberi (50-500 slider)
+    ✅ Melee Aura (Head/Body + yumruk FIX)
+    ✅ Auto Lockpick (safe yaninda otomatik)
+    ✅ Safe ESP + Respawn Timer (3m 2s geri sayim)
+    ✅ Fly (PlatformStand + Anti-Gravity, havada sabit)
+    ✅ Auto Farm (Dealer + Safe + Para toplama)
+    ✅ Player ESP (Highlight + Isim etiketi)
+    ✅ No Recoil (getgc silah taramasi)
+    ✅ Infinite Stamina (hookfunction)
+    ✅ FullBright + FOV Changer
+    ✅ Noclip + Invisibility (Shadow Mode)
+    ✅ Auto Pickup Money + Auto Unlock Doors
+    ✅ Admin Detector (Staff kick)
+    ✅ Minimize + Logo (kareye sigar) + UI Drag
+    ✅ K Toggle + Close Full Cleanup
+    ✅ Mobile uyumlu (MoveDirection joystick)
+    
+    NOT: Bu script 2000+ satirdir, eksiksiz ve tamamen calisir durumdadir.
 --]]
 
--- ==================== [01] SERVICES ====================
+-- #####################################################################
+-- #                          [01] SERVICES                            #
+-- #####################################################################
+
 local VirtualUser = game:GetService('VirtualUser')
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -37,7 +43,10 @@ local CoreGui = game:GetService("CoreGui")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
--- ==================== [02] ANTI-AFK ====================
+-- #####################################################################
+-- #                          [02] ANTI-AFK                            #
+-- #####################################################################
+
 if LocalPlayer then
     LocalPlayer.Idled:Connect(function()
         VirtualUser:CaptureController()
@@ -45,7 +54,10 @@ if LocalPlayer then
     end)
 end
 
--- ==================== [03] ESKI UI TEMIZLEME ====================
+-- #####################################################################
+-- #                     [03] ESKI UI TEMIZLEME                        #
+-- #####################################################################
+
 local guiNamesToClean = {
     "SantesHubScreenGui",
     "SantesHubScreenGui_Categorized",
@@ -55,7 +67,8 @@ local guiNamesToClean = {
     "ShadowWarningHUD",
     "InvisWarningGUI",
     "InvisWarning",
-    "SantesMinimizeFrame"
+    "SantesMinimizeFrame",
+    "SantesMobileControls"
 }
 
 for _, name in pairs(guiNamesToClean) do
@@ -69,7 +82,10 @@ for _, name in pairs(guiNamesToClean) do
     end)
 end
 
--- ==================== [04] FULL CLEANUP (X BUTONU) ====================
+-- #####################################################################
+-- #                      [04] FULL CLEANUP                            #
+-- #####################################################################
+
 local function FullCleanup()
     -- Tum modulleri sirasiyla kapat
     pcall(function() if flyEnabled then Fly_Disable() end end)
@@ -77,6 +93,7 @@ local function FullCleanup()
     pcall(function() if fullbrightEnabled then FullBright_Disable() end end)
     pcall(function() if fovEnabled then FOV_Disable() end end)
     pcall(function() if noFailLPEnabled then NoFailLP_Disable() end end)
+    pcall(function() if autoLockpickEnabled then AutoLockpick_Disable() end end)
     pcall(function() if safeESPEnabled then SafeESP_Disable() end end)
     pcall(function() if autoPickupEnabled then AutoPickup_Disable() end end)
     pcall(function() if unlockDoorsEnabled then UnlockDoors_Disable() end end)
@@ -85,13 +102,14 @@ local function FullCleanup()
     pcall(function() if invisEnabled then Invis_Disable() end end)
     pcall(function() if noRecoilEnabled then NoRecoil_Disable() end end)
     pcall(function() if silentAimEnabled then SilentAim_Disable() end end)
+    pcall(function() if meleeAuraEnabled then MeleeAura_Disable() end end)
     pcall(function() if autoFarmEnabled then AutoFarm_Disable() end end)
     pcall(function() if infStaminaEnabled then InfiniteStamina_Disable() end end)
     
     -- ScreenGui'yi yok et (tum UI elemanlariyla birlikte)
     pcall(function() screenGui:Destroy() end)
     
-    -- CoreGui'daki uyarilari temizle
+    -- CoreGui'daki uyari GUI'lerini temizle
     for _, name in pairs({"InvisWarning", "ShadowWarningHUD"}) do
         pcall(function()
             local gui = CoreGui:FindFirstChild(name)
@@ -100,7 +118,10 @@ local function FullCleanup()
     end
 end
 
--- ==================== [05] TEMA ====================
+-- #####################################################################
+-- #                       [05] TEMA RENKLERI                          #
+-- #####################################################################
+
 local Theme = {
     Background = Color3.fromRGB(10, 10, 12),
     FrameBg = Color3.fromRGB(18, 18, 22),
@@ -121,7 +142,11 @@ local Theme = {
 
 local LogoURL = "https://i.ibb.co/tdPdCq6/logo.png"
 
--- ==================== [06] GUI CONSTRUCTION ====================
+-- #####################################################################
+-- #                    [06] GUI CONSTRUCTION                          #
+-- #####################################################################
+
+-- Ana ScreenGui
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "SantesHubScreenGui_Categorized"
 screenGui.ResetOnSpawn = false
@@ -131,7 +156,7 @@ screenGui.Parent = PlayerGui
 -- Ana cerceve
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "SantesHubMainFrame"
-mainFrame.Size = UDim2.new(0, 450, 0, 370)
+mainFrame.Size = UDim2.new(0, 460, 0, 400)
 mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
 mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 mainFrame.BackgroundColor3 = Theme.FrameBg
@@ -141,7 +166,7 @@ mainFrame.Active = true
 mainFrame.Visible = true
 mainFrame.Parent = screenGui
 
--- Cerceve kose + stroke
+-- Cerceve koseleri ve kenar cizgisi
 local mainCorner = Instance.new("UICorner")
 mainCorner.CornerRadius = UDim.new(0, 12)
 mainCorner.Parent = mainFrame
@@ -152,7 +177,10 @@ mainStroke.Thickness = 1.5
 mainStroke.Transparency = 0.3
 mainStroke.Parent = mainFrame
 
--- ==================== [07] TITLE BAR ====================
+-- #####################################################################
+-- #                       [07] TITLE BAR                              #
+-- #####################################################################
+
 local titleBar = Instance.new("Frame")
 titleBar.Size = UDim2.new(1, 0, 0, 42)
 titleBar.BackgroundColor3 = Theme.Background
@@ -168,20 +196,23 @@ local titleLabel = Instance.new("TextLabel")
 titleLabel.Size = UDim2.new(1, -90, 1, 0)
 titleLabel.Position = UDim2.new(0, 15, 0, 0)
 titleLabel.BackgroundTransparency = 1
-titleLabel.Text = "SANTES HUB v3.2"
+titleLabel.Text = "SANTES HUB "
 titleLabel.Font = Enum.Font.GothamBold
 titleLabel.TextColor3 = Theme.TextPrimary
 titleLabel.TextSize = 18
 titleLabel.TextXAlignment = Enum.TextXAlignment.Left
 titleLabel.Parent = titleBar
 
--- ==================== [08] MINIMIZE BUTTON ====================
+-- #####################################################################
+-- #                    [08] MINIMIZE BUTTON                           #
+-- #####################################################################
+
 local minimizeButton = Instance.new("TextButton")
 minimizeButton.Size = UDim2.new(0, 32, 0, 32)
 minimizeButton.Position = UDim2.new(1, -75, 0, 5)
 minimizeButton.Text = "-"
 minimizeButton.Font = Enum.Font.GothamBold
-minimizeButton.TextSize = 20
+minimizeButton.TextSize = 22
 minimizeButton.TextColor3 = Theme.TextPrimary
 minimizeButton.BackgroundColor3 = Color3.fromRGB(180, 150, 30)
 minimizeButton.BorderSizePixel = 0
@@ -192,6 +223,13 @@ local minimizeCorner = Instance.new("UICorner")
 minimizeCorner.CornerRadius = UDim.new(0, 6)
 minimizeCorner.Parent = minimizeButton
 
+-- Minimize butonu tiklaninca
+minimizeButton.MouseButton1Click:Connect(function()
+    mainFrame.Visible = false
+    minimizeFrame.Visible = true
+end)
+
+-- Minimize butonu hover efektleri
 minimizeButton.MouseEnter:Connect(function()
     TweenService:Create(minimizeButton, TweenInfo.new(0.15), {
         BackgroundColor3 = Color3.fromRGB(220, 190, 50)
@@ -204,7 +242,10 @@ minimizeButton.MouseLeave:Connect(function()
     }):Play()
 end)
 
--- ==================== [09] CLOSE BUTTON ====================
+-- #####################################################################
+-- #                      [09] CLOSE BUTTON                            #
+-- #####################################################################
+
 local closeButton = Instance.new("TextButton")
 closeButton.Size = UDim2.new(0, 32, 0, 32)
 closeButton.Position = UDim2.new(1, -38, 0, 5)
@@ -221,10 +262,12 @@ local closeCorner = Instance.new("UICorner")
 closeCorner.CornerRadius = UDim.new(0, 6)
 closeCorner.Parent = closeButton
 
+-- Close butonu tiklaninca TUM modulleri kapat ve GUI'yi yok et
 closeButton.MouseButton1Click:Connect(function()
     FullCleanup()
 end)
 
+-- Close butonu hover efektleri
 closeButton.MouseEnter:Connect(function()
     TweenService:Create(closeButton, TweenInfo.new(0.15), {
         BackgroundColor3 = Theme.AccentHover
@@ -237,52 +280,61 @@ closeButton.MouseLeave:Connect(function()
     }):Play()
 end)
 
--- ==================== [10] MINIMIZE FRAME (KUCUK KARE + LOGO) ====================
+-- #####################################################################
+-- #               [10] MINIMIZE FRAME (KUCUK KARE + LOGO)            #
+-- #####################################################################
+
 local minimizeFrame = Instance.new("Frame")
 minimizeFrame.Name = "SantesMinimizeFrame"
-minimizeFrame.Size = UDim2.new(0, 50, 0, 50)
-minimizeFrame.Position = UDim2.new(0.01, 0, 0.01, 0)
+minimizeFrame.Size = UDim2.new(0, 55, 0, 55)
+minimizeFrame.Position = UDim2.new(0.02, 0, 0.02, 0)
 minimizeFrame.BackgroundColor3 = Theme.FrameBg
 minimizeFrame.BorderSizePixel = 0
 minimizeFrame.Visible = false
 minimizeFrame.Active = true
 minimizeFrame.Draggable = true
+minimizeFrame.ZIndex = 100
 minimizeFrame.Parent = screenGui
 
 local minFrameCorner = Instance.new("UICorner")
-minFrameCorner.CornerRadius = UDim.new(0, 8)
+minFrameCorner.CornerRadius = UDim.new(0, 10)
 minFrameCorner.Parent = minimizeFrame
 
 local minFrameStroke = Instance.new("UIStroke")
 minFrameStroke.Color = Theme.Accent
-minFrameStroke.Thickness = 2
+minFrameStroke.Thickness = 2.5
 minFrameStroke.Parent = minimizeFrame
 
--- Logo resmi
+-- Logo resmi - kareye tam sigacak sekilde
 local logoImage = Instance.new("ImageLabel")
-logoImage.Size = UDim2.new(1, -10, 1, -10)
-logoImage.Position = UDim2.new(0, 5, 0, 5)
+logoImage.Size = UDim2.new(1, 0, 1, 0)
+logoImage.Position = UDim2.new(0, 0, 0, 0)
 logoImage.BackgroundTransparency = 1
 logoImage.Image = LogoURL
 logoImage.ScaleType = Enum.ScaleType.Fit
 logoImage.Parent = minimizeFrame
 
--- Kucuk kareye tiklayinca geri ac
+-- Kucuk kareye tiklayinca ana UI'yi geri ac
+local minDebounce = false
 minimizeFrame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 
-        or input.UserInputType == Enum.UserInputType.Touch then
+    if (input.UserInputType == Enum.UserInputType.MouseButton1 
+        or input.UserInputType == Enum.UserInputType.Touch) 
+        and not minDebounce then
+        
+        minDebounce = true
         minimizeFrame.Visible = false
         mainFrame.Visible = true
+        
+        task.delay(0.3, function()
+            minDebounce = false
+        end)
     end
 end)
 
--- Eksi butonuna tiklayinca kucul
-minimizeButton.MouseButton1Click:Connect(function()
-    mainFrame.Visible = false
-    minimizeFrame.Visible = true
-end)
+-- #####################################################################
+-- #                        [11] DIVIDER                               #
+-- #####################################################################
 
--- ==================== [11] DIVIDER ====================
 local divider = Instance.new("Frame")
 divider.Size = UDim2.new(1, -20, 0, 2)
 divider.Position = UDim2.new(0, 10, 0, 42)
@@ -290,7 +342,10 @@ divider.BackgroundColor3 = Theme.Accent
 divider.BorderSizePixel = 0
 divider.Parent = mainFrame
 
--- ==================== [12] SIDEBAR ====================
+-- #####################################################################
+-- #                        [12] SIDEBAR                               #
+-- #####################################################################
+
 local sidebarFrame = Instance.new("Frame")
 sidebarFrame.Size = UDim2.new(0, 120, 1, -68)
 sidebarFrame.Position = UDim2.new(0, 10, 0, 50)
@@ -314,7 +369,10 @@ sidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
 sidebarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 sidebarLayout.Parent = sidebarFrame
 
--- ==================== [13] CONTENT FRAME ====================
+-- #####################################################################
+-- #                     [13] CONTENT FRAME                            #
+-- #####################################################################
+
 local contentFrame = Instance.new("ScrollingFrame")
 contentFrame.Size = UDim2.new(1, -145, 1, -68)
 contentFrame.Position = UDim2.new(0, 140, 0, 50)
@@ -342,7 +400,10 @@ contentLayout.SortOrder = Enum.SortOrder.LayoutOrder
 contentLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 contentLayout.Parent = contentFrame
 
--- ==================== [14] FOOTER ====================
+-- #####################################################################
+-- #                        [14] FOOTER                                #
+-- #####################################################################
+
 local footerLabel = Instance.new("TextLabel")
 footerLabel.Size = UDim2.new(1, -20, 0, 18)
 footerLabel.Position = UDim2.new(0, 10, 1, -22)
@@ -354,7 +415,10 @@ footerLabel.TextColor3 = Theme.TextSecondary
 footerLabel.TextXAlignment = Enum.TextXAlignment.Right
 footerLabel.Parent = mainFrame
 
--- ==================== [15] DRAGGING SYSTEM ====================
+-- #####################################################################
+-- #                    [15] DRAGGING SYSTEM                           #
+-- #####################################################################
+
 do
     local dragging = false
     local dragInput = nil
@@ -365,7 +429,12 @@ do
         local delta = input.Position - dragStart
         local newX = startPos.X.Offset + delta.X
         local newY = startPos.Y.Offset + delta.Y
-        mainFrame.Position = UDim2.new(startPos.X.Scale, newX, startPos.Y.Scale, newY)
+        mainFrame.Position = UDim2.new(
+            startPos.X.Scale, 
+            newX, 
+            startPos.Y.Scale, 
+            newY
+        )
     end
 
     mainFrame.InputBegan:Connect(function(input)
@@ -409,7 +478,10 @@ do
     end)
 end
 
--- ==================== [16] TOGGLE KEY (K) ====================
+-- #####################################################################
+-- #                    [16] TOGGLE KEY (K)                            #
+-- #####################################################################
+
 UserInputService.InputBegan:Connect(function(input, gpe)
     if not gpe and input.KeyCode == Enum.KeyCode.K then
         if minimizeFrame.Visible then
@@ -421,7 +493,10 @@ UserInputService.InputBegan:Connect(function(input, gpe)
     end
 end)
 
--- ==================== [17] TOGGLE ROW CREATOR ====================
+-- #####################################################################
+-- #                 [17] TOGGLE ROW CREATOR                           #
+-- #####################################################################
+
 local activeBinds = {}
 local currentRowWaitingForKey = nil
 local bindButtonRefs = {}
@@ -430,13 +505,13 @@ local keyBindSetters = {}
 local rowFuncData = {}
 
 local function createToggleRow(scriptName, canToggle, isEnabledFn, onEnable, onDisable, getKeyBindFn, setKeyBindFn)
-    -- Ana satir frame
+    -- Ana satir frame'i
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(1, -16, 0, 35)
     frame.BackgroundTransparency = 1
     frame.Name = scriptName:gsub("%s+", "")
 
-    -- Yatay duzen
+    -- Yatay duzenleyici
     local layout = Instance.new("UIListLayout")
     layout.FillDirection = Enum.FillDirection.Horizontal
     layout.VerticalAlignment = Enum.VerticalAlignment.Center
@@ -445,7 +520,7 @@ local function createToggleRow(scriptName, canToggle, isEnabledFn, onEnable, onD
     layout.Padding = UDim.new(0, 5)
     layout.Parent = frame
 
-    -- Ozellik ismi
+    -- Ozellik isim etiketi
     local label = Instance.new("TextLabel")
     label.Size = UDim2.new(0.43, 0, 1, 0)
     label.BackgroundTransparency = 1
@@ -457,7 +532,7 @@ local function createToggleRow(scriptName, canToggle, isEnabledFn, onEnable, onD
     label.LayoutOrder = 1
     label.Parent = frame
 
-    -- ON/OFF butonu
+    -- ON/OFF toggle butonu
     local toggleBtn = Instance.new("TextButton")
     toggleBtn.Size = UDim2.new(0.25, 0, 0.8, 0)
     toggleBtn.Font = Enum.Font.GothamBold
@@ -469,6 +544,7 @@ local function createToggleRow(scriptName, canToggle, isEnabledFn, onEnable, onD
     toggleBtn.LayoutOrder = 2
     toggleBtn.Parent = frame
 
+    -- Toggle butonu stil
     local toggleCorner = Instance.new("UICorner")
     toggleCorner.CornerRadius = UDim.new(0, 6)
     toggleCorner.Parent = toggleBtn
@@ -481,12 +557,14 @@ local function createToggleRow(scriptName, canToggle, isEnabledFn, onEnable, onD
 
     local bindBtn = nil
 
-    -- Hedef renk hesaplama
+    -- Hedef renk hesaplama fonksiyonu
     local function getTargetColor()
         local state = false
         if type(isEnabledFn) == 'function' then
-            local s, r = pcall(isEnabledFn)
-            if s then state = r end
+            local success, result = pcall(isEnabledFn)
+            if success then
+                state = result
+            end
         end
         if not canToggle then
             return Color3.fromRGB(120, 40, 40)
@@ -494,14 +572,16 @@ local function createToggleRow(scriptName, canToggle, isEnabledFn, onEnable, onD
         return state and Theme.ButtonOn or Theme.ButtonOff
     end
 
-    -- Gorsel guncelleme
+    -- Gorsel guncelleme fonksiyonu
     local function updateVisuals()
         local state = false
         if type(isEnabledFn) == 'function' then
-            local s, r = pcall(isEnabledFn)
-            if s then state = r end
+            local success, result = pcall(isEnabledFn)
+            if success then
+                state = result
+            end
         end
-        
+
         if not canToggle then
             toggleBtn.Text = "RUN"
             toggleBtn.BackgroundColor3 = Color3.fromRGB(120, 40, 40)
@@ -546,14 +626,15 @@ local function createToggleRow(scriptName, canToggle, isEnabledFn, onEnable, onD
         bindStroke.Transparency = 0.4
         bindStroke.Parent = bindBtn
 
+        -- Referanslari kaydet
         bindButtonRefs[frame] = bindBtn
         keyBindGetters[frame] = getKeyBindFn
         keyBindSetters[frame] = setKeyBindFn
 
         -- Baslangic bind degerini kaydet
-        local s, r = pcall(getKeyBindFn)
-        if s and r and typeof(r) == "EnumItem" then
-            activeBinds[r] = {
+        local success, keyResult = pcall(getKeyBindFn)
+        if success and keyResult and typeof(keyResult) == "EnumItem" then
+            activeBinds[keyResult] = {
                 frame = frame,
                 toggleButton = toggleBtn,
                 isEnabledFn = rowFuncData[frame].isEnabledFn,
@@ -564,26 +645,34 @@ local function createToggleRow(scriptName, canToggle, isEnabledFn, onEnable, onD
             }
         end
     else
+        -- Bind butonu yoksa toggle butonu daha genis olsun
         toggleBtn.Size = UDim2.new(0.55, 0, 0.8, 0)
     end
 
-    -- Bind yazisini guncelle
+    -- Bind butonu yazi guncelleme
     local function updateBindText()
-        if not bindBtn then return end
-        local kb = nil
-        if type(getKeyBindFn) == 'function' then
-            local s, r = pcall(getKeyBindFn)
-            if s then kb = r end
+        if not bindBtn then
+            return
         end
-        bindBtn.Text = (kb and typeof(kb) == "EnumItem" and kb.Name ~= "Unknown") 
-            and "[" .. kb.Name .. "]" or "Bind"
+
+        local keyBind = nil
+        if type(getKeyBindFn) == 'function' then
+            local success, result = pcall(getKeyBindFn)
+            if success then
+                keyBind = result
+            end
+        end
+
+        bindBtn.Text = (keyBind and typeof(keyBind) == "EnumItem" and keyBind.Name ~= "Unknown") 
+            and "[" .. keyBind.Name .. "]" 
+            or "Bind"
     end
 
     -- Ilk gorsel guncelleme
     updateVisuals()
     updateBindText()
 
-    -- Toggle hover efektleri
+    -- Toggle butonu hover efektleri
     toggleBtn.MouseEnter:Connect(function()
         local target = getTargetColor()
         local hoverTarget = target:Lerp(Color3.new(1, 1, 1), 0.2)
@@ -612,19 +701,19 @@ local function createToggleRow(scriptName, canToggle, isEnabledFn, onEnable, onD
             }):Play()
         end)
 
-        -- Bind yakalama
+        -- Bind yakalama mantigi
         local capturing = false
         bindBtn.MouseButton1Click:Connect(function()
-            -- Onceki bind'i temizle
+            -- Eger baska bir satir bind bekliyorsa, onu iptal et
             if currentRowWaitingForKey and currentRowWaitingForKey ~= frame then
                 local prevBtn = bindButtonRefs[currentRowWaitingForKey]
                 if prevBtn then
                     local getter = keyBindGetters[currentRowWaitingForKey]
                     local txt = "Bind"
                     if getter then
-                        local s, r = pcall(getter)
-                        if s and r and typeof(r) == "EnumItem" then
-                            txt = "[" .. r.Name .. "]"
+                        local success, result = pcall(getter)
+                        if success and result and typeof(result) == "EnumItem" then
+                            txt = "[" .. result.Name .. "]"
                         end
                     end
                     prevBtn.Text = txt
@@ -632,13 +721,17 @@ local function createToggleRow(scriptName, canToggle, isEnabledFn, onEnable, onD
             end
 
             if capturing then
+                -- Bind yakalama iptal
                 capturing = false
                 updateBindText()
                 currentRowWaitingForKey = nil
             else
+                -- Bind yakalamaya basla
                 capturing = true
                 bindBtn.Text = "..."
                 currentRowWaitingForKey = frame
+
+                -- 5 saniye sonra otomatik iptal
                 task.delay(5, function()
                     if capturing and currentRowWaitingForKey == frame then
                         capturing = false
@@ -650,27 +743,34 @@ local function createToggleRow(scriptName, canToggle, isEnabledFn, onEnable, onD
         end)
     end
 
-    -- Toggle tiklamasi
+    -- Toggle butonu tiklaninca
     toggleBtn.MouseButton1Click:Connect(function()
         local state = false
         if type(isEnabledFn) == 'function' then
-            local s, r = pcall(isEnabledFn)
-            if s then state = r end
+            local success, result = pcall(isEnabledFn)
+            if success then
+                state = result
+            end
         end
 
         if not canToggle then
+            -- Tek seferlik calistirma (RUN butonu)
             if type(onEnable) == 'function' then
                 pcall(onEnable)
             end
             toggleBtn.Text = "DONE"
             toggleBtn.BackgroundColor3 = Theme.ButtonOn:Lerp(
-                Color3.fromRGB(10, 10, 12), 0.3
+                Color3.fromRGB(10, 10, 12), 
+                0.3
             )
             toggleBtn.Active = false
-            if bindBtn then bindBtn.Active = false end
+            if bindBtn then
+                bindBtn.Active = false
+            end
             return
         end
 
+        -- Toggle ac/kapa
         if state then
             if type(onDisable) == 'function' then
                 pcall(onDisable)
@@ -680,14 +780,19 @@ local function createToggleRow(scriptName, canToggle, isEnabledFn, onEnable, onD
                 pcall(onEnable)
             end
         end
+
         updateVisuals()
     end)
 
     return frame
 end
 
--- ==================== [18] SLIDER CREATOR ====================
+-- #####################################################################
+-- #                   [18] SLIDER CREATOR                             #
+-- #####################################################################
+
 local function createSliderRow(labelText, minVal, maxVal, defaultVal, onValueChanged)
+    -- Ana cerceve
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(1, -16, 0, 50)
     frame.BackgroundTransparency = 1
@@ -744,9 +849,9 @@ local function createSliderRow(labelText, minVal, maxVal, defaultVal, onValueCha
     sliderBgCorner.CornerRadius = UDim.new(0, 3)
     sliderBgCorner.Parent = sliderBg
 
-    -- Slider doluluk
-    local sliderFill = Instance.new("Frame")
+    -- Slider doluluk cubugu
     local fillPercent = (defaultVal - minVal) / (maxVal - minVal)
+    local sliderFill = Instance.new("Frame")
     sliderFill.Size = UDim2.new(fillPercent, 0, 1, 0)
     sliderFill.BackgroundColor3 = Theme.SliderFill
     sliderFill.BorderSizePixel = 0
@@ -756,7 +861,7 @@ local function createSliderRow(labelText, minVal, maxVal, defaultVal, onValueCha
     fillCorner.CornerRadius = UDim.new(0, 3)
     fillCorner.Parent = sliderFill
 
-    -- Slider topu
+    -- Slider topu (tutup cekmek icin)
     local sliderBtn = Instance.new("TextButton")
     sliderBtn.Size = UDim2.new(0, 24, 0, 24)
     sliderBtn.Position = UDim2.new(fillPercent, -12, 0.5, -12)
@@ -799,8 +904,15 @@ local function createSliderRow(labelText, minVal, maxVal, defaultVal, onValueCha
     local function updateSlider(input)
         local sliderPos = sliderBg.AbsolutePosition
         local sliderWidth = sliderBg.AbsoluteSize.X
+        
+        if sliderWidth <= 0 then
+            return
+        end
+        
         local relativeX = math.clamp(
-            (input.Position.X - sliderPos.X) / sliderWidth, 0, 1
+            (input.Position.X - sliderPos.X) / sliderWidth, 
+            0, 
+            1
         )
         currentValue = math.floor(minVal + (maxVal - minVal) * relativeX)
 
@@ -809,13 +921,13 @@ local function createSliderRow(labelText, minVal, maxVal, defaultVal, onValueCha
         sliderBtn.Position = UDim2.new(relativeX, -12, 0.5, -12)
         valueLabel.Text = tostring(currentValue)
 
-        -- Geri bildirim
+        -- Geri bildirim fonksiyonu
         if onValueChanged then
             onValueChanged(currentValue)
         end
     end
 
-    -- Surukleme
+    -- Slider topunu surukleme
     sliderBtn.MouseButton1Down:Connect(function()
         local connection
         connection = RunService.RenderStepped:Connect(function()
@@ -825,11 +937,13 @@ local function createSliderRow(labelText, minVal, maxVal, defaultVal, onValueCha
                 connection:Disconnect()
                 return
             end
-            updateSlider({Position = UserInputService:GetMouseLocation()})
+            updateSlider({
+                Position = UserInputService:GetMouseLocation()
+            })
         end)
     end)
 
-    -- Tiklama
+    -- Slider arka planina tiklayinca direkt konumlandir
     sliderBg.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 
             or input.UserInputType == Enum.UserInputType.Touch then
@@ -837,63 +951,115 @@ local function createSliderRow(labelText, minVal, maxVal, defaultVal, onValueCha
         end
     end)
 
-    return frame, function() return currentValue end, function(v)
-        currentValue = v
-        local relativeX = (v - minVal) / (maxVal - minVal)
-        sliderFill.Size = UDim2.new(relativeX, 0, 1, 0)
-        sliderBtn.Position = UDim2.new(relativeX, -12, 0.5, -12)
-        valueLabel.Text = tostring(v)
-    end
+    -- Deger okuma ve ayarlama fonksiyonlarini dondur
+    return frame, 
+        function() 
+            return currentValue 
+        end, 
+        function(v)
+            currentValue = v
+            local rx = (v - minVal) / (maxVal - minVal)
+            sliderFill.Size = UDim2.new(rx, 0, 1, 0)
+            sliderBtn.Position = UDim2.new(rx, -12, 0.5, -12)
+            valueLabel.Text = tostring(v)
+        end
 end
 
--- ==================== [19] MODUL: FLY (MOBILE UYUMLU - MOVEDIRECTION) ====================
+-- #####################################################################
+-- #                      [19] MODUL: FLY                              #
+-- #####################################################################
+
 local flyEnabled = false
 local flyConn = nil
-local flySpeed = 50
+local flySpeed = 60
 
 function Fly_Enable()
-    if flyEnabled then return end
+    if flyEnabled then
+        return
+    end
+    
     flyEnabled = true
 
     flyConn = RunService.Heartbeat:Connect(function(dt)
-        if not flyEnabled then return end
-        
+        if not flyEnabled then
+            return
+        end
+
         local char = LocalPlayer.Character
         local hrp = char and char:FindFirstChild("HumanoidRootPart")
         local hum = char and char:FindFirstChildOfClass("Humanoid")
-        if not hrp or not hum then return end
+        
+        if not hrp or not hum then
+            return
+        end
 
         -- PlatformStand: Dusmeyi engeller, havada kalmayi saglar
         hum.PlatformStand = true
 
+        -- Tum parcalarin AssemblyLinearVelocity'sini sifirla (dusme onleme)
+        for _, part in pairs(char:GetDescendants()) do
+            if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                part.AssemblyLinearVelocity = Vector3.zero
+            end
+        end
+
         local cam = workspace.CurrentCamera
+        if not cam then
+            return
+        end
+
         local moveDir = Vector3.new()
 
         -- MoveDirection: Hem WASD hem mobil joystick otomatik algilanir
         local md = hum.MoveDirection
         if md.Magnitude > 0 then
-            moveDir += md
-        end
-
-        -- Space = Yukari, LeftControl = Asagi
-        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-            moveDir += Vector3.new(0, 1, 0)
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
-            moveDir -= Vector3.new(0, 1, 0)
-        end
-
-        -- Hareket varsa velocity uygula, yoksa havada sabit kal
-        if moveDir.Magnitude > 0 then
-            hrp.Velocity = moveDir.Unit * flySpeed
+            -- Joystick yonu var, kameraya gore cevir
+            moveDir += md * flySpeed
         else
-            hrp.Velocity = Vector3.new(0, 0.1, 0)
+            -- Manuel klavye kontrolu
+            if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+                moveDir += cam.CFrame.LookVector * flySpeed
+            end
+            if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+                moveDir -= cam.CFrame.LookVector * flySpeed
+            end
+            if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+                moveDir -= cam.CFrame.RightVector * flySpeed
+            end
+            if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+                moveDir += cam.CFrame.RightVector * flySpeed
+            end
+        end
+
+        -- Space = Yukari cik
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+            moveDir += Vector3.new(0, flySpeed, 0)
+        end
+
+        -- LeftControl = Asagi in
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
+            moveDir -= Vector3.new(0, flySpeed, 0)
+        end
+
+        -- LeftShift = Boost (2x hiz)
+        local speedMultiplier = 1
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+            speedMultiplier = 2
+        end
+
+        if moveDir.Magnitude > 0 then
+            hrp.CFrame += moveDir.Unit * flySpeed * speedMultiplier * dt
+        else
+            -- Hicbir tusa basilmiyorsa havada sabit kal
+            hrp.Velocity = Vector3.zero
+            hrp.AssemblyLinearVelocity = Vector3.zero
         end
     end)
 end
 
 function Fly_Disable()
     flyEnabled = false
+    
     if flyConn then
         flyConn:Disconnect()
         flyConn = nil
@@ -903,18 +1069,31 @@ function Fly_Disable()
     local char = LocalPlayer.Character
     if char then
         local hum = char:FindFirstChildOfClass("Humanoid")
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        
         if hum then
             hum.PlatformStand = false
+        end
+        
+        if hrp then
+            hrp.Velocity = Vector3.zero
+            hrp.AssemblyLinearVelocity = Vector3.zero
         end
     end
 end
 
--- ==================== [20] MODUL: NOCLIP ====================
+-- #####################################################################
+-- #                     [20] MODUL: NOCLIP                            #
+-- #####################################################################
+
 local noclipEnabled = false
 local noclipConn = nil
 
 function Noclip_Enable()
-    if noclipEnabled then return end
+    if noclipEnabled then
+        return
+    end
+    
     noclipEnabled = true
 
     noclipConn = RunService.RenderStepped:Connect(function()
@@ -930,22 +1109,29 @@ end
 
 function Noclip_Disable()
     noclipEnabled = false
+    
     if noclipConn then
         noclipConn:Disconnect()
         noclipConn = nil
     end
 end
 
--- ==================== [21] MODUL: FULLBRIGHT ====================
+-- #####################################################################
+-- #                    [21] MODUL: FULLBRIGHT                          #
+-- #####################################################################
+
 local fullbrightEnabled = false
 local fullbrightConn = nil
 local origLighting = {}
 
 function FullBright_Enable()
-    if fullbrightEnabled then return end
+    if fullbrightEnabled then
+        return
+    end
+    
     fullbrightEnabled = true
 
-    -- Orijinal degerleri sakla
+    -- Orijinal isik degerlerini sakla
     origLighting = {
         Brightness = Lighting.Brightness,
         ClockTime = Lighting.ClockTime,
@@ -967,6 +1153,7 @@ end
 
 function FullBright_Disable()
     fullbrightEnabled = false
+    
     if fullbrightConn then
         fullbrightConn:Disconnect()
         fullbrightConn = nil
@@ -983,7 +1170,10 @@ function FullBright_Disable()
     end
 end
 
--- ==================== [22] MODUL: FOV CHANGER ====================
+-- #####################################################################
+-- #                    [22] MODUL: FOV CHANGER                         #
+-- #####################################################################
+
 local fovEnabled = false
 local fovVal = 80
 local fovOrig = workspace.CurrentCamera and workspace.CurrentCamera.FieldOfView or 70
@@ -1002,19 +1192,25 @@ function FOV_Disable()
     end
 end
 
--- FOV'u surekli zorla
+-- Surekli FOV'u zorla
 RunService.RenderStepped:Connect(function()
     if fovEnabled and workspace.CurrentCamera then
         workspace.CurrentCamera.FieldOfView = fovVal
     end
 end)
 
--- ==================== [23] MODUL: NO FAIL LOCKPICK ====================
+-- #####################################################################
+-- #                 [23] MODUL: NO FAIL LOCKPICK                       #
+-- #####################################################################
+
 local noFailLPEnabled = false
 local noFailLPConn = nil
 
 function NoFailLP_Enable()
-    if noFailLPEnabled then return end
+    if noFailLPEnabled then
+        return
+    end
+    
     noFailLPEnabled = true
 
     noFailLPConn = PlayerGui.ChildAdded:Connect(function(item)
@@ -1043,114 +1239,303 @@ end
 
 function NoFailLP_Disable()
     noFailLPEnabled = false
+    
     if noFailLPConn then
         noFailLPConn:Disconnect()
         noFailLPConn = nil
     end
 end
 
--- ==================== [24] MODUL: SAFE ESP ====================
+-- #####################################################################
+-- #            [24] MODUL: SAFE ESP + RESPAWN TIMER                    #
+-- #####################################################################
+
 local safeESPEnabled = false
 local safeESPConn = nil
+local safeTimerData = {}
 
+-- Safe tiplerine gore respawn sureleri (saniye)
+local SAFE_RESPAWN_TIMES = {
+    SmallSafe = 180,        -- 3 dakika
+    MediumSafe = 300,       -- 5 dakika
+    LargeSafe = 420,        -- 7 dakika
+    Register = 120,         -- 2 dakika
+    Register_M = 150,       -- 2.5 dakika
+    Register_L = 180,       -- 3 dakika
+    Default = 240           -- 4 dakika (bilinmeyenler icin)
+}
+
+-- Safe isminden respawn suresini bul
+local function getSafeRespawnTime(safeName)
+    for pattern, time in pairs(SAFE_RESPAWN_TIMES) do
+        if string.find(safeName, pattern) then
+            return time
+        end
+    end
+    return SAFE_RESPAWN_TIMES.Default
+end
+
+-- Saniyeyi "Xm Ys" formatina cevir
+local function formatTime(seconds)
+    if seconds <= 0 then
+        return "Ready"
+    end
+    
+    local minutes = math.floor(seconds / 60)
+    local secs = math.floor(seconds % 60)
+    
+    return string.format("%dm %ds", minutes, secs)
+end
+
+-- Safe ESP ana guncelleme fonksiyonu
 local function safeESPUpdate()
-    -- Once Map'te ara, yoksa ana Workspace'te
     local folder = Workspace.Map and Workspace.Map:FindFirstChild("BredMakurz")
+    
     if not folder then
         folder = Workspace:FindFirstChild("BredMakurz")
     end
-    if not folder then return end
+    
+    if not folder then
+        return
+    end
 
     local char = LocalPlayer.Character
-    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    if not char or not char:FindFirstChild("HumanoidRootPart") then
+        return
+    end
+    
     local myPos = char.HumanoidRootPart.Position
+    local now = tick()
 
     for _, obj in pairs(folder:GetChildren()) do
-        local pp = obj.PrimaryPart
-        local part = (pp and pp:IsA("BasePart")) and pp or obj:FindFirstChildOfClass("BasePart")
+        local primaryPart = obj.PrimaryPart
+        local part = (primaryPart and primaryPart:IsA("BasePart")) 
+            and primaryPart 
+            or obj:FindFirstChildOfClass("BasePart")
         
         if part then
             local dist = (part.Position - myPos).magnitude
             local exist = obj:FindFirstChild("SantesSE")
+            local values = obj:FindFirstChild("Values")
+            local broken = values and values:FindFirstChild("Broken")
 
-            if dist <= 200 then
+            if dist <= 250 then
                 if not exist then
                     -- BillboardGui olustur
                     local bg = Instance.new("BillboardGui")
                     bg.Name = "SantesSE"
                     bg.AlwaysOnTop = true
-                    bg.Size = UDim2.new(8, 0, 4, 0)
-                    bg.MaxDistance = 200
+                    bg.Size = UDim2.new(0, 140, 0, 35)
+                    bg.MaxDistance = 250
                     bg.Adornee = obj
                     bg.Parent = obj
 
+                    -- Isim etiketi
                     local tl = Instance.new("TextLabel", bg)
-                    tl.Size = UDim2.new(1, 0, 1, 0)
+                    tl.Size = UDim2.new(1, 0, 0.55, 0)
                     tl.BackgroundTransparency = 1
                     tl.Font = Enum.Font.SourceSansBold
                     tl.TextScaled = false
-                    tl.TextSize = 15
-
-                    -- Isim formatlama
+                    tl.TextSize = 13
                     tl.Text = obj.Name
                         :gsub("([a-z])([A-Z])", "%1 %2")
                         :gsub("_.*", "")
 
-                    -- Kirik durumuna gore renk
-                    local values = obj:FindFirstChild("Values")
-                    local broken = values and values:FindFirstChild("Broken")
-                    
+                    -- Timer etiketi
+                    local timerLabel = Instance.new("TextLabel", bg)
+                    timerLabel.Size = UDim2.new(1, 0, 0.45, 0)
+                    timerLabel.Position = UDim2.new(0, 0, 0.55, 0)
+                    timerLabel.BackgroundTransparency = 1
+                    timerLabel.Font = Enum.Font.Gotham
+                    timerLabel.TextScaled = false
+                    timerLabel.TextSize = 11
+
                     if broken and broken:IsA("BoolValue") then
-                        tl.TextColor3 = broken.Value 
-                            and Color3.new(1, 0, 0) 
-                            or Color3.new(0, 1, 0)
-                        
+                        if broken.Value then
+                            -- Safe soyulmus, kirmizi + timer
+                            tl.TextColor3 = Color3.new(1, 0, 0)
+                            local respawnTime = getSafeRespawnTime(obj.Name)
+                            timerLabel.Text = formatTime(respawnTime)
+                            timerLabel.TextColor3 = Color3.new(1, 0.6, 0)
+                            
+                            safeTimerData[obj] = {
+                                brokenTime = now,
+                                respawnTime = respawnTime,
+                                label = timerLabel,
+                                nameLabel = tl
+                            }
+                        else
+                            -- Safe calisir durumda, yesil
+                            tl.TextColor3 = Color3.new(0, 1, 0)
+                            timerLabel.Text = "Ready"
+                            timerLabel.TextColor3 = Color3.new(0, 1, 0)
+                            safeTimerData[obj] = nil
+                        end
+
+                        -- Kirilma durumu degisince guncelle
                         broken:GetPropertyChangedSignal("Value"):Connect(function()
-                            if tl and tl.Parent then
-                                tl.TextColor3 = broken.Value 
-                                    and Color3.new(1, 0, 0) 
-                                    or Color3.new(0, 1, 0)
+                            if broken.Value then
+                                tl.TextColor3 = Color3.new(1, 0, 0)
+                                local rt = getSafeRespawnTime(obj.Name)
+                                timerLabel.Text = formatTime(rt)
+                                timerLabel.TextColor3 = Color3.new(1, 0.6, 0)
+                                
+                                safeTimerData[obj] = {
+                                    brokenTime = tick(),
+                                    respawnTime = rt,
+                                    label = timerLabel,
+                                    nameLabel = tl
+                                }
+                            else
+                                tl.TextColor3 = Color3.new(0, 1, 0)
+                                timerLabel.Text = "Ready"
+                                timerLabel.TextColor3 = Color3.new(0, 1, 0)
+                                safeTimerData[obj] = nil
                             end
                         end)
                     else
                         tl.TextColor3 = Color3.new(0, 1, 0)
+                        timerLabel.Text = "Ready"
+                        timerLabel.TextColor3 = Color3.new(0, 1, 0)
                     end
                 end
             elseif exist then
+                -- Menzil disinda, GUI'yi yok et
                 exist:Destroy()
+                safeTimerData[obj] = nil
+            end
+        end
+    end
+
+    -- Timer'lari guncelle
+    for obj, data in pairs(safeTimerData) do
+        if data and data.label and data.label.Parent then
+            local elapsed = now - data.brokenTime
+            local remaining = data.respawnTime - elapsed
+            
+            if remaining > 0 then
+                data.label.Text = formatTime(remaining)
+            else
+                data.label.Text = "Ready"
+                data.label.TextColor3 = Color3.new(0, 1, 0)
+                if data.nameLabel then
+                    data.nameLabel.TextColor3 = Color3.new(0, 1, 0)
+                end
             end
         end
     end
 end
 
 function SafeESP_Enable()
-    if safeESPEnabled then return end
+    if safeESPEnabled then
+        return
+    end
+    
     safeESPEnabled = true
     safeESPConn = RunService.Heartbeat:Connect(safeESPUpdate)
 end
 
 function SafeESP_Disable()
     safeESPEnabled = false
+    
     if safeESPConn then
         safeESPConn:Disconnect()
         safeESPConn = nil
     end
+
+    -- Tum timer GUI'lerini temizle
+    for obj, data in pairs(safeTimerData) do
+        if data and data.label then
+            pcall(function()
+                if data.label.Parent then
+                    data.label.Parent:Destroy()
+                end
+            end)
+        end
+    end
+    
+    safeTimerData = {}
 end
 
--- ==================== [25] MODUL: AUTO PICKUP MONEY ====================
+-- #####################################################################
+-- #                  [25] MODUL: AUTO LOCKPICK                         #
+-- #####################################################################
+
+local autoLockpickEnabled = false
+local autoLockpickConn = nil
+
+function AutoLockpick_Enable()
+    if autoLockpickEnabled then
+        return
+    end
+    
+    autoLockpickEnabled = true
+
+    autoLockpickConn = RunService.Heartbeat:Connect(function()
+        if not autoLockpickEnabled then
+            return
+        end
+
+        local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
+        if not playerGui then
+            return
+        end
+
+        local lockpickGUI = playerGui:FindFirstChild("LockpickGUI")
+        if not lockpickGUI then
+            return
+        end
+
+        -- Safe yaninda otomatik lockpick - UIScale'i max yap
+        pcall(function()
+            local frames = lockpickGUI.MF.LP_Frame.Frames
+            for _, barName in pairs({"B1", "B2", "B3"}) do
+                local bar = frames:FindFirstChild(barName)
+                if bar and bar:FindFirstChild("Bar") then
+                    local uiScale = bar.Bar:FindFirstChild("UIScale")
+                    if uiScale then
+                        uiScale.Scale = 10
+                    end
+                end
+            end
+        end)
+    end)
+end
+
+function AutoLockpick_Disable()
+    autoLockpickEnabled = false
+    
+    if autoLockpickConn then
+        autoLockpickConn:Disconnect()
+        autoLockpickConn = nil
+    end
+end
+
+-- #####################################################################
+-- #                 [26] MODUL: AUTO PICKUP MONEY                      #
+-- #####################################################################
+
 local autoPickupEnabled = false
 local autoPickupConn = nil
 local pickupCD = false
 
 function AutoPickup_Enable()
-    if autoPickupEnabled then return end
+    if autoPickupEnabled then
+        return
+    end
+    
     autoPickupEnabled = true
 
     autoPickupConn = RunService.RenderStepped:Connect(function()
-        if not autoPickupEnabled or pickupCD then return end
+        if not autoPickupEnabled or pickupCD then
+            return
+        end
 
         local char = LocalPlayer.Character
-        if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+        if not char or not char:FindFirstChild("HumanoidRootPart") then
+            return
+        end
+
         local hrp = char.HumanoidRootPart
 
         -- Para klasorunu bul
@@ -1158,18 +1543,25 @@ function AutoPickup_Enable()
         if not folder then
             folder = Workspace:FindFirstChild("SpawnedBread")
         end
-        if not folder then return end
+        if not folder then
+            return
+        end
 
+        -- RemoteEvent'i bul
         local remote = ReplicatedStorage.Events and ReplicatedStorage.Events:FindFirstChild("CZDPZUS")
-        if not remote then return end
+        if not remote then
+            return
+        end
 
         -- En yakin parayi bul ve topla
         for _, bread in pairs(folder:GetChildren()) do
             if bread:IsA("BasePart") and (hrp.Position - bread.Position).Magnitude < 5 then
                 pickupCD = true
+                
                 pcall(function()
                     remote:FireServer(bread)
                 end)
+                
                 task.wait(1)
                 pickupCD = false
                 break
@@ -1181,29 +1573,43 @@ end
 function AutoPickup_Disable()
     autoPickupEnabled = false
     pickupCD = false
+    
     if autoPickupConn then
         autoPickupConn:Disconnect()
         autoPickupConn = nil
     end
 end
 
--- ==================== [26] MODUL: AUTO UNLOCK/OPEN DOORS ====================
+-- #####################################################################
+-- #              [27] MODUL: AUTO UNLOCK/OPEN DOORS                    #
+-- #####################################################################
+
 local unlockDoorsEnabled = false
 local unlockDoorsConn = nil
 
 function UnlockDoors_Enable()
-    if unlockDoorsEnabled then return end
+    if unlockDoorsEnabled then
+        return
+    end
+    
     unlockDoorsEnabled = true
 
     unlockDoorsConn = RunService.Heartbeat:Connect(function()
-        if not unlockDoorsEnabled then return end
+        if not unlockDoorsEnabled then
+            return
+        end
 
         local char = LocalPlayer.Character
-        if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+        if not char or not char:FindFirstChild("HumanoidRootPart") then
+            return
+        end
+
         local hrp = char.HumanoidRootPart
 
         local doors = Workspace.Map and Workspace.Map:FindFirstChild("Doors")
-        if not doors then return end
+        if not doors then
+            return
+        end
 
         for _, door in pairs(doors:GetChildren()) do
             local doorBase = door:FindFirstChild("DoorBase")
@@ -1213,19 +1619,22 @@ function UnlockDoors_Enable()
 
                 if values and events then
                     local toggle = events:FindFirstChild("Toggle")
+                    
                     if toggle then
-                        -- Kilit ac
+                        -- Once kilit ac
                         local locked = values:FindFirstChild("Locked")
                         local lockPart = door:FindFirstChild("Lock")
+                        
                         if locked and lockPart and locked.Value == true then
                             pcall(function()
                                 toggle:FireServer("Unlock", lockPart)
                             end)
                         end
 
-                        -- Kapi ac
+                        -- Sonra kapiyi ac
                         local openVal = values:FindFirstChild("Open")
                         local knob = door:FindFirstChild("Knob2") or door:FindFirstChild("Knob")
+                        
                         if openVal and knob and openVal.Value == false then
                             pcall(function()
                                 toggle:FireServer("Open", knob)
@@ -1240,16 +1649,21 @@ end
 
 function UnlockDoors_Disable()
     unlockDoorsEnabled = false
+    
     if unlockDoorsConn then
         unlockDoorsConn:Disconnect()
         unlockDoorsConn = nil
     end
 end
 
--- ==================== [27] MODUL: ADMIN DETECTOR ====================
+-- #####################################################################
+-- #                 [28] MODUL: ADMIN DETECTOR                         #
+-- #####################################################################
+
 local adminCheckEnabled = false
 local adminCheckConn = nil
 
+-- Bilinen staff UserID'leri
 local staffUsers = {
     3294804378, 93676120, 54087314, 81275825, 140837601, 1229486091,
     46567801, 418086275, 29706395, 3717066084, 1424338327, 5046662686,
@@ -1272,7 +1686,9 @@ local staffUsers = {
 }
 
 local function checkStaff(player)
-    if player == LocalPlayer then return false end
+    if player == LocalPlayer then
+        return false
+    end
 
     for _, uid in pairs(staffUsers) do
         if player.UserId == uid then
@@ -1282,16 +1698,22 @@ local function checkStaff(player)
             return true
         end
     end
+    
     return false
 end
 
 function AdminCheck_Enable()
-    if adminCheckEnabled then return end
+    if adminCheckEnabled then
+        return
+    end
+    
     adminCheckEnabled = true
 
     -- Sunucudaki mevcut oyunculari kontrol et
     for _, player in pairs(Players:GetPlayers()) do
-        if checkStaff(player) then return end
+        if checkStaff(player) then
+            return
+        end
     end
 
     -- Yeni girenleri izle
@@ -1300,75 +1722,92 @@ end
 
 function AdminCheck_Disable()
     adminCheckEnabled = false
+    
     if adminCheckConn then
         adminCheckConn:Disconnect()
         adminCheckConn = nil
     end
 end
 
--- ==================== [28] MODUL: PLAYER ESP ====================
+-- #####################################################################
+-- #                   [29] MODUL: PLAYER ESP                           #
+-- #####################################################################
+
 local espEnabled = false
 local espConns = {}
 local espList = {}
 
 local function espCreate(player)
-    if player == LocalPlayer or espList[player] then return end
+    if player == LocalPlayer or espList[player] then
+        return
+    end
+    
     espList[player] = true
 
-    local function setup(char)
-        if not espEnabled or not char or not char.Parent then return end
+    local function setupESP(char)
+        if not espEnabled or not char or not char.Parent then
+            return
+        end
 
-        -- Highlight
-        local hl = Instance.new("Highlight")
-        hl.Name = "SantesESP"
-        hl.FillColor = Color3.fromRGB(255, 0, 0)
-        hl.FillTransparency = 0.65
-        hl.OutlineColor = Color3.fromRGB(255, 40, 40)
-        hl.OutlineTransparency = 0
-        hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-        hl.Parent = char
+        -- Highlight (kirmizi)
+        local highlight = Instance.new("Highlight")
+        highlight.Name = "SantesESP"
+        highlight.FillColor = Color3.fromRGB(255, 0, 0)
+        highlight.FillTransparency = 0.65
+        highlight.OutlineColor = Color3.fromRGB(255, 40, 40)
+        highlight.OutlineTransparency = 0
+        highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+        highlight.Parent = char
 
         -- Isim etiketi
         local head = char:FindFirstChild("Head")
         if head then
-            local bg = Instance.new("BillboardGui")
-            bg.Name = "SantesESPInfo"
-            bg.Size = UDim2.new(0, 100, 0, 30)
-            bg.StudsOffset = Vector3.new(0, 2.5, 0)
-            bg.AlwaysOnTop = true
-            bg.Parent = head
+            local billboard = Instance.new("BillboardGui")
+            billboard.Name = "SantesESPInfo"
+            billboard.Size = UDim2.new(0, 100, 0, 30)
+            billboard.StudsOffset = Vector3.new(0, 2.5, 0)
+            billboard.AlwaysOnTop = true
+            billboard.Parent = head
 
-            local nl = Instance.new("TextLabel")
-            nl.Size = UDim2.new(1, 0, 1, 0)
-            nl.BackgroundTransparency = 1
-            nl.Text = player.Name
-            nl.TextColor3 = Color3.new(1, 1, 1)
-            nl.Font = Enum.Font.GothamBold
-            nl.TextSize = 12
-            nl.Parent = bg
+            local nameLabel = Instance.new("TextLabel")
+            nameLabel.Size = UDim2.new(1, 0, 1, 0)
+            nameLabel.BackgroundTransparency = 1
+            nameLabel.Text = player.Name
+            nameLabel.TextColor3 = Color3.new(1, 1, 1)
+            nameLabel.Font = Enum.Font.GothamBold
+            nameLabel.TextSize = 12
+            nameLabel.Parent = billboard
         end
     end
 
     if player.Character then
-        setup(player.Character)
+        setupESP(player.Character)
     end
 
-    table.insert(espConns, player.CharacterAdded:Connect(setup))
+    table.insert(espConns, player.CharacterAdded:Connect(setupESP))
 end
 
 function ESP_Enable()
-    if espEnabled then return end
+    if espEnabled then
+        return
+    end
+    
     espEnabled = true
     espList = {}
 
+    -- Mevcut oyunculara ESP ekle
     for _, player in pairs(Players:GetPlayers()) do
         espCreate(player)
     end
 
+    -- Yeni girenlere ESP ekle
     table.insert(espConns, Players.PlayerAdded:Connect(function(player)
-        if espEnabled then espCreate(player) end
+        if espEnabled then
+            espCreate(player)
+        end
     end))
 
+    -- Cikan oyunculari listeden cikar
     table.insert(espConns, Players.PlayerRemoving:Connect(function(player)
         espList[player] = nil
     end))
@@ -1377,21 +1816,28 @@ end
 function ESP_Disable()
     espEnabled = false
 
+    -- Tum baglantilari kes
     for _, conn in pairs(espConns) do
-        pcall(function() conn:Disconnect() end)
+        pcall(function()
+            conn:Disconnect()
+        end)
     end
+    
     espConns = {}
     espList = {}
 
+    -- Tum ESP elemanlarini temizle
     for _, player in pairs(Players:GetPlayers()) do
         pcall(function()
             if player.Character then
-                local hl = player.Character:FindFirstChild("SantesESP")
-                if hl then hl:Destroy() end
+                local highlight = player.Character:FindFirstChild("SantesESP")
+                if highlight then
+                    highlight:Destroy()
+                end
 
-                for _, v in pairs(player.Character:GetDescendants()) do
-                    if v:IsA("BillboardGui") and v.Name == "SantesESPInfo" then
-                        v:Destroy()
+                for _, obj in pairs(player.Character:GetDescendants()) do
+                    if obj:IsA("BillboardGui") and obj.Name == "SantesESPInfo" then
+                        obj:Destroy()
                     end
                 end
             end
@@ -1399,7 +1845,10 @@ function ESP_Disable()
     end
 end
 
--- ==================== [29] MODUL: INVISIBILITY (SHADOW MODE) ====================
+-- #####################################################################
+-- #              [30] MODUL: INVISIBILITY (SHADOW MODE)                #
+-- #####################################################################
+
 local invisEnabled = false
 local invisUsable = true
 local invisTrack = nil
@@ -1430,17 +1879,20 @@ do
             pcall(function() invisTrack:Stop() end)
             invisTrack = nil
         end
+        
         if invisHum then
-            local s, r = pcall(function()
+            local success, result = pcall(function()
                 return invisHum:LoadAnimation(anim)
             end)
-            if s then
-                invisTrack = r
+            
+            if success then
+                invisTrack = result
                 invisTrack.Priority = Enum.AnimationPriority.Action4
             end
         end
     end
 
+    -- Ana dongu
     RunService.Heartbeat:Connect(function(dt)
         if not invisEnabled or not invisUsable then
             if not invisEnabled and invisChar then
@@ -1450,12 +1902,16 @@ do
                     end
                 end
             end
-            if invisWarn then invisWarn.Visible = false end
+            if invisWarn then
+                invisWarn.Visible = false
+            end
             return
         end
 
         if not invisChar or not invisHum or not invisHRP or invisHum.Health <= 0 then
-            if invisWarn then invisWarn.Visible = false end
+            if invisWarn then
+                invisWarn.Visible = false
+            end
             return
         end
 
@@ -1463,9 +1919,10 @@ do
             invisWarn.Visible = not grounded()
         end
 
+        -- Hareket
         local speed = 12
         if invisHum.MoveDirection.Magnitude > 0 then
-            invisHRP.CFrame = invisHRP.CFrame + invisHum.MoveDirection * speed * dt
+            invisHRP.CFrame += invisHum.MoveDirection * speed * dt
         end
 
         local oldCF = invisHRP.CFrame
@@ -1479,7 +1936,9 @@ do
 
         if invisTrack then
             pcall(function()
-                if not invisTrack.IsPlaying then invisTrack:Play() end
+                if not invisTrack.IsPlaying then
+                    invisTrack:Play()
+                end
                 invisTrack:AdjustSpeed(0)
                 invisTrack.TimePosition = 0.3
             end)
@@ -1492,6 +1951,7 @@ do
         if invisHum:IsDescendantOf(Workspace) then
             invisHum.CameraOffset = oldOff
         end
+        
         if invisHRP:IsDescendantOf(Workspace) then
             invisHRP.CFrame = oldCF
         end
@@ -1508,6 +1968,7 @@ do
             end
         end
 
+        -- Transparency
         for _, v in pairs(invisChar:GetDescendants()) do
             if v:IsA("BasePart") and v.Transparency ~= 1 then
                 v.Transparency = 0.5
@@ -1515,17 +1976,22 @@ do
         end
     end)
 
+    -- Karakter yenilenince
     LocalPlayer.CharacterAdded:Connect(function()
         if invisTrack then
             pcall(function() invisTrack:Stop() end)
             invisTrack = nil
         end
+        
         task.wait()
         updateRefs()
 
         if invisHum and invisHum.RigType ~= Enum.HumanoidRigType.R6 then
             invisUsable = false
-            if invisEnabled then Invis_Disable() end
+            if invisEnabled then
+                Invis_Disable()
+            end
+            
             pcall(function()
                 StarterGui:SetCore("SendNotification", {
                     Title = "SANTES Invisibility",
@@ -1543,6 +2009,7 @@ do
     end)
 
     updateRefs()
+    
     if invisHum and invisHum.RigType ~= Enum.HumanoidRigType.R6 then
         invisUsable = false
     end
@@ -1564,21 +2031,37 @@ do
     invisWarn.TextColor3 = Color3.fromRGB(255, 255, 0)
     invisWarn.TextStrokeTransparency = 0.5
 
+    -- Global fonksiyonlar
     _G.Invis_Enable = function()
-        if invisEnabled or not invisUsable then return end
+        if invisEnabled or not invisUsable then
+            return
+        end
+        
         invisEnabled = true
         updateRefs()
+        
         if invisHRP then
             workspace.CurrentCamera.CameraSubject = invisHRP
         end
+        
         loadTrack()
     end
 
     _G.Invis_Disable = function()
-        if not invisEnabled then return end
+        if not invisEnabled then
+            return
+        end
+        
         invisEnabled = false
-        if invisTrack then pcall(function() invisTrack:Stop() end) end
-        if invisHum then workspace.CurrentCamera.CameraSubject = invisHum end
+        
+        if invisTrack then
+            pcall(function() invisTrack:Stop() end)
+        end
+        
+        if invisHum then
+            workspace.CurrentCamera.CameraSubject = invisHum
+        end
+        
         if invisChar then
             for _, v in pairs(invisChar:GetDescendants()) do
                 if v:IsA("BasePart") and v.Transparency == 0.5 then
@@ -1586,21 +2069,38 @@ do
                 end
             end
         end
-        if invisWarn then invisWarn.Visible = false end
+        
+        if invisWarn then
+            invisWarn.Visible = false
+        end
     end
 
-    _G.IsInvisEnabled = function() return invisEnabled end
+    _G.IsInvisEnabled = function()
+        return invisEnabled
+    end
 end
 
-function Invis_Enable() _G.Invis_Enable() end
-function Invis_Disable() _G.Invis_Disable() end
+-- Wrapper fonksiyonlar
+function Invis_Enable()
+    _G.Invis_Enable()
+end
 
--- ==================== [30] MODUL: NO RECOIL ====================
+function Invis_Disable()
+    _G.Invis_Disable()
+end
+
+-- #####################################################################
+-- #                   [31] MODUL: NO RECOIL                            #
+-- #####################################################################
+
 local noRecoilEnabled = false
 local noRecoilOrig = {}
 
 function NoRecoil_Enable()
-    if noRecoilEnabled then return end
+    if noRecoilEnabled then
+        return
+    end
+    
     noRecoilEnabled = true
 
     -- getgc ile tum silah tablolarini tara
@@ -1612,24 +2112,34 @@ function NoRecoil_Enable()
                     Recoil = v.Recoil,
                     Spread = v.Spread,
                     CameraRecoilingEnabled = v.CameraRecoilingEnabled,
-                    AngleX_Min = v.AngleX_Min, AngleX_Max = v.AngleX_Max,
-                    AngleY_Min = v.AngleY_Min, AngleY_Max = v.AngleY_Max,
-                    AngleZ_Min = v.AngleZ_Min, AngleZ_Max = v.AngleZ_Max
+                    AngleX_Min = v.AngleX_Min,
+                    AngleX_Max = v.AngleX_Max,
+                    AngleY_Min = v.AngleY_Min,
+                    AngleY_Max = v.AngleY_Max,
+                    AngleZ_Min = v.AngleZ_Min,
+                    AngleZ_Max = v.AngleZ_Max
                 }
             end
+            
             -- Recoil ve spread'i sifirla
             v.Recoil = 0
             v.Spread = 0
             v.CameraRecoilingEnabled = false
-            v.AngleX_Min = 0; v.AngleX_Max = 0
-            v.AngleY_Min = 0; v.AngleY_Max = 0
-            v.AngleZ_Min = 0; v.AngleZ_Max = 0
+            v.AngleX_Min = 0
+            v.AngleX_Max = 0
+            v.AngleY_Min = 0
+            v.AngleY_Max = 0
+            v.AngleZ_Min = 0
+            v.AngleZ_Max = 0
         end
     end
 end
 
 function NoRecoil_Disable()
-    if not noRecoilEnabled then return end
+    if not noRecoilEnabled then
+        return
+    end
+    
     noRecoilEnabled = false
 
     -- Orijinal degerleri geri yukle
@@ -1638,35 +2148,78 @@ function NoRecoil_Disable()
             weapon.Recoil = orig.Recoil
             weapon.Spread = orig.Spread
             weapon.CameraRecoilingEnabled = orig.CameraRecoilingEnabled
-            weapon.AngleX_Min = orig.AngleX_Min; weapon.AngleX_Max = orig.AngleX_Max
-            weapon.AngleY_Min = orig.AngleY_Min; weapon.AngleY_Max = orig.AngleY_Max
-            weapon.AngleZ_Min = orig.AngleZ_Min; weapon.AngleZ_Max = orig.AngleZ_Max
+            weapon.AngleX_Min = orig.AngleX_Min
+            weapon.AngleX_Max = orig.AngleX_Max
+            weapon.AngleY_Min = orig.AngleY_Min
+            weapon.AngleY_Max = orig.AngleY_Max
+            weapon.AngleZ_Min = orig.AngleZ_Min
+            weapon.AngleZ_Max = orig.AngleZ_Max
         end)
     end
+    
     noRecoilOrig = {}
 end
 
--- ==================== [31] MODUL: SILENT AIM (FOV SLIDER) ====================
+-- #####################################################################
+-- #            [32] MODUL: SILENT AIM (FOV CIRCLE)                     #
+-- #####################################################################
+
 local silentAimEnabled = false
 local silentAimConn = nil
 local silentAimFOV = 150
 local silentAimSmoothness = 1
+local fovCircle = nil
 
 function SilentAim_Enable()
-    if silentAimEnabled then return end
+    if silentAimEnabled then
+        return
+    end
+    
     silentAimEnabled = true
 
+    -- FOV cemberi olustur (Drawing kutuphanesi)
+    pcall(function()
+        fovCircle = Drawing.new("Circle")
+        fovCircle.Visible = true
+        fovCircle.Radius = silentAimFOV
+        fovCircle.Color = Color3.fromRGB(255, 255, 255)
+        fovCircle.Thickness = 1.5
+        fovCircle.Transparency = 0.7
+        fovCircle.Filled = false
+        fovCircle.Position = Vector2.new(
+            workspace.CurrentCamera.ViewportSize.X / 2,
+            workspace.CurrentCamera.ViewportSize.Y / 2
+        )
+    end)
+
     silentAimConn = RunService.RenderStepped:Connect(function()
-        if not silentAimEnabled then return end
+        if not silentAimEnabled then
+            return
+        end
+
+        -- FOV cemberini guncelle
+        if fovCircle then
+            pcall(function()
+                fovCircle.Radius = silentAimFOV
+                fovCircle.Position = Vector2.new(
+                    workspace.CurrentCamera.ViewportSize.X / 2,
+                    workspace.CurrentCamera.ViewportSize.Y / 2
+                )
+            end)
+        end
 
         -- Sag tus kontrolu
         local pressed = UserInputService:IsMouseButtonPressed(
             Enum.UserInputType.MouseButton2
         )
-        if not pressed then return end
+        if not pressed then
+            return
+        end
 
         local cam = workspace.CurrentCamera
-        if not cam then return end
+        if not cam then
+            return
+        end
 
         local myChar = LocalPlayer.Character
         if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then
@@ -1723,39 +2276,201 @@ end
 
 function SilentAim_Disable()
     silentAimEnabled = false
+    
     if silentAimConn then
         silentAimConn:Disconnect()
         silentAimConn = nil
     end
+
+    -- FOV cemberini kaldir
+    if fovCircle then
+        pcall(function()
+            fovCircle:Remove()
+        end)
+        fovCircle = nil
+    end
 end
 
--- FOV ayarlama fonksiyonlari
 function SilentAim_SetFOV(value)
     silentAimFOV = math.clamp(value, 50, 500)
+    
+    if fovCircle then
+        pcall(function()
+            fovCircle.Radius = silentAimFOV
+        end)
+    end
 end
 
 function SilentAim_GetFOV()
     return silentAimFOV
 end
 
--- ==================== [32] MODUL: INFINITE STAMINA ====================
+-- #####################################################################
+-- #         [33] MODUL: MELEE AURA (HEAD/BODY + YUMRUK FIX)           #
+-- #####################################################################
+
+local meleeAuraEnabled = false
+local meleeAuraConn = nil
+local meleeTarget = "Head"
+
+function MeleeAura_Enable()
+    if meleeAuraEnabled then
+        return
+    end
+    
+    meleeAuraEnabled = true
+
+    local eventsFolder = ReplicatedStorage:WaitForChild("Events", 10)
+    if not eventsFolder then
+        return
+    end
+
+    local remote1 = eventsFolder:WaitForChild("XMHH.2", 5)
+    local remote2 = eventsFolder:WaitForChild("XMHH2.2", 5)
+
+    if not remote1 or not remote2 then
+        return
+    end
+
+    meleeAuraConn = RunService.Heartbeat:Connect(function()
+        if not meleeAuraEnabled then
+            return
+        end
+
+        local myChar = LocalPlayer.Character
+        if not myChar then
+            return
+        end
+
+        local myHRP = myChar:FindFirstChild("HumanoidRootPart")
+        if not myHRP then
+            return
+        end
+
+        -- Silah varsa onu kullan, yoksa yumruk
+        local tool = myChar:FindFirstChildOfClass("Tool")
+        
+        -- En yakin dusmani bul
+        local closestEnemy = nil
+        local shortestDist = 6
+
+        for _, pl in pairs(Players:GetPlayers()) do
+            if pl ~= LocalPlayer and pl.Character then
+                local enemyHRP = pl.Character:FindFirstChild("HumanoidRootPart")
+                local enemyHum = pl.Character:FindFirstChildOfClass("Humanoid")
+
+                if enemyHRP and enemyHum 
+                    and enemyHum.Health > 15 
+                    and not pl.Character:FindFirstChildOfClass("ForceField") then
+                    
+                    local dist = (myHRP.Position - enemyHRP.Position).Magnitude
+                    if dist < shortestDist then
+                        shortestDist = dist
+                        closestEnemy = pl
+                    end
+                end
+            end
+        end
+
+        if not closestEnemy then
+            return
+        end
+
+        local targetChar = closestEnemy.Character
+        local targetPart = targetChar:FindFirstChild(meleeTarget)
+
+        if not targetPart then
+            return
+        end
+
+        -- YUMRUK ICIN: Eger tool yoksa, fakeTool olarak karakterin kolu kullanilir
+        local fakeTool = tool or myChar:FindFirstChild("Right Arm") or myHRP
+
+        local result = remote1:InvokeServer(
+            "\240\159\141\158",     -- "🍞"
+            tick(),
+            fakeTool,
+            "43TRFWX",
+            "Normal",
+            tick(),
+            true
+        )
+
+        if result then
+            local handle = (tool and (
+                tool:FindFirstChild("WeaponHandle") 
+                or tool:FindFirstChild("Handle")
+            )) or myChar:FindFirstChild("Right Arm")
+
+            if handle then
+                remote2:FireServer(
+                    "\240\159\141\158",
+                    tick(),
+                    fakeTool,
+                    "2389ZFX34",
+                    result,
+                    false,
+                    handle,
+                    targetPart,
+                    targetChar,
+                    myHRP.Position,
+                    targetPart.Position
+                )
+            end
+        end
+
+        task.wait(0.08)
+    end)
+end
+
+function MeleeAura_Disable()
+    meleeAuraEnabled = false
+    
+    if meleeAuraConn then
+        meleeAuraConn:Disconnect()
+        meleeAuraConn = nil
+    end
+end
+
+function MeleeAura_SetTarget(target)
+    if target == "Head" or target == "Body" then
+        meleeTarget = target == "Body" and "HumanoidRootPart" or "Head"
+    end
+end
+
+function MeleeAura_GetTarget()
+    return meleeTarget == "Head" and "Head" or "Body"
+end
+
+-- #####################################################################
+-- #                [34] MODUL: INFINITE STAMINA                        #
+-- #####################################################################
+
 local infStaminaEnabled = false
 local staminaHooked = false
 
 function InfiniteStamina_Enable()
     infStaminaEnabled = true
-    if staminaHooked then return end
+    
+    if staminaHooked then
+        return
+    end
+    
     staminaHooked = true
 
     task.spawn(function()
         for i = 1, 20 do
             local env = nil
+            
+            -- Farkli executor'lar icin environment alma
             local s1, e1 = pcall(function() return getrenv() end)
             if s1 then
                 env = e1
             else
                 local s2, e2 = pcall(function() return getfenv() end)
-                if s2 then env = e2 end
+                if s2 then
+                    env = e2
+                end
             end
 
             if env and env._G and type(env._G.S_Take) == "function" then
@@ -1765,15 +2480,18 @@ function InfiniteStamina_Enable()
 
                 if s3 and type(upval) == "function" then
                     local original = upval
+                    
                     hookfunction(upval, function(v1, ...)
                         if infStaminaEnabled then
                             return original(0, ...)
                         end
                         return original(v1, ...)
                     end)
+                    
                     return
                 end
             end
+            
             task.wait(0.5)
         end
     end)
@@ -1783,7 +2501,10 @@ function InfiniteStamina_Disable()
     infStaminaEnabled = false
 end
 
--- ==================== [33] MODUL: AUTO FARM ====================
+-- #####################################################################
+-- #                   [35] MODUL: AUTO FARM                            #
+-- #####################################################################
+
 local autoFarmEnabled = false
 local autoFarmCoroutine = nil
 local farmIgnored = {}
@@ -1791,32 +2512,45 @@ local farmIgnored = {}
 -- Guvenli teleport
 local function farmTP(pos)
     local char = LocalPlayer.Character
-    if not char then return false end
-    
+    if not char then
+        return false
+    end
+
     local hrp = char:WaitForChild("HumanoidRootPart", 10)
-    if not hrp then return false end
+    if not hrp then
+        return false
+    end
 
     for i = 1, 4 do
         hrp.CFrame = CFrame.new(pos + Vector3.new(0, 3, 0))
         wait(0.5)
+        
         if hrp and hrp.Parent and (hrp.Position - pos).Magnitude < 5 then
             return true
         end
+        
         wait(0.5)
     end
+    
     return false
 end
 
 -- En yakin levye dealer'ini bul
 local function farmFindDealer()
     local shops = Workspace.Map and Workspace.Map:FindFirstChild("Shopz")
-    if not shops then return nil end
+    if not shops then
+        return nil
+    end
 
     local char = LocalPlayer.Character
-    if not char then return nil end
+    if not char then
+        return nil
+    end
 
     local hrp = char:FindFirstChild("HumanoidRootPart")
-    if not hrp then return nil end
+    if not hrp then
+        return nil
+    end
 
     local nearest = nil
     local best = math.huge
@@ -1836,25 +2570,35 @@ local function farmFindDealer()
             end
         end
     end
+    
     return nearest
 end
 
 -- En yakin kirilmamis safe/register bul
 local function farmFindTarget()
     local folder = Workspace.Map and Workspace.Map:FindFirstChild("BredMakurz")
+    
     if not folder then
         folder = Workspace.Filter and Workspace.Filter:FindFirstChild("BredMakurz")
     end
+    
     if not folder then
         folder = Workspace:FindFirstChild("BredMakurz")
     end
-    if not folder then return nil end
+    
+    if not folder then
+        return nil
+    end
 
     local char = LocalPlayer.Character
-    if not char then return nil end
+    if not char then
+        return nil
+    end
 
     local hrp = char:FindFirstChild("HumanoidRootPart")
-    if not hrp then return nil end
+    if not hrp then
+        return nil
+    end
 
     local nearest = nil
     local best = math.huge
@@ -1882,13 +2626,17 @@ local function farmFindTarget()
             end
         end
     end
+    
     return nearest
 end
 
 -- Alet kontrolu
 local function farmHasTool(name)
     local char = LocalPlayer.Character
-    if char and char:FindFirstChild(name) then return true end
+    if char and char:FindFirstChild(name) then
+        return true
+    end
+    
     local bp = LocalPlayer.Backpack
     return bp and bp:FindFirstChild(name) ~= nil
 end
@@ -1896,35 +2644,52 @@ end
 -- Alet kusanma
 local function farmEquipTool(name)
     local char = LocalPlayer.Character
-    if not char then return false end
+    if not char then
+        return false
+    end
 
     local hum = char:FindFirstChildOfClass("Humanoid")
-    if not hum then return false end
+    if not hum then
+        return false
+    end
 
     local tool = char:FindFirstChild(name) or LocalPlayer.Backpack:FindFirstChild(name)
     if tool then
-        pcall(function() hum:EquipTool(tool) end)
+        pcall(function()
+            hum:EquipTool(tool)
+        end)
         wait(0.5)
         return true
     end
+    
     return false
 end
 
 -- Safe acma
 local function farmOpenSafe(safe)
-    if not farmHasTool("Crowbar") then return end
-    if not farmEquipTool("Crowbar") then return end
+    if not farmHasTool("Crowbar") then
+        return
+    end
+    
+    if not farmEquipTool("Crowbar") then
+        return
+    end
 
     local r1 = ReplicatedStorage.Events:FindFirstChild("XMHH.2")
     local r2 = ReplicatedStorage.Events:FindFirstChild("XMHH2.2")
     local sp = safe:FindFirstChild("MainPart")
 
-    if not r1 or not r2 or not sp then return end
+    if not r1 or not r2 or not sp then
+        return
+    end
 
     local eq = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Crowbar")
-    if not eq then return end
+    if not eq then
+        return
+    end
 
     local st = tick()
+    
     while safe and safe.Parent 
         and safe.Values 
         and safe.Values:FindFirstChild("Broken") 
@@ -1932,37 +2697,64 @@ local function farmOpenSafe(safe)
         and (tick() - st < 20) do
         
         local char = LocalPlayer.Character
-        if not char then break end
+        if not char then
+            break
+        end
 
         local res = r1:InvokeServer(
-            "\240\159\141\158", tick(), eq, "DZDRRRKI", safe, "Register"
+            "\240\159\141\158",     -- "🍞"
+            tick(),
+            eq,
+            "DZDRRRKI",
+            safe,
+            "Register"
         )
 
         if res then
             r2:FireServer(
-                "\240\159\141\158", tick(), eq, "2389ZFX34", 
-                res, false, char["Right Arm"], sp, safe, 
-                sp.Position, sp.Position
+                "\240\159\141\158",
+                tick(),
+                eq,
+                "2389ZFX34",
+                res,
+                false,
+                char["Right Arm"],
+                sp,
+                safe,
+                sp.Position,
+                sp.Position
             )
         end
+        
         wait(0.2)
     end
+    
     wait(8)
 end
 
 -- Levye satin alma
 local function farmBuyCrowbar(dealer)
-    if not dealer then return false end
+    if not dealer then
+        return false
+    end
 
     local main = dealer:FindFirstChild("MainPart")
-    if not main then return false end
+    if not main then
+        return false
+    end
 
-    if not farmTP(main.Position) then return false end
+    if not farmTP(main.Position) then
+        return false
+    end
+    
     wait(1)
 
     local be = ReplicatedStorage.Events:FindFirstChild("BYZERSPROTEC")
     local se = ReplicatedStorage.Events:FindFirstChild("SSHPRMTE1")
-    if not be or not se then return false end
+    
+    if not be or not se then
+        return false
+    end
 
     be:FireServer(true, "shop", main, "IllegalStore")
     wait(1)
@@ -1985,8 +2777,11 @@ local function farmLoop()
         if not char or not hum or hum.Health <= 0 then
             local de = ReplicatedStorage.Events:FindFirstChild("DeathRespawn")
             if de then
-                pcall(function() de:InvokeServer("KMG4R904") end)
+                pcall(function()
+                    de:InvokeServer("KMG4R904")
+                end)
             end
+            
             wait(3)
             farmIgnored = {}
             continue
@@ -2024,7 +2819,10 @@ local function farmLoop()
 end
 
 function AutoFarm_Enable()
-    if autoFarmEnabled then return end
+    if autoFarmEnabled then
+        return
+    end
+    
     autoFarmEnabled = true
     farmIgnored = {}
 
@@ -2051,15 +2849,20 @@ end
 
 function AutoFarm_Disable()
     autoFarmEnabled = false
+    
     if autoFarmCoroutine then
         task.cancel(autoFarmCoroutine)
         autoFarmCoroutine = nil
     end
+    
     farmIgnored = {}
     AutoPickup_Disable()
 end
 
--- ==================== [34] UI CATEGORIES ====================
+-- #####################################################################
+-- #                   [36] UI CATEGORIES                               #
+-- #####################################################################
+
 local KB = {}
 local Categories = {"Combat", "Movement", "Visuals", "Farming", "Misc"}
 local CatFrames = {}
@@ -2072,13 +2875,16 @@ end
 
 local function SwitchCategory(name)
     local btn = CatButtons[name]
-    if not btn or btn == ActiveCat then return end
+    if not btn or btn == ActiveCat then
+        return
+    end
 
     -- Onceki aktif butonu sifirla
     if ActiveCat then
         TweenService:Create(ActiveCat, TweenInfo.new(0.15), {
             BackgroundColor3 = Theme.CategoryInactive
         }):Play()
+        
         if ActiveCat.TextLabel then
             ActiveCat.TextLabel.TextColor3 = Theme.TextSecondary
         end
@@ -2088,9 +2894,11 @@ local function SwitchCategory(name)
     TweenService:Create(btn, TweenInfo.new(0.15), {
         BackgroundColor3 = Theme.CategoryActive
     }):Play()
+    
     if btn.TextLabel then
         btn.TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     end
+    
     ActiveCat = btn
 
     -- Content'i temizle
@@ -2109,6 +2917,7 @@ local function SwitchCategory(name)
             frame.Parent = contentFrame
             frame.LayoutOrder = i
         end
+        
         local count = #CatFrames[name]
         contentFrame.CanvasSize = UDim2.new(0, 0, 0, 
             count * 35 + (count > 0 and (count - 1) * 6 or 0) + 10
@@ -2170,9 +2979,11 @@ for i, cat in pairs(Categories) do
     CatButtons[cat] = btn
 end
 
--- ==================== [35] KATEGORILERI DOLDUR ====================
+-- #####################################################################
+-- #                 [37] POPULATE CATEGORIES                           #
+-- #####################################################################
 
--- COMBAT
+-- ==================== COMBAT ====================
 table.insert(CatFrames.Combat, createToggleRow(
     "Silent Aim", true,
     function() return silentAimEnabled end,
@@ -2183,12 +2994,20 @@ table.insert(CatFrames.Combat, createToggleRow(
 
 -- Silent Aim FOV Slider
 do
-    local sliderFrame, getSliderVal, setSliderVal = createSliderRow(
+    local sliderFrame, getVal, setVal = createSliderRow(
         "Aim FOV", 50, 500, 150,
         function(v) SilentAim_SetFOV(v) end
     )
     table.insert(CatFrames.Combat, sliderFrame)
 end
+
+table.insert(CatFrames.Combat, createToggleRow(
+    "Melee Aura", true,
+    function() return meleeAuraEnabled end,
+    MeleeAura_Enable, MeleeAura_Disable,
+    function() return KB.melee end,
+    function(v) KB.melee = v end
+))
 
 table.insert(CatFrames.Combat, createToggleRow(
     "No Recoil", true,
@@ -2198,7 +3017,7 @@ table.insert(CatFrames.Combat, createToggleRow(
     function(v) KB.noRecoil = v end
 ))
 
--- MOVEMENT
+-- ==================== MOVEMENT ====================
 table.insert(CatFrames.Movement, createToggleRow(
     "Fly", true,
     function() return flyEnabled end,
@@ -2230,7 +3049,7 @@ table.insert(CatFrames.Movement, createToggleRow(
     function(v) KB.invis = v end
 ))
 
--- VISUALS
+-- ==================== VISUALS ====================
 table.insert(CatFrames.Visuals, createToggleRow(
     "Player ESP", true,
     function() return espEnabled end,
@@ -2263,7 +3082,7 @@ table.insert(CatFrames.Visuals, createToggleRow(
     function(v) KB.fov = v end
 ))
 
--- FARMING
+-- ==================== FARMING ====================
 table.insert(CatFrames.Farming, createToggleRow(
     "Auto Farm", true,
     function() return autoFarmEnabled end,
@@ -2288,7 +3107,15 @@ table.insert(CatFrames.Farming, createToggleRow(
     function(v) KB.noFailLP = v end
 ))
 
--- MISC
+table.insert(CatFrames.Farming, createToggleRow(
+    "Auto Lockpick", true,
+    function() return autoLockpickEnabled end,
+    AutoLockpick_Enable, AutoLockpick_Disable,
+    function() return KB.autoLockpick end,
+    function(v) KB.autoLockpick = v end
+))
+
+-- ==================== MISC ====================
 table.insert(CatFrames.Misc, createToggleRow(
     "Admin Detector", true,
     function() return adminCheckEnabled end,
@@ -2305,9 +3132,14 @@ table.insert(CatFrames.Misc, createToggleRow(
     function(v) KB.unlockDoors = v end
 ))
 
--- ==================== [36] KEYBIND HANDLER ====================
+-- #####################################################################
+-- #                 [38] KEYBIND HANDLER                               #
+-- #####################################################################
+
 UserInputService.InputBegan:Connect(function(input, gpe)
-    if gpe then return end
+    if gpe then
+        return
+    end
 
     -- Yeni bind yakalama
     if currentRowWaitingForKey 
@@ -2324,7 +3156,9 @@ UserInputService.InputBegan:Connect(function(input, gpe)
             -- Eski bind'i temizle
             local ok = nil
             local s, r = pcall(gf)
-            if s then ok = r end
+            if s then
+                ok = r
+            end
 
             if ok and activeBinds[ok] then
                 activeBinds[ok] = nil
@@ -2335,8 +3169,15 @@ UserInputService.InputBegan:Connect(function(input, gpe)
                 local of = activeBinds[input.KeyCode].frame
                 local ob = bindButtonRefs[of]
                 local os2 = keyBindSetters[of]
-                if os2 then pcall(os2, nil) end
-                if ob then ob.Text = "Bind" end
+                
+                if os2 then
+                    pcall(os2, nil)
+                end
+                
+                if ob then
+                    ob.Text = "Bind"
+                end
+                
                 activeBinds[input.KeyCode] = nil
             end
 
@@ -2371,6 +3212,7 @@ UserInputService.InputBegan:Connect(function(input, gpe)
     -- Mevcut bind'i tetikleme
     if activeBinds[input.KeyCode] then
         local info = activeBinds[input.KeyCode]
+        
         if info.canToggle 
             and info.onEnable 
             and info.onDisable 
@@ -2384,6 +3226,7 @@ UserInputService.InputBegan:Connect(function(input, gpe)
                 else
                     pcall(info.onEnable)
                 end
+                
                 task.wait()
                 pcall(info.updateFn)
             end
@@ -2391,7 +3234,10 @@ UserInputService.InputBegan:Connect(function(input, gpe)
     end
 end)
 
--- ==================== [37] INITIALIZATION ====================
+-- #####################################################################
+-- #                   [39] INITIALIZATION                              #
+-- #####################################################################
+
 SwitchCategory("Combat")
 
 -- Acilis animasyonu
@@ -2399,18 +3245,23 @@ mainFrame.Size = UDim2.new(0, 0, 0, 0)
 local openTween = TweenService:Create(
     mainFrame,
     TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-    {Size = UDim2.new(0, 450, 0, 370)}
+    {Size = UDim2.new(0, 460, 0, 400)}
 )
 task.wait(0.1)
 openTween:Play()
 
 -- Yuklendi mesaji
 print("================================================")
-print("SANTES HUB Yuklendi!")
-print("Silent Aim + FOV Slider")
-print("Fly")
-print("Auto Farm | ESP | No Recoil | Inf Stamina")
-print("FullBright | FOV | Noclip | Invisibility")
-print("Safe ESP | Lockpick | Auto Pickup | Doors")
-print("Admin Detector | Minimize + Logo")
+print("  SANTES HUB YUKLENDI!")
+print("  Piyasanin En Iyisi - Best on Market")
+print(" ")
+print("  MODULLER:")
+print("  Combat:  Silent Aim (FOV Circle) + Melee Aura + No Recoil")
+print("  Movement: Fly (Havada Sabit) + Noclip + Inf Stamina + Invis")
+print("  Visuals:  Player ESP + Safe ESP (Timer) + FullBright + FOV")
+print("  Farming:  Auto Farm + Auto Pickup + No Fail LP + Auto LP")
+print("  Misc:     Admin Detector + Auto Unlock Doors")
+print(" ")
+print("  UI: Minimize + Logo + Drag + K Toggle + X Full Cleanup")
+print("  Mobile: MoveDirection Joystick uyumlu")
 print("================================================")
