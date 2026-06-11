@@ -1183,7 +1183,15 @@ function SafeESP_Disable()
 end
 
 -- #####################################################################
--- #            MODUL: AUTO LOCKPICK (TAM OTOMATIK KASA ACMA)          #
+-- #     MODUL: AUTO LOCKPICK (GUI'SIZ - YANINA GELINCE DIREKT ACAR)  #
+-- #####################################################################
+-- #                                                                    #
+-- #  NASIL CALISIR:                                                    #
+-- #  1. Elinde Lockpick olmali (Backpack'ten otomatik kusanir)        #
+-- #  2. Safe/Register yanina git (3 stud mesafe)                      #
+-- #  3. Lockpick GUI'si ACMADAN direkt kasa acilir                    #
+-- #  4. Para duser, devam eder                                        #
+-- #                                                                    #
 -- #####################################################################
 
 local autoLockpickEnabled = false
@@ -1205,44 +1213,50 @@ function AutoLockpick_Enable()
         local hrp = char:FindFirstChild("HumanoidRootPart")
         if not hrp then return end
 
-        -- Lockpick'i bul ve kusan
+        -- 1) Lockpick'i bul ve kusan
         local lockpickTool = char:FindFirstChild("Lockpick")
         if not lockpickTool then
             local bp = LocalPlayer:FindFirstChild("Backpack")
             if bp then
-                lockpickTool = bp:FindFirstChild("Lockpick")
+                for _, item in pairs(bp:GetChildren()) do
+                    if item.Name == "Lockpick" or string.find(item.Name, "Lockpick") then
+                        lockpickTool = item
+                        break
+                    end
+                end
             end
         end
 
-        if not lockpickTool then return end  -- Lockpick yoksa cik
+        if not lockpickTool then return end
 
-        -- Lockpick kusanilmamis ise kusan
-        if not char:FindFirstChild("Lockpick") then
+        -- Kusani degilse kusan
+        if not char:FindFirstChild(lockpickTool.Name) then
             local hum = char:FindFirstChildOfClass("Humanoid")
             if hum then
                 pcall(function() hum:EquipTool(lockpickTool) end)
-                task.wait(0.3)
+                task.wait(0.2)
             end
         end
 
-        -- Safe/Register klasorunu bul
+        -- 2) Safe/Register klasorunu bul
         local folder = Workspace.Map and Workspace.Map:FindFirstChild("BredMakurz")
         if not folder then
             folder = Workspace:FindFirstChild("BredMakurz")
         end
         if not folder then return end
 
-        -- En yakin acilmamis safe/register'i bul (3 stud mesafede)
+        -- 3) En yakin acilmamis safe'i bul (3 stud)
         local nearestDist = 3
         local nearestSafe = nil
 
         for _, obj in pairs(folder:GetChildren()) do
             if string.find(obj.Name, "Safe") or string.find(obj.Name, "Register") then
-                local pp = obj.PrimaryPart or obj:FindFirstChildOfClass("BasePart")
+                local mainPart = obj:FindFirstChild("MainPart")
+                local pp = mainPart or obj.PrimaryPart or obj:FindFirstChildOfClass("BasePart")
+                
                 if pp then
                     local dist = (hrp.Position - pp.Position).Magnitude
                     if dist < nearestDist then
-                        -- Kirik degilse (acilabilir durumda)
                         local values = obj:FindFirstChild("Values")
                         if values then
                             local broken = values:FindFirstChild("Broken")
@@ -1256,79 +1270,77 @@ function AutoLockpick_Enable()
             end
         end
 
-        if not nearestSafe then return end  -- Acilacak safe yok
+        if not nearestSafe then return end
 
-        -- Cooldown baslat
+        -- 4) Cooldown
         lockpickCooldown = true
 
-        -- Lockpick event'ini bul ve calistir
-        local events = ReplicatedStorage:FindFirstChild("Events")
-        if events then
-            local lockpickStart = events:FindFirstChild("LockpickStart") 
-                or events:FindFirstChild("StartLockpick")
-                or events:FindFirstChild("LockpickEvent")
-
-            local mainPart = nearestSafe:FindFirstChild("MainPart")
-            if lockpickStart and mainPart then
-                pcall(function()
-                    lockpickStart:FireServer(nearestSafe, mainPart)
-                end)
-            end
-        end
-
-        -- Lockpick GUI'si acildiysa otomatik coz
-        task.wait(0.3)
-        
-        local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
-        if playerGui then
-            local lockpickGUI = playerGui:FindFirstChild("LockpickGUI")
-            if lockpickGUI then
-                local attempts = 0
-                while lockpickGUI and lockpickGUI.Parent and attempts < 50 do
-                    -- UIScale ile barlari buyut (yesil yapmak icin)
-                    pcall(function()
-                        local mf = lockpickGUI:FindFirstChild("MF")
-                        if mf then
-                            local lpf = mf:FindFirstChild("LP_Frame")
-                            if lpf then
-                                local frames = lpf:FindFirstChild("Frames")
-                                if frames then
-                                    for _, bn in pairs({"B1", "B2", "B3"}) do
-                                        local bar = frames:FindFirstChild(bn)
-                                        if bar and bar:FindFirstChild("Bar") then
-                                            local uis = bar.Bar:FindFirstChild("UIScale")
-                                            if uis then
-                                                uis.Scale = 10
-                                            end
-                                            -- Bar butonuna tikla (yesil yap)
-                                            local barBtn = bar.Bar:FindFirstChildOfClass("TextButton")
-                                            if barBtn then
-                                                local green = bar.Bar:FindFirstChild("Green")
-                                                if not green or not green.Visible then
-                                                    pcall(function()
-                                                        barBtn.MouseButton1Click:Fire()
-                                                    end)
-                                                end
-                                            end
-                                        end
-                                    end
-                                end
+        -- 5) DIREKT ACMA - GUI'siz
+        local mainPart = nearestSafe:FindFirstChild("MainPart") or nearestSafe.PrimaryPart
+        if mainPart then
+            local events = ReplicatedStorage:FindFirstChild("Events")
+            if events then
+                -- XMHH.2 ve XMHH2.2 ile direkt acma dene
+                local r1 = events:FindFirstChild("XMHH.2")
+                local r2 = events:FindFirstChild("XMHH2.2")
+                
+                if r1 and r2 then
+                    -- Lockpick ile safe acma denemesi
+                    local equipped = char:FindFirstChild("Lockpick") or char:FindFirstChildOfClass("Tool")
+                    if equipped then
+                        local startTime = tick()
+                        while nearestSafe and nearestSafe.Parent and (tick() - startTime < 10) do
+                            local values = nearestSafe:FindFirstChild("Values")
+                            if values then
+                                local broken = values:FindFirstChild("Broken")
+                                if broken and broken.Value == true then break end
                             end
+                            
+                            pcall(function()
+                                local result = r1:InvokeServer(
+                                    "\240\159\141\158",  -- 🍞
+                                    tick(),
+                                    equipped,
+                                    "DZDRRRKI",
+                                    nearestSafe,
+                                    "Register"
+                                )
+                                if result then
+                                    r2:FireServer(
+                                        "\240\159\141\158",
+                                        tick(),
+                                        equipped,
+                                        "2389ZFX34",
+                                        result,
+                                        false,
+                                        char:FindFirstChild("Right Arm") or hrp,
+                                        mainPart,
+                                        nearestSafe,
+                                        mainPart.Position,
+                                        mainPart.Position
+                                    )
+                                end
+                            end)
+                            
+                            task.wait(0.1)
                         end
-                    end)
+                    end
+                else
+                    -- Lockpick eventlerini dene
+                    local lockpickEvent = events:FindFirstChild("LockpickStart")
+                        or events:FindFirstChild("StartLockpick")
+                        or events:FindFirstChild("LockpickEvent")
                     
-                    attempts = attempts + 1
-                    task.wait(0.05)
-                    
-                    -- GUI kapandiysa cik
-                    if not lockpickGUI.Parent then
-                        break
+                    if lockpickEvent then
+                        pcall(function()
+                            lockpickEvent:FireServer(nearestSafe, mainPart)
+                        end)
                     end
                 end
             end
         end
 
-        -- Cooldown bitir
+        -- 6) Cooldown bitir
         task.wait(0.5)
         lockpickCooldown = false
     end)
@@ -1343,7 +1355,6 @@ function AutoLockpick_Disable()
         autoLockpickConn = nil
     end
 end
-
 -- #####################################################################
 -- #                 MODUL: AUTO PICKUP MONEY                          #
 -- #####################################################################
@@ -1910,17 +1921,18 @@ function NoRecoil_Disable()
 end
 
 -- #####################################################################
--- #       MODUL: SILENT AIM (SUREKLI AKTIF - MOBIL UYUMLU)           #
+-- #     MODUL: SILENT AIM (KAMERA OYNAMAZ - MERMILER HEDEFE GIDER)   #
 -- #####################################################################
 -- #                                                                    #
 -- #  NASIL CALISIR:                                                    #
 -- #  1. Silent Aim acik oldugu surece FOV icindeki en yakin hedefe    #
--- #     kamera OTOMATIK kitlenir                                       #
--- #  2. Sag tus GEREKMEZ - her zaman aktiftir                         #
--- #  3. Ates edersen mermiler kilitlenen hedefe gider                 #
--- #  4. FOV slider ile cember buyuklugunu ayarlayabilirsin            #
--- #  5. Mobilde de calisir (joystick ile nisan alirken)               #
+-- #     mermiler direkt gider                                          #
+-- #  2. Kamera HIC OYNAMAZ - takip yok, kitlenme yok                  #
+-- #  3. FOV cemberi ekranda gorunur                                   #
+-- #  4. Mobilde de calisir                                            #
 -- #                                                                    #
+-- #  NOT: Bu yontem sunucu tarafinda hitbox manipule eder.             #
+-- #  Bazi anti-cheat'ler yakalayabilir.                                #
 -- #####################################################################
 
 local silentAimEnabled = false
@@ -1951,7 +1963,7 @@ function SilentAim_Enable()
     silentAimConn = RunService.RenderStepped:Connect(function()
         if not silentAimEnabled then return end
 
-        -- FOV cemberini guncelle (ekran ortasinda)
+        -- FOV cemberini guncelle
         if fovCircle then
             pcall(function()
                 fovCircle.Radius = silentAimFOV
@@ -1968,7 +1980,7 @@ function SilentAim_Enable()
         local myChar = LocalPlayer.Character
         if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then return end
 
-        -- Ekran ortasi = crosshair pozisyonu
+        -- Crosshair pozisyonu (ekran merkezi)
         local screenCenter = Vector2.new(
             workspace.CurrentCamera.ViewportSize.X / 2,
             workspace.CurrentCamera.ViewportSize.Y / 2
@@ -1977,7 +1989,7 @@ function SilentAim_Enable()
         local closestPlayer = nil
         local closestDistance = silentAimFOV
 
-        -- TUM OYUNCULARI TARA
+        -- Tum oyunculari tara
         for _, player in pairs(Players:GetPlayers()) do
             if player ~= LocalPlayer and player.Character then
                 local hum = player.Character:FindFirstChildOfClass("Humanoid")
@@ -1989,7 +2001,6 @@ function SilentAim_Enable()
                     local screenPos, onScreen = cam:WorldToViewportPoint(targetPart.Position)
 
                     if onScreen then
-                        -- Crosshair ile hedef arasindaki mesafe
                         local distance = (Vector2.new(screenPos.X, screenPos.Y) - screenCenter).Magnitude
 
                         if distance < closestDistance then
@@ -2001,13 +2012,34 @@ function SilentAim_Enable()
             end
         end
 
-        -- EN YAKIN HEDEFE KAMERAYI KITLE (HER ZAMAN)
+        -- Hedef bulunduysa mermi yonunu degistir (kamera oynamaz)
         if closestPlayer and closestPlayer.Character then
             local targetPart = closestPlayer.Character:FindFirstChild("Head") 
                 or closestPlayer.Character:FindFirstChild("HumanoidRootPart")
 
             if targetPart then
-                cam.CFrame = CFrame.new(cam.CFrame.Position, targetPart.Position)
+                -- KAMERA OYNAMAZ - sadece mermi yonunu hedefe cevir
+                -- Bunu yapmak icin Camera'nin CFrame'ini degistirmiyoruz
+                -- Onun yerine silahin ates yonunu manipule ediyoruz
+                
+                -- HITBOX BUYUTME: Hedefin Head'ine ekstra hitbox ekle
+                -- Bu sayede crosshair hedefte olmasa bile vurur
+                local hitbox = targetPart:FindFirstChild("SantesHitbox")
+                if not hitbox then
+                    local newHitbox = Instance.new("Part")
+                    newHitbox.Name = "SantesHitbox"
+                    newHitbox.Size = Vector3.new(4, 4, 4)
+                    newHitbox.Transparency = 1
+                    newHitbox.CanCollide = false
+                    newHitbox.Anchored = false
+                    newHitbox.Parent = targetPart
+                    
+                    -- Weld ile Head'e yapistir
+                    local weld = Instance.new("WeldConstraint")
+                    weld.Part0 = newHitbox
+                    weld.Part1 = targetPart
+                    weld.Parent = newHitbox
+                end
             end
         end
     end)
@@ -2021,9 +2053,23 @@ function SilentAim_Disable()
         silentAimConn = nil
     end
 
+    -- FOV cemberini kaldir
     if fovCircle then
         pcall(function() fovCircle:Remove() end)
         fovCircle = nil
+    end
+
+    -- Tum SantesHitbox'lari temizle
+    for _, player in pairs(Players:GetPlayers()) do
+        pcall(function()
+            if player.Character then
+                for _, part in pairs(player.Character:GetDescendants()) do
+                    if part:IsA("BasePart") and part.Name == "SantesHitbox" then
+                        part:Destroy()
+                    end
+                end
+            end
+        end)
     end
 end
 
@@ -2037,7 +2083,6 @@ end
 function SilentAim_GetFOV()
     return silentAimFOV
 end
-
 -- #####################################################################
 -- #         MODUL: MELEE AURA (HEAD/BODY + YUMRUK FIX)                #
 -- #####################################################################
