@@ -1183,20 +1183,21 @@ function SafeESP_Disable()
 end
 
 -- #####################################################################
--- #     MODUL: AUTO LOCKPICK (GUI'SIZ - YANINA GELINCE DIREKT ACAR)  #
+-- #   MODUL: AUTO LOCKPICK (ANINDA ACMA - YANINA GIDINCE DIREKT)     #
 -- #####################################################################
 -- #                                                                    #
 -- #  NASIL CALISIR:                                                    #
--- #  1. Elinde Lockpick olmali (Backpack'ten otomatik kusanir)        #
--- #  2. Safe/Register yanina git (3 stud mesafe)                      #
--- #  3. Lockpick GUI'si ACMADAN direkt kasa acilir                    #
--- #  4. Para duser, devam eder                                        #
+-- #  1. Backpack'te Lockpick varsa otomatik kusanir                   #
+-- #  2. Safe/Register'in 3 stud yanina git                            #
+-- #  3. ANINDA kasa acilir (1 lockpick harcar)                        #
+-- #  4. Lockpick biter, bir sonraki safe icin yeni lockpick lazim     #
 -- #                                                                    #
 -- #####################################################################
 
 local autoLockpickEnabled = false
 local autoLockpickConn = nil
-local lockpickCooldown = false
+local lockpickCD = false
+local lastOpenedSafe = nil  -- Ayni safe'i tekrar acmaya calismasin
 
 function AutoLockpick_Enable()
     if autoLockpickEnabled then return end
@@ -1205,7 +1206,7 @@ function AutoLockpick_Enable()
 
     autoLockpickConn = RunService.Heartbeat:Connect(function()
         if not autoLockpickEnabled then return end
-        if lockpickCooldown then return end
+        if lockpickCD then return end
 
         local char = LocalPlayer.Character
         if not char then return end
@@ -1213,13 +1214,15 @@ function AutoLockpick_Enable()
         local hrp = char:FindFirstChild("HumanoidRootPart")
         if not hrp then return end
 
-        -- 1) Lockpick'i bul ve kusan
+        -- =============================================
+        -- ADIM 1: Lockpick'i bul ve kusan
+        -- =============================================
         local lockpickTool = char:FindFirstChild("Lockpick")
         if not lockpickTool then
             local bp = LocalPlayer:FindFirstChild("Backpack")
             if bp then
                 for _, item in pairs(bp:GetChildren()) do
-                    if item.Name == "Lockpick" or string.find(item.Name, "Lockpick") then
+                    if item.Name == "Lockpick" or string.find(string.lower(item.Name), "lockpick") then
                         lockpickTool = item
                         break
                     end
@@ -1227,128 +1230,180 @@ function AutoLockpick_Enable()
             end
         end
 
+        -- Lockpick yoksa cik
         if not lockpickTool then return end
 
-        -- Kusani degilse kusan
+        -- Elde degilse kusan
         if not char:FindFirstChild(lockpickTool.Name) then
             local hum = char:FindFirstChildOfClass("Humanoid")
             if hum then
                 pcall(function() hum:EquipTool(lockpickTool) end)
-                task.wait(0.2)
+                return  -- Bir sonraki dongude devam et
             end
         end
 
-        -- 2) Safe/Register klasorunu bul
+        -- =============================================
+        -- ADIM 2: En yakin acilmamis safe'i bul (3 stud)
+        -- =============================================
         local folder = Workspace.Map and Workspace.Map:FindFirstChild("BredMakurz")
         if not folder then
             folder = Workspace:FindFirstChild("BredMakurz")
         end
         if not folder then return end
 
-        -- 3) En yakin acilmamis safe'i bul (3 stud)
         local nearestDist = 3
         local nearestSafe = nil
+        local nearestMainPart = nil
 
         for _, obj in pairs(folder:GetChildren()) do
-            if string.find(obj.Name, "Safe") or string.find(obj.Name, "Register") then
-                local mainPart = obj:FindFirstChild("MainPart")
-                local pp = mainPart or obj.PrimaryPart or obj:FindFirstChildOfClass("BasePart")
-                
-                if pp then
-                    local dist = (hrp.Position - pp.Position).Magnitude
-                    if dist < nearestDist then
-                        local values = obj:FindFirstChild("Values")
-                        if values then
-                            local broken = values:FindFirstChild("Broken")
-                            if broken and broken:IsA("BoolValue") and not broken.Value then
-                                nearestDist = dist
-                                nearestSafe = obj
-                            end
-                        end
-                    end
-                end
-            end
-        end
-
-        if not nearestSafe then return end
-
-        -- 4) Cooldown
-        lockpickCooldown = true
-
-        -- 5) DIREKT ACMA - GUI'siz
-        local mainPart = nearestSafe:FindFirstChild("MainPart") or nearestSafe.PrimaryPart
-        if mainPart then
-            local events = ReplicatedStorage:FindFirstChild("Events")
-            if events then
-                -- XMHH.2 ve XMHH2.2 ile direkt acma dene
-                local r1 = events:FindFirstChild("XMHH.2")
-                local r2 = events:FindFirstChild("XMHH2.2")
-                
-                if r1 and r2 then
-                    -- Lockpick ile safe acma denemesi
-                    local equipped = char:FindFirstChild("Lockpick") or char:FindFirstChildOfClass("Tool")
-                    if equipped then
-                        local startTime = tick()
-                        while nearestSafe and nearestSafe.Parent and (tick() - startTime < 10) do
-                            local values = nearestSafe:FindFirstChild("Values")
+            -- Daha once acilmis safe'i atla
+            if obj ~= lastOpenedSafe then
+                if string.find(obj.Name, "Safe") or string.find(obj.Name, "Register") then
+                    local mainPart = obj:FindFirstChild("MainPart") or obj.PrimaryPart or obj:FindFirstChildOfClass("BasePart")
+                    
+                    if mainPart then
+                        local dist = (hrp.Position - mainPart.Position).Magnitude
+                        if dist < nearestDist then
+                            -- Kirik degil mi kontrol et
+                            local values = obj:FindFirstChild("Values")
                             if values then
                                 local broken = values:FindFirstChild("Broken")
-                                if broken and broken.Value == true then break end
-                            end
-                            
-                            pcall(function()
-                                local result = r1:InvokeServer(
-                                    "\240\159\141\158",  -- 🍞
-                                    tick(),
-                                    equipped,
-                                    "DZDRRRKI",
-                                    nearestSafe,
-                                    "Register"
-                                )
-                                if result then
-                                    r2:FireServer(
-                                        "\240\159\141\158",
-                                        tick(),
-                                        equipped,
-                                        "2389ZFX34",
-                                        result,
-                                        false,
-                                        char:FindFirstChild("Right Arm") or hrp,
-                                        mainPart,
-                                        nearestSafe,
-                                        mainPart.Position,
-                                        mainPart.Position
-                                    )
+                                if broken and broken:IsA("BoolValue") and not broken.Value then
+                                    nearestDist = dist
+                                    nearestSafe = obj
+                                    nearestMainPart = mainPart
                                 end
-                            end)
-                            
-                            task.wait(0.1)
+                            end
                         end
-                    end
-                else
-                    -- Lockpick eventlerini dene
-                    local lockpickEvent = events:FindFirstChild("LockpickStart")
-                        or events:FindFirstChild("StartLockpick")
-                        or events:FindFirstChild("LockpickEvent")
-                    
-                    if lockpickEvent then
-                        pcall(function()
-                            lockpickEvent:FireServer(nearestSafe, mainPart)
-                        end)
                     end
                 end
             end
         end
 
-        -- 6) Cooldown bitir
-        task.wait(0.5)
-        lockpickCooldown = false
+        -- Acilacak safe yoksa cik
+        if not nearestSafe then return end
+
+        -- =============================================
+        -- ADIM 3: ANINDA ACMA
+        -- =============================================
+        lockpickCD = true
+        lastOpenedSafe = nearestSafe
+
+        local events = ReplicatedStorage:FindFirstChild("Events")
+        if not events then lockpickCD = false; return end
+
+        -- YONTEM 1: Lockpick remote'lari ile dene
+        local r1 = events:FindFirstChild("XMHH.2")
+        local r2 = events:FindFirstChild("XMHH2.2")
+        
+        if r1 and r2 and nearestMainPart then
+            local tool = char:FindFirstChildOfClass("Tool")
+            if tool then
+                local result = r1:InvokeServer(
+                    "\240\159\141\158",  -- "🍞"
+                    tick(),
+                    tool,
+                    "DZDRRRKI",
+                    nearestSafe,
+                    "Register"
+                )
+                
+                if result then
+                    r2:FireServer(
+                        "\240\159\141\158",
+                        tick(),
+                        tool,
+                        "2389ZFX34",
+                        result,
+                        false,
+                        char:FindFirstChild("Right Arm") or hrp,
+                        nearestMainPart,
+                        nearestSafe,
+                        nearestMainPart.Position,
+                        nearestMainPart.Position
+                    )
+                end
+            end
+        end
+
+        -- YONTEM 2: LockpickStart eventi
+        local lockpickEvent = events:FindFirstChild("LockpickStart")
+            or events:FindFirstChild("StartLockpick")
+            or events:FindFirstChild("LockpickEvent")
+            or events:FindFirstChild("Lockpick")
+        
+        if lockpickEvent and nearestMainPart then
+            pcall(function()
+                lockpickEvent:FireServer(nearestSafe, nearestMainPart)
+            end)
+        end
+
+        -- YONTEM 3: ToolEvent / UseTool
+        local toolEvent = events:FindFirstChild("ToolEvent")
+            or events:FindFirstChild("UseTool")
+            or events:FindFirstChild("ToolRemote")
+        
+        if toolEvent and nearestMainPart then
+            pcall(function()
+                toolEvent:FireServer(nearestSafe, nearestMainPart, "Lockpick")
+            end)
+        end
+
+        -- YONTEM 4: BYZERSPROTEC (bazi sunucularda kullanilir)
+        local byzers = events:FindFirstChild("BYZERSPROTEC")
+        if byzers and nearestMainPart then
+            pcall(function()
+                byzers:FireServer(true, "safe", nearestMainPart, "Lockpick")
+                task.wait(0.05)
+                byzers:FireServer(false)
+            end)
+        end
+
+        -- Lockpick GUI'si acildiysa hemen kapat (UIScale ile)
+        task.wait(0.05)
+        local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
+        if playerGui then
+            local lockpickGUI = playerGui:FindFirstChild("LockpickGUI")
+            if lockpickGUI then
+                -- Barlari aninda tamamla
+                for attempt = 1, 30 do
+                    pcall(function()
+                        local frames = lockpickGUI.MF and lockpickGUI.MF.LP_Frame and lockpickGUI.MF.LP_Frame.Frames
+                        if frames then
+                            for _, bn in pairs({"B1", "B2", "B3"}) do
+                                local bar = frames:FindFirstChild(bn)
+                                if bar and bar:FindFirstChild("Bar") then
+                                    local uis = bar.Bar:FindFirstChild("UIScale")
+                                    if uis then uis.Scale = 20 end
+                                    
+                                    local btn = bar.Bar:FindFirstChildOfClass("TextButton")
+                                    if btn then
+                                        local green = bar.Bar:FindFirstChild("Green")
+                                        if not green or not green.Visible then
+                                            pcall(function() btn.MouseButton1Click:Fire() end)
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end)
+                    
+                    if not lockpickGUI.Parent then break end
+                    task.wait(0.02)
+                end
+            end
+        end
+
+        -- Cooldown bitir (0.3 saniye sonra yeni safe acilabilir)
+        task.wait(0.3)
+        lockpickCD = false
     end)
 end
 
 function AutoLockpick_Disable()
     autoLockpickEnabled = false
-    lockpickCooldown = false
+    lockpickCD = false
+    lastOpenedSafe = nil
     
     if autoLockpickConn then
         autoLockpickConn:Disconnect()
