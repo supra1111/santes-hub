@@ -293,7 +293,7 @@ minimizeFrame.BorderSizePixel = 0
 minimizeFrame.Visible = false
 minimizeFrame.Active = true
 minimizeFrame.Draggable = true
-minimizeFrame.ZIndex = 100
+minimizeFrame.ZIndex = 999  -- EN USTE CIXSIN
 minimizeFrame.Parent = screenGui
 
 local minFrameCorner = Instance.new("UICorner")
@@ -314,21 +314,22 @@ logoImage.Image = LogoURL
 logoImage.ScaleType = Enum.ScaleType.Fit
 logoImage.Parent = minimizeFrame
 
--- Kucuk kareye tiklayinca ana UI'yi geri ac
-local minDebounce = false
+-- TIKLANINCA ANA UI'YI GOSTER
 minimizeFrame.InputBegan:Connect(function(input)
-    if (input.UserInputType == Enum.UserInputType.MouseButton1 
-        or input.UserInputType == Enum.UserInputType.Touch) 
-        and not minDebounce then
+    if input.UserInputType == Enum.UserInputType.MouseButton1 
+        or input.UserInputType == Enum.UserInputType.Touch then
         
-        minDebounce = true
         minimizeFrame.Visible = false
         mainFrame.Visible = true
-        
-        task.delay(0.3, function()
-            minDebounce = false
-        end)
+        mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)  -- Ortaya getir
     end
+end)
+
+-- MOUSEBUTTON1CLICK DE EKLEYELIM (GARANTI)
+minimizeFrame.MouseButton1Click:Connect(function()
+    minimizeFrame.Visible = false
+    mainFrame.Visible = true
+    mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
 end)
 
 -- #####################################################################
@@ -966,12 +967,13 @@ local function createSliderRow(labelText, minVal, maxVal, defaultVal, onValueCha
 end
 
 -- #####################################################################
--- #                      [19] MODUL: FLY                              #
+-- #              [19] MODUL: FLY (TRUE FLING - DUSER GIBI UCAR)       #
 -- #####################################################################
 
 local flyEnabled = false
 local flyConn = nil
-local flySpeed = 60
+local flySpeed = 80        -- Orta hiz
+local flyBoostSpeed = 140  -- Shift ile boost
 
 function Fly_Enable()
     if flyEnabled then
@@ -979,6 +981,15 @@ function Fly_Enable()
     end
     
     flyEnabled = true
+
+    -- Ilk acildiginda karakteri biraz yukari firlat (duser gibi olmamasi icin)
+    local char = LocalPlayer.Character
+    if char then
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            hrp.Velocity = Vector3.new(0, 40, 0)  -- Yukari dogru ilk ivme
+        end
+    end
 
     flyConn = RunService.Heartbeat:Connect(function(dt)
         if not flyEnabled then
@@ -993,13 +1004,14 @@ function Fly_Enable()
             return
         end
 
-        -- PlatformStand: Dusmeyi engeller, havada kalmayi saglar
+        -- PlatformStand acik - yercekimi yok
         hum.PlatformStand = true
 
-        -- Tum parcalarin AssemblyLinearVelocity'sini sifirla (dusme onleme)
+        -- Gravity override - tum parcalarin dogal hareketini durdur
         for _, part in pairs(char:GetDescendants()) do
             if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
                 part.AssemblyLinearVelocity = Vector3.zero
+                part.Velocity = Vector3.zero
             end
         end
 
@@ -1008,52 +1020,49 @@ function Fly_Enable()
             return
         end
 
-        local moveDir = Vector3.new()
+        -- Hedef velocity
+        local targetVel = Vector3.new()
 
-        -- MoveDirection: Hem WASD hem mobil joystick otomatik algilanir
+        -- WASD yonleri - kameraya gore
+        local forward = Vector3.new(cam.CFrame.LookVector.X, 0, cam.CFrame.LookVector.Z).Unit
+        local right = Vector3.new(cam.CFrame.RightVector.X, 0, cam.CFrame.RightVector.Z).Unit
+
+        -- Mobil joystick veya klavye
         local md = hum.MoveDirection
-        if md.Magnitude > 0 then
-            -- Joystick yonu var, kameraya gore cevir
-            moveDir += md * flySpeed
+        if md.Magnitude > 0.1 then
+            -- Joystick varsa onu kullan (mobil)
+            targetVel += md * flySpeed
         else
-            -- Manuel klavye kontrolu
-            if UserInputService:IsKeyDown(Enum.KeyCode.W) then
-                moveDir += cam.CFrame.LookVector * flySpeed
-            end
-            if UserInputService:IsKeyDown(Enum.KeyCode.S) then
-                moveDir -= cam.CFrame.LookVector * flySpeed
-            end
-            if UserInputService:IsKeyDown(Enum.KeyCode.A) then
-                moveDir -= cam.CFrame.RightVector * flySpeed
-            end
-            if UserInputService:IsKeyDown(Enum.KeyCode.D) then
-                moveDir += cam.CFrame.RightVector * flySpeed
-            end
+            -- Manuel klavye
+            if UserInputService:IsKeyDown(Enum.KeyCode.W) then targetVel += forward * flySpeed end
+            if UserInputService:IsKeyDown(Enum.KeyCode.S) then targetVel -= forward * flySpeed end
+            if UserInputService:IsKeyDown(Enum.KeyCode.A) then targetVel -= right * flySpeed end
+            if UserInputService:IsKeyDown(Enum.KeyCode.D) then targetVel += right * flySpeed end
         end
 
-        -- Space = Yukari cik
+        -- Dikey hareket
         if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-            moveDir += Vector3.new(0, flySpeed, 0)
+            targetVel += Vector3.new(0, flySpeed, 0)  -- YUKARI FIRLA
         end
-
-        -- LeftControl = Asagi in
         if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
-            moveDir -= Vector3.new(0, flySpeed, 0)
+            targetVel -= Vector3.new(0, flySpeed, 0)  -- ASAGI DAL
         end
 
-        -- LeftShift = Boost (2x hiz)
-        local speedMultiplier = 1
+        -- Shift = Turbo boost
         if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
-            speedMultiplier = 2
+            targetVel *= 1.75  -- %75 daha hizli
         end
 
-        if moveDir.Magnitude > 0 then
-            hrp.CFrame += moveDir.Unit * flySpeed * speedMultiplier * dt
-        else
-            -- Hicbir tusa basilmiyorsa havada sabit kal
-            hrp.Velocity = Vector3.zero
+        -- HAREKET YOKSA = Havada asili kal (dusme!)
+        if targetVel.Magnitude < 1 then
+            hrp.Velocity = Vector3.new(0, 0.5, 0)  -- Cok hafif yukari kuvvet, sabit kalmak icin
             hrp.AssemblyLinearVelocity = Vector3.zero
+            return
         end
+
+        -- FLING: Velocity'yi direkt hedefe ayarla
+        hrp.Velocity = targetVel
+        hrp.AssemblyLinearVelocity = targetVel
     end)
 end
 
