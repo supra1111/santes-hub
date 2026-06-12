@@ -1909,125 +1909,59 @@ function Invis_Enable() _G.Invis_Enable() end
 function Invis_Disable() _G.Invis_Disable() end
 
 -- #####################################################################
--- #                   MODUL: NO RECOIL                                #
+-- #             MODUL: NO RECOIL (XENO UYUMLU)                       #
 -- #####################################################################
 
 local noRecoilEnabled = false
-local noRecoilOrig = {}
 
 function NoRecoil_Enable()
     if noRecoilEnabled then return end
-    
     noRecoilEnabled = true
 
-    -- getgc ile tum silah tablolarini tara
-    for _, v in pairs(getgc(true)) do
-        if type(v) == 'table' and rawget(v, 'Recoil') ~= nil then
-            -- Orijinal degerleri yedekle
-            if not noRecoilOrig[v] then
-                noRecoilOrig[v] = {
-                    Recoil = v.Recoil,
-                    Spread = v.Spread,
-                    CameraRecoilingEnabled = v.CameraRecoilingEnabled,
-                    AngleX_Min = v.AngleX_Min,
-                    AngleX_Max = v.AngleX_Max,
-                    AngleY_Min = v.AngleY_Min,
-                    AngleY_Max = v.AngleY_Max,
-                    AngleZ_Min = v.AngleZ_Min,
-                    AngleZ_Max = v.AngleZ_Max
-                }
-            end
-            
-            -- Recoil ve spread'i sifirla
-            v.Recoil = 0
-            v.Spread = 0
-            v.CameraRecoilingEnabled = false
-            v.AngleX_Min = 0
-            v.AngleX_Max = 0
-            v.AngleY_Min = 0
-            v.AngleY_Max = 0
-            v.AngleZ_Min = 0
-            v.AngleZ_Max = 0
+    -- Xeno'da getgc calismayabilir, alternatif yontem
+    task.spawn(function()
+        while noRecoilEnabled do
+            pcall(function()
+                -- Calistigin oyunun silah tablolarini bul
+                for _, v in pairs(getgc(true)) do
+                    if type(v) == 'table' then
+                        -- Recoil varsa sifirla
+                        if rawget(v, 'Recoil') ~= nil then
+                            v.Recoil = 0
+                            v.Spread = 0
+                            v.CameraRecoilingEnabled = false
+                        end
+                        -- Angle varsa sifirla
+                        if rawget(v, 'AngleX_Min') ~= nil then
+                            v.AngleX_Min = 0; v.AngleX_Max = 0
+                            v.AngleY_Min = 0; v.AngleY_Max = 0
+                            v.AngleZ_Min = 0; v.AngleZ_Max = 0
+                        end
+                    end
+                end
+            end)
+            task.wait(1) -- Her saniye kontrol et
         end
-    end
+    end)
 end
 
 function NoRecoil_Disable()
-    if not noRecoilEnabled then return end
-    
     noRecoilEnabled = false
-
-    -- Orijinal degerleri geri yukle
-    for weapon, orig in pairs(noRecoilOrig) do
-        pcall(function()
-            weapon.Recoil = orig.Recoil
-            weapon.Spread = orig.Spread
-            weapon.CameraRecoilingEnabled = orig.CameraRecoilingEnabled
-            weapon.AngleX_Min = orig.AngleX_Min
-            weapon.AngleX_Max = orig.AngleX_Max
-            weapon.AngleY_Min = orig.AngleY_Min
-            weapon.AngleY_Max = orig.AngleY_Max
-            weapon.AngleZ_Min = orig.AngleZ_Min
-            weapon.AngleZ_Max = orig.AngleZ_Max
-        end)
-    end
-    
-    noRecoilOrig = {}
 end
-
 -- #####################################################################
--- #     MODUL: SILENT AIM (KAMERA OYNAMAZ - MERMILER HEDEFE GIDER)   #
--- #####################################################################
--- #                                                                    #
--- #  NASIL CALISIR:                                                    #
--- #  1. Silent Aim acik oldugu surece FOV icindeki en yakin hedefe    #
--- #     mermiler direkt gider                                          #
--- #  2. Kamera HIC OYNAMAZ - takip yok, kitlenme yok                  #
--- #  3. FOV cemberi ekranda gorunur                                   #
--- #  4. Mobilde de calisir                                            #
--- #                                                                    #
--- #  NOT: Bu yontem sunucu tarafinda hitbox manipule eder.             #
--- #  Bazi anti-cheat'ler yakalayabilir.                                #
+-- #       MODUL: SILENT AIM (XENO UYUMLU - DRAWING YOK)              #
 -- #####################################################################
 
 local silentAimEnabled = false
 local silentAimConn = nil
 local silentAimFOV = 150
-local fovCircle = nil
 
 function SilentAim_Enable()
     if silentAimEnabled then return end
-    
     silentAimEnabled = true
-
-    -- Beyaz FOV cemberi olustur
-    pcall(function()
-        fovCircle = Drawing.new("Circle")
-        fovCircle.Visible = true
-        fovCircle.Radius = silentAimFOV
-        fovCircle.Color = Color3.fromRGB(255, 255, 255)
-        fovCircle.Thickness = 1.5
-        fovCircle.Transparency = 0.7
-        fovCircle.Filled = false
-        fovCircle.Position = Vector2.new(
-            workspace.CurrentCamera.ViewportSize.X / 2,
-            workspace.CurrentCamera.ViewportSize.Y / 2
-        )
-    end)
 
     silentAimConn = RunService.RenderStepped:Connect(function()
         if not silentAimEnabled then return end
-
-        -- FOV cemberini guncelle
-        if fovCircle then
-            pcall(function()
-                fovCircle.Radius = silentAimFOV
-                fovCircle.Position = Vector2.new(
-                    workspace.CurrentCamera.ViewportSize.X / 2,
-                    workspace.CurrentCamera.ViewportSize.Y / 2
-                )
-            end)
-        end
 
         local cam = workspace.CurrentCamera
         if not cam then return end
@@ -2035,29 +1969,24 @@ function SilentAim_Enable()
         local myChar = LocalPlayer.Character
         if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then return end
 
-        -- Crosshair pozisyonu (ekran merkezi)
         local screenCenter = Vector2.new(
-            workspace.CurrentCamera.ViewportSize.X / 2,
-            workspace.CurrentCamera.ViewportSize.Y / 2
+            cam.ViewportSize.X / 2,
+            cam.ViewportSize.Y / 2
         )
 
         local closestPlayer = nil
         local closestDistance = silentAimFOV
 
-        -- Tum oyunculari tara
         for _, player in pairs(Players:GetPlayers()) do
             if player ~= LocalPlayer and player.Character then
                 local hum = player.Character:FindFirstChildOfClass("Humanoid")
-                
                 local targetPart = player.Character:FindFirstChild("Head") 
                     or player.Character:FindFirstChild("HumanoidRootPart")
 
                 if hum and hum.Health > 0 and targetPart then
                     local screenPos, onScreen = cam:WorldToViewportPoint(targetPart.Position)
-
                     if onScreen then
                         local distance = (Vector2.new(screenPos.X, screenPos.Y) - screenCenter).Magnitude
-
                         if distance < closestDistance then
                             closestDistance = distance
                             closestPlayer = player
@@ -2067,29 +1996,23 @@ function SilentAim_Enable()
             end
         end
 
-        -- Hedef bulunduysa mermi yonunu degistir (kamera oynamaz)
+        -- HEDEFE HITBOX EKLE (Drawing yerine Part kullan)
         if closestPlayer and closestPlayer.Character then
             local targetPart = closestPlayer.Character:FindFirstChild("Head") 
                 or closestPlayer.Character:FindFirstChild("HumanoidRootPart")
 
             if targetPart then
-                -- KAMERA OYNAMAZ - sadece mermi yonunu hedefe cevir
-                -- Bunu yapmak icin Camera'nin CFrame'ini degistirmiyoruz
-                -- Onun yerine silahin ates yonunu manipule ediyoruz
-                
-                -- HITBOX BUYUTME: Hedefin Head'ine ekstra hitbox ekle
-                -- Bu sayede crosshair hedefte olmasa bile vurur
                 local hitbox = targetPart:FindFirstChild("SantesHitbox")
                 if not hitbox then
                     local newHitbox = Instance.new("Part")
                     newHitbox.Name = "SantesHitbox"
-                    newHitbox.Size = Vector3.new(4, 4, 4)
+                    newHitbox.Size = Vector3.new(5, 5, 5)
                     newHitbox.Transparency = 1
                     newHitbox.CanCollide = false
                     newHitbox.Anchored = false
+                    newHitbox.Massless = true
                     newHitbox.Parent = targetPart
                     
-                    -- Weld ile Head'e yapistir
                     local weld = Instance.new("WeldConstraint")
                     weld.Part0 = newHitbox
                     weld.Part1 = targetPart
@@ -2102,19 +2025,8 @@ end
 
 function SilentAim_Disable()
     silentAimEnabled = false
+    if silentAimConn then silentAimConn:Disconnect(); silentAimConn = nil end
     
-    if silentAimConn then
-        silentAimConn:Disconnect()
-        silentAimConn = nil
-    end
-
-    -- FOV cemberini kaldir
-    if fovCircle then
-        pcall(function() fovCircle:Remove() end)
-        fovCircle = nil
-    end
-
-    -- Tum SantesHitbox'lari temizle
     for _, player in pairs(Players:GetPlayers()) do
         pcall(function()
             if player.Character then
@@ -2130,9 +2042,6 @@ end
 
 function SilentAim_SetFOV(value)
     silentAimFOV = math.clamp(value, 50, 500)
-    if fovCircle then
-        pcall(function() fovCircle.Radius = silentAimFOV end)
-    end
 end
 
 function SilentAim_GetFOV()
@@ -2256,59 +2165,39 @@ function MeleeAura_GetTarget()
 end
 
 -- #####################################################################
--- #                MODUL: INFINITE STAMINA                            #
+-- #           MODUL: INFINITE STAMINA (XENO UYUMLU)                  #
 -- #####################################################################
 
 local infStaminaEnabled = false
-local staminaHooked = false
+local infStaminaConn = nil
 
 function InfiniteStamina_Enable()
+    if infStaminaEnabled then return end
     infStaminaEnabled = true
-    
-    if staminaHooked then return end
-    
-    staminaHooked = true
 
-    task.spawn(function()
-        for i = 1, 20 do
-            local env = nil
-            
-            local s1, e1 = pcall(function() return getrenv() end)
-            if s1 then
-                env = e1
-            else
-                local s2, e2 = pcall(function() return getfenv() end)
-                if s2 then env = e2 end
-            end
-
-            if env and env._G and type(env._G.S_Take) == "function" then
-                local s3, upval = pcall(function()
-                    return getupvalue(env._G.S_Take, 2)
-                end)
-
-                if s3 and type(upval) == "function" then
-                    local original = upval
-                    
-                    hookfunction(upval, function(v1, ...)
-                        if infStaminaEnabled then
-                            return original(0, ...)
-                        end
-                        return original(v1, ...)
-                    end)
-                    
-                    return
+    -- Xeno'da hookfunction calismaz, direkt stamina degerini sifirla
+    infStaminaConn = RunService.RenderStepped:Connect(function()
+        if not infStaminaEnabled then return end
+        
+        local char = LocalPlayer.Character
+        if not char then return end
+        
+        -- Tum Humanoid'lerin stamina'sini sifirla
+        for _, hum in pairs(char:GetDescendants()) do
+            if hum:IsA("Humanoid") then
+                -- Stamina'yi max'ta tut
+                if hum.MaxStamina and hum.Stamina then
+                    hum.Stamina = hum.MaxStamina
                 end
             end
-            
-            task.wait(0.5)
         end
     end)
 end
 
 function InfiniteStamina_Disable()
     infStaminaEnabled = false
+    if infStaminaConn then infStaminaConn:Disconnect(); infStaminaConn = nil end
 end
-
 -- #####################################################################
 -- #                   MODUL: AUTO FARM                                #
 -- #####################################################################
