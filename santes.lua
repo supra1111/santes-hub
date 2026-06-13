@@ -2199,34 +2199,383 @@ function InfiniteStamina_Disable()
     if infStaminaConn then infStaminaConn:Disconnect(); infStaminaConn = nil end
 end
 -- #####################################################################
--- #                   MODUL: AUTO FARM                                #
+-- #                   MODUL: AUTO FARM (CRIMINALITY)                 #
 -- #####################################################################
 
 local autoFarmEnabled = false
+local autoFarmMode = "Crowbar" -- "Crowbar", "FistLockpick"
 local autoFarmCoroutine = nil
 local farmIgnored = {}
 
-local function farmTP(pos)
-    local char = LocalPlayer.Character
-    if not char then return false end
+-- Hareket hızı ayarı (Criminality'de normal yürüme hızı 16, koşma 20-22)
+local moveSpeed = 20
+local speedSlider = nil
+local speedValueLabel = nil
 
-    local hrp = char:WaitForChild("HumanoidRootPart", 10)
-    if not hrp then return false end
+-- Para yatırma limiti (Criminality'de allowance 50k max)
+local depositLimit = 5000
+local depositSlider = nil
+local depositValueLabel = nil
 
-    for i = 1, 4 do
-        hrp.CFrame = CFrame.new(pos + Vector3.new(0, 3, 0))
-        wait(0.5)
-        if hrp and hrp.Parent and (hrp.Position - pos).Magnitude < 5 then
-            return true
+-- Allowance Takibi (Criminality'nin real allowance sistemi için)
+local allowanceTrackingEnabled = false
+local allowanceCheckConn = nil
+local allowanceUI = nil
+local currentAllowance = 0
+local allowanceLimit = 5000
+local lastDepositTime = 0
+local lastAllowanceFetch = 0
+
+-- Lockpick sayacı (Criminality'de max 8 lockpick alınabilir)
+local lockpickCount = 0
+local maxLockpickCount = 8
+
+-- Path çizgi objeleri
+local currentPathLines = {}
+local pathLineConnection = nil
+
+-- Invisibility kontrolü
+local wasInvisibleBeforeFarm = false
+
+-- ATM lokasyonları (Criminality haritasına göre)
+local atmLocations = {}
+
+-- Criminality için event referansları
+local Events = nil
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- Criminality'nin event yapısını bul
+local function getEvents()
+    if Events then return Events end
+    Events = ReplicatedStorage:FindFirstChild("Events")
+    if not Events then
+        for _, child in pairs(ReplicatedStorage:GetChildren()) do
+            if child.Name == "Events" or child:FindFirstChild("XMHH.2") then
+                Events = child
+                break
+            end
         end
-        wait(0.5)
+    end
+    return Events
+end
+
+-- =============================================
+-- CRIMINALITY ALLOWANCE OKUMA
+-- =============================================
+
+local function getCurrentAllowance()
+    -- Criminality'de allowance değeri genellikle PlayerGui'de veya leaderstats'te olur
+    local leaderstats = LocalPlayer:FindFirstChild("leaderstats")
+    if leaderstats then
+        local allowance = leaderstats:FindFirstChild("Allowance") or leaderstats:FindFirstChild("Money")
+        if allowance then
+            return allowance.Value
+        end
     end
     
-    return false
+    -- Alternatif: PlayerGui'deki AllowanceFrame
+    local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
+    if playerGui then
+        for _, gui in pairs(playerGui:GetChildren()) do
+            if gui.Name == "AllowanceFrame" or gui.Name == "MoneyFrame" then
+                local textLabel = gui:FindFirstChildOfClass("TextLabel")
+                if textLabel then
+                    local text = textLabel.Text
+                    local num = tonumber(text:match("(%d+)"))
+                    if num then return num end
+                end
+            end
+        end
+    end
+    
+    return currentAllowance -- fallback
 end
+
+local function updateAllowanceUI()
+    if not allowanceUI or not allowanceUI.Visible then return end
+    
+    local textLabel = allowanceUI:FindFirstChild("TextLabel")
+    if textLabel then
+        local remaining = allowanceLimit - currentAllowance
+        if remaining <= 0 then
+            textLabel.Text = string.format("ALLOWANCE: $%d / $%d (READY!)", currentAllowance, allowanceLimit)
+        else
+            textLabel.Text = string.format("ALLOWANCE: $%d / $%d ($%d left)", currentAllowance, allowanceLimit, remaining)
+        end
+    end
+end
+
+-- =============================================
+-- PATH ÇİZGİ FONKSİYONLARI (Yeşil çizgi)
+-- =============================================
+
+local function clearPathLines()
+    for _, line in pairs(currentPathLines) do
+        pcall(function() line:Destroy() end)
+    end
+    currentPathLines = {}
+end
+
+local function drawPathLine(points, color)
+    clearPathLines()
+    
+    if #points < 2 then return end
+    
+    for i = 1, #points - 1 do
+        local distance = (points[i] - points[i + 1]).Magnitude
+        local line = Instance.new("Part")
+        line.Name = "SantesPathLine"
+        line.Size = Vector3.new(0.15, 0.15, distance)
+        line.CFrame = CFrame.new(points[i], points[i + 1]) * CFrame.new(0, 0, -distance/2)
+        line.BrickColor = BrickColor.new(color)
+        line.Material = Enum.Material.Neon
+        line.Anchored = true
+        line.CanCollide = false
+        line.Transparency = 0.2
+        line.Parent = workspace
+        table.insert(currentPathLines, line)
+    end
+end
+
+local function updatePathDrawing(points)
+    drawPathLine(points, "Lime green")
+end
+
+-- =============================================
+-- INVISIBILITY KONTROL (Criminality Shadow Mode)
+-- =============================================
+
+local function ensureInvisible()
+    if not autoFarmEnabled then return end
+    
+    -- Criminality'nin shadow mode/ invisibility fonksiyonu
+    if _G.Invis_Enable and not (_G.IsInvisEnabled and _G.IsInvisEnabled()) then
+        _G.Invis_Enable()
+        task.wait(0.3)
+    end
+end
+
+local function respawnAndGoInvisible()
+    -- Criminality'de ölünce respawn mekanizması
+    local events = getEvents()
+    if events then
+        local deathRespawn = events:FindFirstChild("DeathRespawn")
+        if deathRespawn then
+            pcall(function() deathRespawn:InvokeServer("KMG4R904") end)
+        end
+    end
+    
+    -- Alternatif respawn metodu
+    local playerScripts = LocalPlayer:FindFirstChild("PlayerScripts")
+    if playerScripts then
+        local respawnModule = playerScripts:FindFirstChild("Respawn")
+        if respawnModule then
+            pcall(function() respawnModule:Fire() end)
+        end
+    end
+    
+    wait(2)
+    
+    -- Yeniden doğduktan sonra invisible ol
+    task.wait(0.5)
+    ensureInvisible()
+end
+
+-- =============================================
+-- MESAFEYE GÖRE IŞINLANMA veya YÜRÜME
+-- =============================================
+
+local function moveToPosition(targetPos, usePath, pathPoints)
+    local char = LocalPlayer.Character
+    if not char then return false end
+    
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if not hrp or not hum then return false end
+    
+    local distance = (hrp.Position - targetPos).Magnitude
+    
+    -- 5 metreden uzaksa direkt ışınlan (Criminality'de antix ışınlanma koruması var ama çalışıyor)
+    if distance > 5 then
+        hrp.CFrame = CFrame.new(targetPos + Vector3.new(0, 3, 0))
+        wait(0.3)
+        
+        if usePath then
+            clearPathLines()
+        end
+        return true
+    end
+    
+    -- Path varsa ve kullanılacaksa yeşil çizgi ile yürü
+    if usePath and pathPoints and #pathPoints > 0 then
+        updatePathDrawing(pathPoints)
+        
+        -- Önce path'in başlangıç noktasına git (çok uzaksa ışınlan)
+        local startDist = (hrp.Position - pathPoints[1]).Magnitude
+        if startDist > 5 then
+            hrp.CFrame = CFrame.new(pathPoints[1] + Vector3.new(0, 3, 0))
+            wait(0.3)
+        end
+        
+        hum.WalkSpeed = moveSpeed
+        hum.AutoRotate = true
+        
+        for i = 1, #pathPoints do
+            if not autoFarmEnabled then break end
+            
+            local point = pathPoints[i]
+            local pointDist = (hrp.Position - point).Magnitude
+            
+            if pointDist > 5 then
+                -- Path noktasına ışınlan
+                hrp.CFrame = CFrame.new(point + Vector3.new(0, 3, 0))
+                wait(0.2)
+            else
+                -- Yürüyerek git
+                local startTime = tick()
+                while (hrp.Position - point).Magnitude > 2 and tick() - startTime < 10 do
+                    if not autoFarmEnabled then break end
+                    
+                    char = LocalPlayer.Character
+                    if not char then break end
+                    
+                    hrp = char:FindFirstChild("HumanoidRootPart")
+                    hum = char:FindFirstChildOfClass("Humanoid")
+                    if not hrp or not hum then break end
+                    
+                    local lookAt = (point - hrp.Position).Unit
+                    hrp.CFrame = CFrame.new(hrp.Position, hrp.Position + Vector3.new(lookAt.X, 0, lookAt.Z))
+                    hum.MoveDirection = Vector3.new(lookAt.X, 0, lookAt.Z)
+                    
+                    wait()
+                end
+            end
+        end
+        
+        hum.MoveDirection = Vector3.new()
+        clearPathLines()
+        return true
+    end
+    
+    -- Path yoksa normal yürüme
+    hum.WalkSpeed = moveSpeed
+    hum.AutoRotate = true
+    
+    local startTime = tick()
+    while (hrp.Position - targetPos).Magnitude > 3.5 and tick() - startTime < 15 do
+        if not autoFarmEnabled then break end
+        
+        char = LocalPlayer.Character
+        if not char then return false end
+        
+        hrp = char:FindFirstChild("HumanoidRootPart")
+        hum = char:FindFirstChildOfClass("Humanoid")
+        if not hrp or not hum then return false end
+        
+        local lookAt = (targetPos - hrp.Position).Unit
+        hrp.CFrame = CFrame.new(hrp.Position, hrp.Position + Vector3.new(lookAt.X, 0, lookAt.Z))
+        hum.MoveDirection = Vector3.new(lookAt.X, 0, lookAt.Z)
+        
+        wait()
+    end
+    
+    hum.MoveDirection = Vector3.new()
+    clearPathLines()
+    
+    return (hrp.Position - targetPos).Magnitude <= 3.5
+end
+
+local function farmMoveTo(pos, usePath, pathPoints)
+    return moveToPosition(pos, usePath, pathPoints)
+end
+
+local function getNearestPointOnLine(A, B, P)
+    local AB = B - A
+    local t = (P - A):Dot(AB) / AB:Dot(AB)
+    t = math.clamp(t, 0, 1)
+    return A + AB * t
+end
+
+local function getNearestPointOnPath(points, pos)
+    local nearest = points[1]
+    local minDist = (points[1] - pos).Magnitude
+    
+    for i = 1, #points - 1 do
+        local nearestOnSegment = getNearestPointOnLine(points[i], points[i + 1], pos)
+        local dist = (nearestOnSegment - pos).Magnitude
+        if dist < minDist then
+            minDist = dist
+            nearest = nearestOnSegment
+        end
+    end
+    
+    return nearest, minDist
+end
+
+local function followPath(points, targetReachedDist)
+    local char = LocalPlayer.Character
+    if not char then return false end
+    
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if not hrp or not hum then return false end
+    
+    hum.WalkSpeed = moveSpeed
+    updatePathDrawing(points)
+    
+    local currentPos = hrp.Position
+    local targetPoint = nil
+    
+    for i = 1, #points do
+        if (points[i] - currentPos).Magnitude < 5 then
+            if i < #points then
+                targetPoint = points[i + 1]
+            else
+                clearPathLines()
+                return true
+            end
+            break
+        end
+    end
+    
+    if not targetPoint then
+        local nearestPoint, _ = getNearestPointOnPath(points, currentPos)
+        targetPoint = nearestPoint
+    end
+    
+    local startTime = tick()
+    while (hrp.Position - targetPoint).Magnitude > targetReachedDist and tick() - startTime < 15 do
+        if not autoFarmEnabled then break end
+        
+        char = LocalPlayer.Character
+        if not char then break end
+        
+        hrp = char:FindFirstChild("HumanoidRootPart")
+        hum = char:FindFirstChildOfClass("Humanoid")
+        if not hrp or not hum then break end
+        
+        local lookAt = (targetPoint - hrp.Position).Unit
+        hrp.CFrame = CFrame.new(hrp.Position, hrp.Position + Vector3.new(lookAt.X, 0, lookAt.Z))
+        hum.MoveDirection = Vector3.new(lookAt.X, 0, lookAt.Z)
+        
+        wait()
+    end
+    
+    hum.MoveDirection = Vector3.new()
+    clearPathLines()
+    
+    return true
+end
+
+-- =============================================
+-- DEALER BULMA (Criminality Shopz)
+-- =============================================
 
 local function farmFindDealer()
     local shops = Workspace.Map and Workspace.Map:FindFirstChild("Shopz")
+    if not shops then
+        shops = Workspace:FindFirstChild("Shopz")
+    end
     if not shops then return nil end
 
     local char = LocalPlayer.Character
@@ -2243,12 +2592,23 @@ local function farmFindDealer()
         local stocks = shop:FindFirstChild("CurrentStocks")
 
         if main and stocks then
-            local cs = stocks:FindFirstChild("Crowbar")
-            if cs and cs.Value > 0 then
-                local d = (main.Position - hrp.Position).Magnitude
-                if d < best then
-                    best = d
-                    nearest = shop
+            if autoFarmMode == "Crowbar" then
+                local cs = stocks:FindFirstChild("Crowbar")
+                if cs and cs.Value > 0 then
+                    local d = (main.Position - hrp.Position).Magnitude
+                    if d < best then
+                        best = d
+                        nearest = shop
+                    end
+                end
+            elseif autoFarmMode == "FistLockpick" then
+                local lp = stocks:FindFirstChild("Lockpick")
+                if lp and lp.Value > 0 then
+                    local d = (main.Position - hrp.Position).Magnitude
+                    if d < best then
+                        best = d
+                        nearest = shop
+                    end
                 end
             end
         end
@@ -2257,11 +2617,12 @@ local function farmFindDealer()
     return nearest
 end
 
+-- =============================================
+-- SAFE/REGISTER BULMA (Sadece soyulmamış olanlar)
+-- =============================================
+
 local function farmFindTarget()
     local folder = Workspace.Map and Workspace.Map:FindFirstChild("BredMakurz")
-    if not folder then
-        folder = Workspace.Filter and Workspace.Filter:FindFirstChild("BredMakurz")
-    end
     if not folder then
         folder = Workspace:FindFirstChild("BredMakurz")
     end
@@ -2277,37 +2638,85 @@ local function farmFindTarget()
     local best = math.huge
 
     for _, obj in pairs(folder:GetChildren()) do
-        if (string.find(obj.Name, "Safe") or string.find(obj.Name, "Register")) 
-            and not table.find(farmIgnored, obj) then
+        local isSafe = string.find(obj.Name, "Safe")
+        local isRegister = string.find(obj.Name, "Register")
+        
+        -- Sadece Safe veya Register nesnelerini hedef al
+        if (isSafe or isRegister) and not table.find(farmIgnored, obj) then
             
             local values = obj:FindFirstChild("Values")
             if values then
                 local broken = values:FindFirstChild("Broken")
+                -- SADECE soyulmamış (açılmamış) safeleri hedef al
                 if broken and broken:IsA("BoolValue") and not broken.Value then
+                    
+                    -- FistLockpick modu: Register'lara yumruk, Safe'lere lockpick
+                    if autoFarmMode == "FistLockpick" then
+                        if isSafe then
+                            -- Safe için lockpick kontrolü
+                            local hasLockpick = false
+                            local charCheck = LocalPlayer.Character
+                            if charCheck and charCheck:FindFirstChild("Lockpick") then
+                                hasLockpick = true
+                            else
+                                local bp = LocalPlayer:FindFirstChild("Backpack")
+                                if bp and bp:FindFirstChild("Lockpick") then
+                                    hasLockpick = true
+                                end
+                            end
+                            if not hasLockpick then
+                                goto skip
+                            end
+                        end
+                    end
+                    
                     local tp = obj.PrimaryPart 
                         or obj:FindFirstChild("MainPart") 
                         or obj:FindFirstChildOfClass("BasePart")
 
                     if tp then
+                        -- Path noktalarını al (yeşil çizgi için)
+                        local pathFolder = obj:FindFirstChild("Path")
+                        local pathPoints = {}
+                        
+                        if pathFolder then
+                            local points = {}
+                            for _, v in pairs(pathFolder:GetChildren()) do
+                                if v:IsA("BasePart") then
+                                    table.insert(points, v.Position)
+                                end
+                            end
+                            table.sort(points, function(a, b) return (a - points[1]).Magnitude < (b - points[1]).Magnitude end)
+                            pathPoints = points
+                        else
+                            pathPoints = {tp.Position}
+                        end
+                        
                         local d = (tp.Position - hrp.Position).Magnitude
                         if d < best then
                             best = d
                             nearest = obj
+                            nearest.PathPoints = pathPoints
                         end
                     end
                 end
             end
         end
+        ::skip::
     end
     
     return nearest
 end
 
+-- =============================================
+-- EŞYA KONTROL VE KUŞANMA
+-- =============================================
+
 local function farmHasTool(name)
     local char = LocalPlayer.Character
     if char and char:FindFirstChild(name) then return true end
     
-    local bp = LocalPlayer.Backpack
+    local bp = LocalPlayer:FindFirstChild("Backpack")
     return bp and bp:FindFirstChild(name) ~= nil
 end
 
@@ -2328,12 +2737,337 @@ local function farmEquipTool(name)
     return false
 end
 
-local function farmOpenSafe(safe)
-    if not farmHasTool("Crowbar") then return end
+-- =============================================
+-- FIST MODE: Yumrukla kasalara vurarak açma
+-- =============================================
+
+local function farmOpenWithFist(safe)
+    local pathPoints = safe.PathPoints or {safe.MainPart.Position}
+    
+    -- Path ile git, olmazsa ışınlan
+    if not farmMoveTo(pathPoints[1], true, pathPoints) then
+        local tp = safe:FindFirstChild("MainPart") or safe.PrimaryPart
+        if tp then
+            farmMoveTo(tp.Position, false, nil)
+        end
+        return 
+    end
+    
+    -- Path noktalarını takip et
+    for i = 1, #pathPoints do
+        if not followPath(pathPoints, 2) then
+            break
+        end
+        wait(0.1)
+    end
+    
+    local char = LocalPlayer.Character
+    if not char then return end
+    
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if not hum then return end
+    
+    -- Invisible ol
+    ensureInvisible()
+    
+    local events = getEvents()
+    if not events then return end
+    
+    local args = {
+        [1] = "\240\159\141\158",  -- "🍞"
+        [2] = tick(),
+        [3] = "F.I.S.T",
+        [4] = "43TRFWX",
+        [5] = "Normal",
+        [6] = tick(),
+        [7] = true
+    }
+    
+    local remote = events:FindFirstChild("XMHH.2")
+    if remote then
+        local result = remote:InvokeServer(unpack(args))
+        if result then
+            local handle = char:FindFirstChild("Right Arm")
+            local sp = safe:FindFirstChild("MainPart")
+            local remote2 = events:FindFirstChild("XMHH2.2")
+            if remote2 and sp and handle then
+                remote2:FireServer(
+                    "\240\159\141\158",
+                    tick(),
+                    "F.I.S.T",
+                    "2389ZFX34",
+                    result,
+                    false,
+                    handle,
+                    sp,
+                    safe,
+                    sp.Position,
+                    sp.Position
+                )
+            end
+        end
+    end
+    
+    wait(3)
+end
+
+-- =============================================
+-- LOCKPICK KONTROL VE SATIN ALMA
+-- =============================================
+
+local function farmHasLockpick()
+    local char = LocalPlayer.Character
+    if char then
+        local count = 0
+        for _, item in pairs(char:GetChildren()) do
+            if item.Name == "Lockpick" then
+                count = count + 1
+            end
+        end
+        lockpickCount = count
+        if count > 0 then return true end
+    end
+    
+    local bp = LocalPlayer:FindFirstChild("Backpack")
+    if bp then
+        local count = 0
+        for _, item in pairs(bp:GetChildren()) do
+            if item.Name == "Lockpick" then
+                count = count + 1
+            end
+        end
+        lockpickCount = count
+        return count > 0
+    end
+    
+    lockpickCount = 0
+    return false
+end
+
+local function farmEquipLockpick()
+    local char = LocalPlayer.Character
+    if not char then return false end
+
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if not hum then return false end
+
+    local tool = char:FindFirstChild("Lockpick") or LocalPlayer.Backpack:FindFirstChild("Lockpick")
+    if tool then
+        pcall(function() hum:EquipTool(tool) end)
+        wait(0.5)
+        return true
+    end
+    
+    return false
+end
+
+local function farmBuyLockpick(dealer)
+    if not dealer then return false end
+
+    local main = dealer:FindFirstChild("MainPart")
+    if not main then return false end
+
+    -- Dealer'a git (yeşil çizgi ile)
+    if not farmMoveTo(main.Position, true, {main.Position}) then
+        farmMoveTo(main.Position, false, nil)
+    end
+    
+    wait(1)
+
+    local events = getEvents()
+    if not events then return false end
+    
+    local be = events:FindFirstChild("BYZERSPROTEC")
+    local se = events:FindFirstChild("SSHPRMTE1")
+    
+    if not be or not se then return false end
+
+    -- Dealer'a gir
+    be:FireServer(true, "shop", main, "IllegalStore")
+    wait(1)
+    
+    -- 8 lockpick al (Criminality'de max 8)
+    for i = 1, maxLockpickCount do
+        se:InvokeServer("IllegalStore", "Tools", "Lockpick", main, nil, true)
+        wait(0.2)
+    end
+    
+    wait(2)
+    be:FireServer(false)
+
+    lockpickCount = maxLockpickCount
+    return farmHasLockpick()
+end
+
+-- =============================================
+-- LOCKPICK MODE: Lockpick ile büyük safeleri açma
+-- =============================================
+
+local function farmOpenWithLockpick(safe)
+    local pathPoints = safe.PathPoints or {safe.MainPart.Position}
+    
+    -- Path ile git, olmazsa ışınlan
+    if not farmMoveTo(pathPoints[1], true, pathPoints) then
+        local tp = safe:FindFirstChild("MainPart") or safe.PrimaryPart
+        if tp then
+            farmMoveTo(tp.Position, false, nil)
+        end
+        return 
+    end
+    
+    -- Path noktalarını takip et
+    for i = 1, #pathPoints do
+        if not followPath(pathPoints, 2) then
+            break
+        end
+        wait(0.1)
+    end
+    
+    -- Lockpick yoksa dealer'dan al
+    if not farmHasLockpick() then
+        local dealer = farmFindDealer()
+        if dealer then
+            farmBuyLockpick(dealer)
+        end
+        return
+    end
+    
+    if not farmEquipLockpick() then return end
+
+    -- Invisible ol
+    ensureInvisible()
+    
+    local events = getEvents()
+    if not events then return end
+    
+    local r1 = events:FindFirstChild("XMHH.2")
+    local r2 = events:FindFirstChild("XMHH2.2")
+    local sp = safe:FindFirstChild("MainPart")
+
+    if not r1 or not r2 or not sp then return end
+
+    local eq = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Lockpick")
+    if not eq then return end
+
+    local st = tick()
+    
+    while safe and safe.Parent 
+        and safe.Values 
+        and safe.Values:FindFirstChild("Broken") 
+        and not safe.Values.Broken.Value 
+        and (tick() - st < 20) do
+        
+        local char = LocalPlayer.Character
+        if not char then break end
+
+        local res = r1:InvokeServer(
+            "\240\159\141\158",
+            tick(),
+            eq,
+            "DZDRRRKI",
+            safe,
+            "Register"
+        )
+
+        if res then
+            r2:FireServer(
+                "\240\159\141\158",
+                tick(),
+                eq,
+                "2389ZFX34",
+                res,
+                false,
+                char["Right Arm"],
+                sp,
+                safe,
+                sp.Position,
+                sp.Position
+            )
+            
+            -- Lockpick kullanıldı, sayacı azalt
+            lockpickCount = lockpickCount - 1
+        end
+        
+        wait(0.2)
+    end
+    
+    wait(8)
+end
+
+-- =============================================
+-- CROWBAR SATIN ALMA
+-- =============================================
+
+local function farmBuyCrowbar(dealer)
+    if not dealer then return false end
+
+    local main = dealer:FindFirstChild("MainPart")
+    if not main then return false end
+
+    -- Dealer'a git (yeşil çizgi ile)
+    if not farmMoveTo(main.Position, true, {main.Position}) then
+        farmMoveTo(main.Position, false, nil)
+    end
+    
+    wait(1)
+
+    local events = getEvents()
+    if not events then return false end
+    
+    local be = events:FindFirstChild("BYZERSPROTEC")
+    local se = events:FindFirstChild("SSHPRMTE1")
+    
+    if not be or not se then return false end
+
+    be:FireServer(true, "shop", main, "IllegalStore")
+    wait(1)
+    se:InvokeServer("IllegalStore", "Melees", "Crowbar", main, nil, true)
+    wait(2)
+    be:FireServer(false)
+
+    return farmHasTool("Crowbar")
+end
+
+-- =============================================
+-- CROWBAR MODE: Crowbar ile her şeyi açma
+-- =============================================
+
+local function farmOpenWithCrowbar(safe)
+    local pathPoints = safe.PathPoints or {safe.MainPart.Position}
+    
+    -- Path ile git, olmazsa ışınlan
+    if not farmMoveTo(pathPoints[1], true, pathPoints) then
+        local tp = safe:FindFirstChild("MainPart") or safe.PrimaryPart
+        if tp then
+            farmMoveTo(tp.Position, false, nil)
+        end
+        return 
+    end
+    
+    -- Path noktalarını takip et
+    for i = 1, #pathPoints do
+        if not followPath(pathPoints, 2) then
+            break
+        end
+        wait(0.1)
+    end
+    
+    -- Crowbar yoksa yumrukla dene
+    if not farmHasTool("Crowbar") then
+        farmOpenWithFist(safe)
+        return
+    end
+    
     if not farmEquipTool("Crowbar") then return end
 
-    local r1 = ReplicatedStorage.Events:FindFirstChild("XMHH.2")
-    local r2 = ReplicatedStorage.Events:FindFirstChild("XMHH2.2")
+    -- Invisible ol
+    ensureInvisible()
+    
+    local events = getEvents()
+    if not events then return end
+    
+    local r1 = events:FindFirstChild("XMHH.2")
+    local r2 = events:FindFirstChild("XMHH2.2")
     local sp = safe:FindFirstChild("MainPart")
 
     if not r1 or not r2 or not sp then return end
@@ -2383,29 +3117,159 @@ local function farmOpenSafe(safe)
     wait(8)
 end
 
-local function farmBuyCrowbar(dealer)
-    if not dealer then return false end
+-- =============================================
+-- ATM BULMA VE PARA YATIRMA (Criminality)
+-- =============================================
 
-    local main = dealer:FindFirstChild("MainPart")
-    if not main then return false end
-
-    if not farmTP(main.Position) then return false end
+local function findNearestATM()
+    local char = LocalPlayer.Character
+    if not char then return nil end
     
-    wait(1)
-
-    local be = ReplicatedStorage.Events:FindFirstChild("BYZERSPROTEC")
-    local se = ReplicatedStorage.Events:FindFirstChild("SSHPRMTE1")
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return nil end
     
-    if not be or not se then return false end
-
-    be:FireServer(true, "shop", main, "IllegalStore")
-    wait(1)
-    se:InvokeServer("IllegalStore", "Melees", "Crowbar", main, nil, true)
-    wait(2)
-    be:FireServer(false)
-
-    return farmHasTool("Crowbar")
+    -- Criminality'de ATM'ler genellikle bu klasörlerde olur
+    local atmFolders = {
+        Workspace.Map and Workspace.Map:FindFirstChild("ATMs"),
+        Workspace:FindFirstChild("ATMs"),
+        Workspace:FindFirstChild("ATM"),
+        Workspace:FindFirstChild("Bank"),
+        Workspace:FindFirstChild("Banks")
+    }
+    
+    local nearestATM = nil
+    local bestDist = math.huge
+    
+    for _, folder in pairs(atmFolders) do
+        if folder then
+            for _, obj in pairs(folder:GetChildren()) do
+                local part = obj:IsA("BasePart") and obj or obj:FindFirstChildOfClass("BasePart")
+                if part then
+                    local dist = (part.Position - hrp.Position).Magnitude
+                    if dist < bestDist then
+                        bestDist = dist
+                        nearestATM = part
+                    end
+                end
+            end
+        end
+    end
+    
+    -- Eğer ATM bulunamazsa, bilinen ATM koordinatlarını dene (Criminality haritasına göre)
+    if not nearestATM then
+        local knownATMs = {
+            Vector3.new(0, 3, 0),  -- Ana spawn yakını
+            -- Criminality haritasına göre diğer ATM konumları eklenebilir
+        }
+        
+        for _, pos in pairs(knownATMs) do
+            local dist = (pos - hrp.Position).Magnitude
+            if dist < bestDist then
+                bestDist = dist
+                nearestATM = {Position = pos, IsVirtual = true}
+            end
+        end
+    end
+    
+    return nearestATM
 end
+
+local function depositToATM()
+    local atm = findNearestATM()
+    if not atm then return false end
+    
+    local atmPos = atm.IsVirtual and atm.Position or atm.Position
+    
+    -- ATM'ye git (yeşil çizgi ile)
+    if not farmMoveTo(atmPos, true, {atmPos}) then
+        farmMoveTo(atmPos, false, nil)
+    end
+    
+    wait(1)
+    
+    -- Criminality'de ATM'ye para yatırma event'i
+    local events = getEvents()
+    if events then
+        -- Farklı event isimlerini dene
+        local depositEvents = {
+            events:FindFirstChild("DepositMoney"),
+            events:FindFirstChild("ATMDeposit"),
+            events:FindFirstChild("BankDeposit"),
+            events:FindFirstChild("AllowanceDeposit"),
+            events:FindFirstChild("WithdrawDeposit")
+        }
+        
+        for _, depositEvent in pairs(depositEvents) do
+            if depositEvent then
+                pcall(function()
+                    if depositEvent.ClassName == "RemoteEvent" then
+                        depositEvent:FireServer()
+                    elseif depositEvent.ClassName == "RemoteFunction" then
+                        depositEvent:InvokeServer()
+                    end
+                end)
+                wait(0.5)
+            end
+        end
+    end
+    
+    -- Alternatif: TouchInterest ile ATM'ye dokun
+    local character = LocalPlayer.Character
+    if character and atm and not atm.IsVirtual then
+        local hrp = character:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            local touch = Instance.new("TouchInterest")
+            touch.Parent = hrp
+            wait(0.5)
+            touch:Destroy()
+        end
+    end
+    
+    wait(2)
+    
+    -- Allowance'ı sıfırla
+    currentAllowance = 0
+    updateAllowanceUI()
+    lastDepositTime = tick()
+    
+    return true
+end
+
+-- =============================================
+-- ALLOWANCE TAKİBİ
+-- =============================================
+
+local function checkAllowanceAndDeposit()
+    if not allowanceTrackingEnabled then return end
+    if not autoFarmEnabled then return end
+    
+    -- Gerçek allowance değerini oku
+    local realAllowance = getCurrentAllowance()
+    if realAllowance and realAllowance > 0 then
+        currentAllowance = realAllowance
+        updateAllowanceUI()
+    end
+    
+    if currentAllowance >= allowanceLimit then
+        depositToATM()
+    end
+end
+
+-- Para kazanıldığında allowance'ı arttır (Criminality'de safe açınca yaklaşık 500-2000$ kazanılıyor)
+local function onMoneyEarned(amount)
+    if not allowanceTrackingEnabled then return end
+    
+    currentAllowance = currentAllowance + amount
+    updateAllowanceUI()
+    
+    if currentAllowance >= allowanceLimit then
+        depositToATM()
+    end
+end
+
+-- =============================================
+-- ANA FARM LOOP
+-- =============================================
 
 local function farmLoop()
     while autoFarmEnabled do
@@ -2414,67 +3278,116 @@ local function farmLoop()
         local char = LocalPlayer.Character
         local hum = char and char:FindFirstChildOfClass("Humanoid")
 
+        -- Ölünce respawn ol ve invisible ol
         if not char or not hum or hum.Health <= 0 then
-            local de = ReplicatedStorage.Events:FindFirstChild("DeathRespawn")
-            if de then
-                pcall(function() de:InvokeServer("KMG4R904") end)
-            end
-            
+            respawnAndGoInvisible()
             wait(3)
             farmIgnored = {}
-            continue
+            goto continue
         end
 
-        if not farmHasTool("Crowbar") then
+        -- Her loop'ta invisible olduğundan emin ol
+        ensureInvisible()
+        
+        hum.WalkSpeed = moveSpeed
+        hum.JumpPower = 50
+        hum.AutoRotate = true
+
+        -- Crowbar mode için crowbar kontrolü
+        if autoFarmMode == "Crowbar" and not farmHasTool("Crowbar") then
             local dealer = farmFindDealer()
             if dealer then
                 farmBuyCrowbar(dealer)
             else
                 wait(5)
             end
-            continue
+            goto continue
+        end
+        
+        -- FistLockpick mode için lockpick kontrolü (sadece lockpick sayısını güncelle)
+        if autoFarmMode == "FistLockpick" then
+            farmHasLockpick()
         end
 
+        -- En yakın soyulmamış safe/register'ı bul
         local target = farmFindTarget()
         if target then
             local mp = target:FindFirstChild("MainPart") or target.PrimaryPart
             if mp then
-                if farmTP(mp.Position) then
+                -- Hedefe git (yeşil çizgi ile)
+                if farmMoveTo(mp.Position, true, target.PathPoints) then
                     wait(1)
-                    farmOpenSafe(target)
+                    
+                    -- Mode'a göre açma işlemini yap
+                    if autoFarmMode == "Crowbar" then
+                        farmOpenWithCrowbar(target)
+                    elseif autoFarmMode == "FistLockpick" then
+                        local isSafe = string.find(target.Name, "Safe")
+                        if isSafe then
+                            farmOpenWithLockpick(target)
+                        else
+                            farmOpenWithFist(target)
+                        end
+                    end
+                    
+                    -- Safe/Register açıldı, para kazanıldı (Criminality'de safe açınca 500-2000$)
+                    if allowanceTrackingEnabled then
+                        -- Safe ise daha fazla para, Register ise daha az
+                        local isSafe = string.find(target.Name, "Safe")
+                        local earned = isSafe and 1500 or 500
+                        onMoneyEarned(earned)
+                    end
                 else
+                    -- Gidilemedi, ignore listesine ekle
                     table.insert(farmIgnored, target)
                     wait(0.5)
                 end
             end
         else
+            -- Hedef yoksa ignore listesini temizle ve bekle
             farmIgnored = {}
             wait(5)
         end
+        
+        -- Allowance kontrol et ve gerekiyorsa ATM'ye para yatır
+        if allowanceTrackingEnabled then
+            checkAllowanceAndDeposit()
+        end
+
+        ::continue::
     end
 end
+
+-- =============================================
+-- AUTO FARM KONTROL FONKSİYONLARI
+-- =============================================
 
 function AutoFarm_Enable()
     if autoFarmEnabled then return end
     
     autoFarmEnabled = true
     farmIgnored = {}
+    
+    -- Invisibility durumunu hatırla
+    if _G.IsInvisEnabled then
+        wasInvisibleBeforeFarm = _G.IsInvisEnabled()
+    end
+    
+    -- Invisible ol
+    ensureInvisible()
 
     if autoFarmCoroutine then
         task.cancel(autoFarmCoroutine)
         autoFarmCoroutine = nil
     end
 
-    AutoPickup_Enable()
-    Noclip_Enable()
-
     autoFarmCoroutine = task.spawn(farmLoop)
 
+    -- Karakter değiştiğinde tekrar invisible ol
     LocalPlayer.CharacterAdded:Connect(function()
         if autoFarmEnabled then
             wait(2)
-            AutoPickup_Enable()
-            Noclip_Enable()
+            ensureInvisible()
         end
     end)
 end
@@ -2488,7 +3401,304 @@ function AutoFarm_Disable()
     end
     
     farmIgnored = {}
-    AutoPickup_Disable()
+    clearPathLines()
+    
+    -- Invisibility'i eski haline döndür
+    if not wasInvisibleBeforeFarm then
+        if _G.Invis_Disable then
+            _G.Invis_Disable()
+        end
+    end
+end
+
+function AutoFarm_SetMode(mode)
+    if mode == "Crowbar" or mode == "FistLockpick" then
+        autoFarmMode = mode
+    end
+end
+
+function AutoFarm_GetMode()
+    return autoFarmMode
+end
+
+function AutoFarm_SetSpeed(speed)
+    moveSpeed = math.clamp(speed, 1, 50)
+    if speedValueLabel then
+        speedValueLabel.Text = tostring(moveSpeed)
+    end
+end
+
+function AutoFarm_GetSpeed()
+    return moveSpeed
+end
+
+function AutoFarm_SetDepositLimit(limit)
+    depositLimit = math.clamp(limit, 1000, 50000)
+    allowanceLimit = depositLimit
+    if depositValueLabel then
+        depositValueLabel.Text = string.format("%.0f$", depositLimit)
+    end
+    updateAllowanceUI()
+end
+
+function AutoFarm_GetDepositLimit()
+    return depositLimit
+end
+
+function AllowanceTracking_Enable()
+    if allowanceTrackingEnabled then return end
+    
+    allowanceTrackingEnabled = true
+    
+    -- Mevcut allowance değerini oku
+    currentAllowance = getCurrentAllowance()
+    
+    -- Allowance UI'yı oluştur (sol tarafta görünecek)
+    local screenGui = LocalPlayer:FindFirstChild("PlayerGui"):FindFirstChild("SantesHubScreenGui")
+    if screenGui then
+        local mainFrame = screenGui:FindFirstChild("MainFrame")
+        if mainFrame then
+            -- Allowance Frame'i oluştur
+            allowanceUI = Instance.new("Frame")
+            allowanceUI.Name = "AllowanceFrame"
+            allowanceUI.Size = UDim2.new(0, 180, 0, 30)
+            allowanceUI.Position = UDim2.new(0, 10, 1, -40)
+            allowanceUI.BackgroundColor3 = Color3.fromRGB(20, 20, 26)
+            allowanceUI.BorderSizePixel = 0
+            allowanceUI.Parent = mainFrame
+            
+            local uiCorner = Instance.new("UICorner")
+            uiCorner.CornerRadius = UDim.new(0, 6)
+            uiCorner.Parent = allowanceUI
+            
+            local textLabel = Instance.new("TextLabel")
+            textLabel.Name = "TextLabel"
+            textLabel.Size = UDim2.new(1, 0, 1, 0)
+            textLabel.BackgroundTransparency = 1
+            textLabel.Text = string.format("ALLOWANCE: $%d / $%d", currentAllowance, allowanceLimit)
+            textLabel.TextColor3 = Theme.Accent
+            textLabel.Font = Enum.Font.GothamBold
+            textLabel.TextSize = 11
+            textLabel.Parent = allowanceUI
+        end
+    end
+    
+    updateAllowanceUI()
+end
+
+function AllowanceTracking_Disable()
+    allowanceTrackingEnabled = false
+    
+    if allowanceUI then
+        allowanceUI:Destroy()
+        allowanceUI = nil
+    end
+end
+
+function AllowanceTracking_IsEnabled()
+    return allowanceTrackingEnabled
+end
+
+-- =============================================
+-- UI SLIDER'LAR (Hareket Hızı ve Para Limiti)
+-- =============================================
+
+function CreateSpeedSlider(parent)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, -12, 0, 50)
+    frame.BackgroundTransparency = 1
+    frame.Parent = parent
+    
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(0.4, 0, 0.4, 0)
+    label.Position = UDim2.new(0, 0, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Text = "Hareket Hızı:"
+    label.TextColor3 = Theme.TextSecondary
+    label.Font = Enum.Font.GothamSemibold
+    label.TextSize = 11
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = frame
+    
+    speedValueLabel = Instance.new("TextLabel")
+    speedValueLabel.Size = UDim2.new(0.2, 0, 0.4, 0)
+    speedValueLabel.Position = UDim2.new(0.8, 0, 0, 0)
+    speedValueLabel.BackgroundTransparency = 1
+    speedValueLabel.Text = tostring(moveSpeed)
+    speedValueLabel.TextColor3 = Theme.Accent
+    speedValueLabel.Font = Enum.Font.GothamBold
+    speedValueLabel.TextSize = 11
+    speedValueLabel.TextXAlignment = Enum.TextXAlignment.Right
+    speedValueLabel.Parent = frame
+    
+    local slider = Instance.new("Frame")
+    slider.Size = UDim2.new(1, 0, 0.3, 0)
+    slider.Position = UDim2.new(0, 0, 0.5, 0)
+    slider.BackgroundColor3 = Theme.ButtonOff
+    slider.BorderSizePixel = 0
+    slider.Parent = frame
+    
+    local sliderCorner = Instance.new("UICorner")
+    sliderCorner.CornerRadius = UDim.new(0, 4)
+    sliderCorner.Parent = slider
+    
+    local fill = Instance.new("Frame")
+    fill.Size = UDim2.new((moveSpeed - 1) / 49, 0, 1, 0)
+    fill.BackgroundColor3 = Theme.Accent
+    fill.BorderSizePixel = 0
+    fill.Parent = slider
+    
+    local fillCorner = Instance.new("UICorner")
+    fillCorner.CornerRadius = UDim.new(0, 4)
+    fillCorner.Parent = fill
+    
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 12, 0, 12)
+    button.Position = UDim2.new((moveSpeed - 1) / 49, -6, 0.5, -6)
+    button.BackgroundColor3 = Theme.TextPrimary
+    button.BorderSizePixel = 0
+    button.Text = ""
+    button.Parent = slider
+    
+    local buttonCorner = Instance.new("UICorner")
+    buttonCorner.CornerRadius = UDim.new(0, 6)
+    buttonCorner.Parent = button
+    
+    local dragging = false
+    button.MouseButton1Down:Connect(function()
+        dragging = true
+    end)
+    
+    slider.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            local percent = math.clamp((input.Position.X - slider.AbsolutePosition.X) / slider.AbsoluteSize.X, 0, 1)
+            moveSpeed = math.floor(1 + percent * 49)
+            speedValueLabel.Text = tostring(moveSpeed)
+            fill.Size = UDim2.new(percent, 0, 1, 0)
+            button.Position = UDim2.new(percent, -6, 0.5, -6)
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local percent = math.clamp((input.Position.X - slider.AbsolutePosition.X) / slider.AbsoluteSize.X, 0, 1)
+            moveSpeed = math.floor(1 + percent * 49)
+            speedValueLabel.Text = tostring(moveSpeed)
+            fill.Size = UDim2.new(percent, 0, 1, 0)
+            button.Position = UDim2.new(percent, -6, 0.5, -6)
+        end
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+    
+    return frame
+end
+
+function CreateDepositSlider(parent)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, -12, 0, 50)
+    frame.BackgroundTransparency = 1
+    frame.Parent = parent
+    
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(0.4, 0, 0.4, 0)
+    label.Position = UDim2.new(0, 0, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Text = "Para Yatırma Limiti:"
+    label.TextColor3 = Theme.TextSecondary
+    label.Font = Enum.Font.GothamSemibold
+    label.TextSize = 11
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = frame
+    
+    depositValueLabel = Instance.new("TextLabel")
+    depositValueLabel.Size = UDim2.new(0.2, 0, 0.4, 0)
+    depositValueLabel.Position = UDim2.new(0.8, 0, 0, 0)
+    depositValueLabel.BackgroundTransparency = 1
+    depositValueLabel.Text = string.format("%.0f$", depositLimit)
+    depositValueLabel.TextColor3 = Theme.Accent
+    depositValueLabel.Font = Enum.Font.GothamBold
+    depositValueLabel.TextSize = 11
+    depositValueLabel.TextXAlignment = Enum.TextXAlignment.Right
+    depositValueLabel.Parent = frame
+    
+    local slider = Instance.new("Frame")
+    slider.Size = UDim2.new(1, 0, 0.3, 0)
+    slider.Position = UDim2.new(0, 0, 0.5, 0)
+    slider.BackgroundColor3 = Theme.ButtonOff
+    slider.BorderSizePixel = 0
+    slider.Parent = frame
+    
+    local sliderCorner = Instance.new("UICorner")
+    sliderCorner.CornerRadius = UDim.new(0, 4)
+    sliderCorner.Parent = slider
+    
+    local minVal = 1000
+    local maxVal = 50000
+    local percent = (depositLimit - minVal) / (maxVal - minVal)
+    
+    local fill = Instance.new("Frame")
+    fill.Size = UDim2.new(percent, 0, 1, 0)
+    fill.BackgroundColor3 = Theme.Accent
+    fill.BorderSizePixel = 0
+    fill.Parent = slider
+    
+    local fillCorner = Instance.new("UICorner")
+    fillCorner.CornerRadius = UDim.new(0, 4)
+    fillCorner.Parent = fill
+    
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 12, 0, 12)
+    button.Position = UDim2.new(percent, -6, 0.5, -6)
+    button.BackgroundColor3 = Theme.TextPrimary
+    button.BorderSizePixel = 0
+    button.Text = ""
+    button.Parent = slider
+    
+    local buttonCorner = Instance.new("UICorner")
+    buttonCorner.CornerRadius = UDim.new(0, 6)
+    buttonCorner.Parent = button
+    
+    local dragging = false
+    button.MouseButton1Down:Connect(function()
+        dragging = true
+    end)
+    
+    slider.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            local percent = math.clamp((input.Position.X - slider.AbsolutePosition.X) / slider.AbsoluteSize.X, 0, 1)
+            depositLimit = math.floor(minVal + percent * (maxVal - minVal))
+            allowanceLimit = depositLimit
+            depositValueLabel.Text = string.format("%.0f$", depositLimit)
+            fill.Size = UDim2.new(percent, 0, 1, 0)
+            button.Position = UDim2.new(percent, -6, 0.5, -6)
+            updateAllowanceUI()
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local percent = math.clamp((input.Position.X - slider.AbsolutePosition.X) / slider.AbsoluteSize.X, 0, 1)
+            depositLimit = math.floor(minVal + percent * (maxVal - minVal))
+            allowanceLimit = depositLimit
+            depositValueLabel.Text = string.format("%.0f$", depositLimit)
+            fill.Size = UDim2.new(percent, 0, 1, 0)
+            button.Position = UDim2.new(percent, -6, 0.5, -6)
+            updateAllowanceUI()
+        end
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+    
+    return frame
 end
 
 -- #####################################################################
