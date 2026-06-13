@@ -2,17 +2,19 @@
     ╔══════════════════════════════════════════════════════════════════╗
     ║              SANTES HUB v5.3 | CRIMINALITY                     ║
     ║    Silent Aim FIX - FOV icindeki hedefe kitlenir               ║
+    ║    Auto Farm - Pathfinding ile yuruyerek gitme (ISINLANMA YOK) ║
+    ║    Professional UI - Yuvarlak toggle butonlari                 ║
     ╚══════════════════════════════════════════════════════════════════╝
     
     OZELLIKLER:
     ✅ Silent Aim (Sag tus basiliyken FOV icindeki en yakin hedefe kitlenir)
     ✅ Melee Aura (Head/Body secimi + Yumruk fix)
     ✅ Fly (Sadece WASD + Joystick, havada sabit kalir)
-    ✅ Auto Farm (Dealer + Safe + Para toplama - Tam otomatik)
+    ✅ Auto Farm (Dealer + Safe + Para toplama - Pathfinding ile yuruyerek)
     ✅ Player ESP (Highlight + Isim etiketi)
     ✅ Safe ESP + Respawn Timer (Soyulmus safe'lerde "3m 2s" geri sayim)
     ✅ No Recoil (getgc ile silah taramasi)
-    ✅ Infinite Stamina (hookfunction)
+    ✅ Infinite Stamina
     ✅ FullBright + FOV Changer
     ✅ Noclip + Invisibility (Shadow Mode)
     ✅ Auto Lockpick (Elinde lockpick ile safe yaninda otomatik acar)
@@ -20,6 +22,7 @@
     ✅ Admin Detector (Staff gelince otomatik kick)
     ✅ Minimize (SANTES HUB yazisi) + K Toggle + X Full Cleanup
     ✅ Mobile uyumlu (MoveDirection joystick otomatik algilanir)
+    ✅ Professional UI - Yuvarlak toggle butonlari (Kirmizi=ON, Siyah=OFF)
 --]]
 
 -- #####################################################################
@@ -90,18 +93,20 @@ end
 -- #####################################################################
 
 local Theme = {
-    Background = Color3.fromRGB(15, 15, 20),
-    Sidebar = Color3.fromRGB(20, 20, 26),
-    Accent = Color3.fromRGB(200, 30, 30),
-    AccentHover = Color3.fromRGB(240, 50, 50),
-    TextPrimary = Color3.fromRGB(220, 220, 220),
-    TextSecondary = Color3.fromRGB(150, 150, 160),
-    ButtonOn = Color3.fromRGB(160, 30, 30),
-    ButtonOff = Color3.fromRGB(55, 22, 22),
-    BindButton = Color3.fromRGB(30, 18, 18),
-    BindHover = Color3.fromRGB(55, 25, 25),
+    Background = Color3.fromRGB(10, 10, 15),
+    Sidebar = Color3.fromRGB(15, 15, 22),
+    Card = Color3.fromRGB(20, 20, 28),
+    Accent = Color3.fromRGB(220, 40, 40),
+    AccentDark = Color3.fromRGB(180, 30, 30),
+    TextPrimary = Color3.fromRGB(235, 235, 245),
+    TextSecondary = Color3.fromRGB(160, 160, 180),
+    TextMuted = Color3.fromRGB(100, 100, 120),
+    ButtonOn = Color3.fromRGB(220, 40, 40),
+    ButtonOff = Color3.fromRGB(35, 35, 45),
+    Border = Color3.fromRGB(45, 45, 55),
+    Glow = Color3.fromRGB(220, 40, 40),
     CategoryOn = Color3.fromRGB(40, 22, 22),
-    CategoryOff = Color3.fromRGB(20, 20, 26)
+    CategoryOff = Color3.fromRGB(15, 15, 22)
 }
 
 -- #####################################################################
@@ -118,7 +123,7 @@ screenGui.Parent = PlayerGui
 -- Ana cerceve
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 440, 0, 360)
+mainFrame.Size = UDim2.new(0, 480, 0, 420)
 mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
 mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 mainFrame.BackgroundColor3 = Theme.Background
@@ -129,84 +134,94 @@ mainFrame.Parent = screenGui
 
 -- Cerceve kose ve kenar
 local mainCorner = Instance.new("UICorner")
-mainCorner.CornerRadius = UDim.new(0, 8)
+mainCorner.CornerRadius = UDim.new(0, 12)
 mainCorner.Parent = mainFrame
 
 local mainStroke = Instance.new("UIStroke")
-mainStroke.Color = Theme.Accent
-mainStroke.Thickness = 1.2
-mainStroke.Transparency = 0.3
+mainStroke.Color = Theme.Border
+mainStroke.Thickness = 1
+mainStroke.Transparency = 0.5
 mainStroke.Parent = mainFrame
+
+-- Glow efekti
+local glowFrame = Instance.new("Frame")
+glowFrame.Size = UDim2.new(1, 20, 1, 20)
+glowFrame.Position = UDim2.new(0.5, -10, 0.5, -10)
+glowFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+glowFrame.BackgroundColor3 = Theme.Glow
+glowFrame.BackgroundTransparency = 0.95
+glowFrame.BorderSizePixel = 0
+glowFrame.ZIndex = 0
+glowFrame.Parent = mainFrame
+
+local glowCorner = Instance.new("UICorner")
+glowCorner.CornerRadius = UDim.new(0, 12)
+glowCorner.Parent = glowFrame
 
 -- #####################################################################
 -- #                       TITLE BAR                                  #
 -- #####################################################################
 
 local titleBar = Instance.new("Frame")
-titleBar.Size = UDim2.new(1, 0, 0, 36)
-titleBar.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
+titleBar.Size = UDim2.new(1, 0, 0, 52)
+titleBar.BackgroundColor3 = Theme.Sidebar
 titleBar.BorderSizePixel = 0
 titleBar.Parent = mainFrame
 
 local titleCorner = Instance.new("UICorner")
-titleCorner.CornerRadius = UDim.new(0, 8)
+titleCorner.CornerRadius = UDim.new(0, 12)
 titleCorner.Parent = titleBar
 
 -- Baslik yazisi
 local titleLabel = Instance.new("TextLabel")
-titleLabel.Size = UDim2.new(1, -70, 1, 0)
-titleLabel.Position = UDim2.new(0, 12, 0, 0)
+titleLabel.Size = UDim2.new(1, -80, 1, 0)
+titleLabel.Position = UDim2.new(0, 16, 0, 0)
 titleLabel.BackgroundTransparency = 1
 titleLabel.Text = "SANTES HUB v5.3"
 titleLabel.Font = Enum.Font.GothamBold
 titleLabel.TextColor3 = Theme.TextPrimary
-titleLabel.TextSize = 16
+titleLabel.TextSize = 18
 titleLabel.TextXAlignment = Enum.TextXAlignment.Left
 titleLabel.Parent = titleBar
 
 -- #####################################################################
--- #                     MINIMIZE BUTTON                              #
+-- #                     MINIMIZE BUTTON (YUVARLAK)                   #
 -- #####################################################################
 
 local minimizeButton = Instance.new("TextButton")
-minimizeButton.Size = UDim2.new(0, 28, 0, 28)
-minimizeButton.Position = UDim2.new(1, -62, 0, 4)
-minimizeButton.Text = "-"
+minimizeButton.Size = UDim2.new(0, 34, 0, 34)
+minimizeButton.Position = UDim2.new(1, -50, 0, 9)
+minimizeButton.Text = "−"
 minimizeButton.Font = Enum.Font.GothamBold
-minimizeButton.TextSize = 18
+minimizeButton.TextSize = 22
 minimizeButton.TextColor3 = Theme.TextPrimary
-minimizeButton.BackgroundColor3 = Color3.fromRGB(160, 130, 30)
+minimizeButton.BackgroundColor3 = Theme.ButtonOff
 minimizeButton.BorderSizePixel = 0
 minimizeButton.AutoButtonColor = false
 minimizeButton.Parent = titleBar
 
 local minimizeCorner = Instance.new("UICorner")
-minimizeCorner.CornerRadius = UDim.new(0, 5)
+minimizeCorner.CornerRadius = UDim.new(1, 0)
 minimizeCorner.Parent = minimizeButton
 
--- Minimize butonu hover efektleri
 minimizeButton.MouseEnter:Connect(function()
-    TweenService:Create(minimizeButton, TweenInfo.new(0.15), {
-        BackgroundColor3 = Color3.fromRGB(200, 170, 50)
-    }):Play()
+    TweenService:Create(minimizeButton, TweenInfo.new(0.2), {BackgroundColor3 = Theme.Accent}):Play()
 end)
 
 minimizeButton.MouseLeave:Connect(function()
-    TweenService:Create(minimizeButton, TweenInfo.new(0.15), {
-        BackgroundColor3 = Color3.fromRGB(160, 130, 30)
-    }):Play()
+    TweenService:Create(minimizeButton, TweenInfo.new(0.2), {BackgroundColor3 = Theme.ButtonOff}):Play()
 end)
 
 -- #####################################################################
--- #                      CLOSE BUTTON                                #
+-- #                      CLOSE BUTTON (YUVARLAK)                     #
 -- #####################################################################
 
 local closeButton = Instance.new("TextButton")
-closeButton.Size = UDim2.new(0, 28, 0, 28)
-closeButton.Position = UDim2.new(1, -30, 0, 4)
-closeButton.Text = "X"
+closeButton.Size = UDim2.new(0, 34, 0, 34)
+closeButton.Position = UDim2.new(1, -92, 0, 9)
+closeButton.Text = "✕"
 closeButton.Font = Enum.Font.GothamBold
-closeButton.TextSize = 14
+closeButton.TextSize = 16
 closeButton.TextColor3 = Theme.TextPrimary
 closeButton.BackgroundColor3 = Theme.Accent
 closeButton.BorderSizePixel = 0
@@ -214,20 +229,15 @@ closeButton.AutoButtonColor = false
 closeButton.Parent = titleBar
 
 local closeCorner = Instance.new("UICorner")
-closeCorner.CornerRadius = UDim.new(0, 5)
+closeCorner.CornerRadius = UDim.new(1, 0)
 closeCorner.Parent = closeButton
 
--- Close butonu hover efektleri
 closeButton.MouseEnter:Connect(function()
-    TweenService:Create(closeButton, TweenInfo.new(0.15), {
-        BackgroundColor3 = Theme.AccentHover
-    }):Play()
+    TweenService:Create(closeButton, TweenInfo.new(0.2), {BackgroundColor3 = Theme.AccentDark}):Play()
 end)
 
 closeButton.MouseLeave:Connect(function()
-    TweenService:Create(closeButton, TweenInfo.new(0.15), {
-        BackgroundColor3 = Theme.Accent
-    }):Play()
+    TweenService:Create(closeButton, TweenInfo.new(0.2), {BackgroundColor3 = Theme.Accent}):Play()
 end)
 
 -- #####################################################################
@@ -236,8 +246,8 @@ end)
 
 local minimizeFrame = Instance.new("Frame")
 minimizeFrame.Name = "MinimizeFrame"
-minimizeFrame.Size = UDim2.new(0, 55, 0, 55)
-minimizeFrame.Position = UDim2.new(0.015, 0, 0.015, 0)
+minimizeFrame.Size = UDim2.new(0, 65, 0, 65)
+minimizeFrame.Position = UDim2.new(0.02, 0, 0.02, 0)
 minimizeFrame.BackgroundColor3 = Theme.Background
 minimizeFrame.BorderSizePixel = 0
 minimizeFrame.Visible = false
@@ -247,7 +257,7 @@ minimizeFrame.ZIndex = 999
 minimizeFrame.Parent = screenGui
 
 local minFrameCorner = Instance.new("UICorner")
-minFrameCorner.CornerRadius = UDim.new(0, 8)
+minFrameCorner.CornerRadius = UDim.new(1, 0)
 minFrameCorner.Parent = minimizeFrame
 
 local minFrameStroke = Instance.new("UIStroke")
@@ -258,24 +268,24 @@ minFrameStroke.Parent = minimizeFrame
 -- SANTES yazisi (kirmizi)
 local santesLabel = Instance.new("TextLabel")
 santesLabel.Size = UDim2.new(1, 0, 0.45, 0)
-santesLabel.Position = UDim2.new(0, 0, 0.05, 0)
+santesLabel.Position = UDim2.new(0, 0, 0.1, 0)
 santesLabel.BackgroundTransparency = 1
 santesLabel.Text = "SANTES"
 santesLabel.Font = Enum.Font.GothamBold
-santesLabel.TextSize = 14
+santesLabel.TextSize = 13
 santesLabel.TextColor3 = Theme.Accent
 santesLabel.TextXAlignment = Enum.TextXAlignment.Center
 santesLabel.Parent = minimizeFrame
 
 -- HUB yazisi (beyaz)
 local hubLabel = Instance.new("TextLabel")
-hubLabel.Size = UDim2.new(1, 0, 0.4, 0)
-hubLabel.Position = UDim2.new(0, 0, 0.50, 0)
+hubLabel.Size = UDim2.new(1, 0, 0.35, 0)
+hubLabel.Position = UDim2.new(0, 0, 0.55, 0)
 hubLabel.BackgroundTransparency = 1
 hubLabel.Text = "HUB"
 hubLabel.Font = Enum.Font.GothamBold
-hubLabel.TextSize = 14
-hubLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+hubLabel.TextSize = 13
+hubLabel.TextColor3 = Theme.TextPrimary
 hubLabel.TextXAlignment = Enum.TextXAlignment.Center
 hubLabel.Parent = minimizeFrame
 
@@ -284,9 +294,9 @@ hubLabel.Parent = minimizeFrame
 -- #####################################################################
 
 local divider = Instance.new("Frame")
-divider.Size = UDim2.new(1, -16, 0, 1)
-divider.Position = UDim2.new(0, 8, 0, 36)
-divider.BackgroundColor3 = Theme.Accent
+divider.Size = UDim2.new(1, -24, 0, 1)
+divider.Position = UDim2.new(0, 12, 0, 52)
+divider.BackgroundColor3 = Theme.Border
 divider.BorderSizePixel = 0
 divider.Parent = mainFrame
 
@@ -295,24 +305,24 @@ divider.Parent = mainFrame
 -- #####################################################################
 
 local sidebarFrame = Instance.new("Frame")
-sidebarFrame.Size = UDim2.new(0, 110, 1, -56)
-sidebarFrame.Position = UDim2.new(0, 8, 0, 42)
+sidebarFrame.Size = UDim2.new(0, 125, 1, -68)
+sidebarFrame.Position = UDim2.new(0, 8, 0, 60)
 sidebarFrame.BackgroundColor3 = Theme.Sidebar
 sidebarFrame.BorderSizePixel = 0
 sidebarFrame.Parent = mainFrame
 
 local sidebarCorner = Instance.new("UICorner")
-sidebarCorner.CornerRadius = UDim.new(0, 6)
+sidebarCorner.CornerRadius = UDim.new(0, 8)
 sidebarCorner.Parent = sidebarFrame
 
 local sidebarStroke = Instance.new("UIStroke")
-sidebarStroke.Color = Theme.Accent
+sidebarStroke.Color = Theme.Border
 sidebarStroke.Thickness = 1
 sidebarStroke.Transparency = 0.5
 sidebarStroke.Parent = sidebarFrame
 
 local sidebarLayout = Instance.new("UIListLayout")
-sidebarLayout.Padding = UDim.new(0, 4)
+sidebarLayout.Padding = UDim.new(0, 6)
 sidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
 sidebarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 sidebarLayout.Parent = sidebarFrame
@@ -322,8 +332,8 @@ sidebarLayout.Parent = sidebarFrame
 -- #####################################################################
 
 local contentFrame = Instance.new("ScrollingFrame")
-contentFrame.Size = UDim2.new(1, -130, 1, -56)
-contentFrame.Position = UDim2.new(0, 126, 0, 42)
+contentFrame.Size = UDim2.new(1, -145, 1, -68)
+contentFrame.Position = UDim2.new(0, 137, 0, 60)
 contentFrame.BackgroundColor3 = Theme.Sidebar
 contentFrame.BorderSizePixel = 0
 contentFrame.ScrollingDirection = Enum.ScrollingDirection.Y
@@ -333,11 +343,11 @@ contentFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 contentFrame.Parent = mainFrame
 
 local contentCorner = Instance.new("UICorner")
-contentCorner.CornerRadius = UDim.new(0, 6)
+contentCorner.CornerRadius = UDim.new(0, 8)
 contentCorner.Parent = contentFrame
 
 local contentLayout = Instance.new("UIListLayout")
-contentLayout.Padding = UDim.new(0, 6)  -- Satir arasi bosluk
+contentLayout.Padding = UDim.new(0, 8)
 contentLayout.SortOrder = Enum.SortOrder.LayoutOrder
 contentLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 contentLayout.Parent = contentFrame
@@ -347,14 +357,14 @@ contentLayout.Parent = contentFrame
 -- #####################################################################
 
 local footerLabel = Instance.new("TextLabel")
-footerLabel.Size = UDim2.new(1, -16, 0, 16)
-footerLabel.Position = UDim2.new(0, 8, 1, -20)
+footerLabel.Size = UDim2.new(1, -16, 0, 20)
+footerLabel.Position = UDim2.new(0, 8, 1, -24)
 footerLabel.BackgroundTransparency = 1
-footerLabel.Text = "K Toggle"
+footerLabel.Text = "Press K to toggle | SANTES HUB"
 footerLabel.Font = Enum.Font.Gotham
-footerLabel.TextSize = 9
-footerLabel.TextColor3 = Theme.TextSecondary
-footerLabel.TextXAlignment = Enum.TextXAlignment.Right
+footerLabel.TextSize = 10
+footerLabel.TextColor3 = Theme.TextMuted
+footerLabel.TextXAlignment = Enum.TextXAlignment.Center
 footerLabel.Parent = mainFrame
 
 -- #####################################################################
@@ -371,7 +381,6 @@ end)
 minimizeFrame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 
         or input.UserInputType == Enum.UserInputType.Touch then
-        
         minimizeFrame.Visible = false
         mainFrame.Visible = true
     end
@@ -445,11 +454,9 @@ do
     titleBar.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 
             or input.UserInputType == Enum.UserInputType.Touch then
-            
             dragging = true
             dragStart = input.Position
             startPos = mainFrame.Position
-
             input.Changed:Connect(function()
                 if input.UserInputState == Enum.UserInputState.End then
                     dragging = false
@@ -473,7 +480,7 @@ do
 end
 
 -- #####################################################################
--- #                   TOGGLE ROW CREATOR                             #
+-- #                   TOGGLE ROW CREATOR (YUVARLAK BUTTON)           #
 -- #####################################################################
 
 local activeBinds = {}
@@ -486,8 +493,20 @@ local rowFuncData = {}
 local function createToggleRow(scriptName, canToggle, isEnabledFn, onEnable, onDisable, getKeyBindFn, setKeyBindFn)
     -- Ana satir
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(1, -12, 0, 34)
-    frame.BackgroundTransparency = 1
+    frame.Size = UDim2.new(1, -16, 0, 46)
+    frame.BackgroundColor3 = Theme.Card
+    frame.BorderSizePixel = 0
+    frame.Parent = nil
+
+    local frameCorner = Instance.new("UICorner")
+    frameCorner.CornerRadius = UDim.new(0, 8)
+    frameCorner.Parent = frame
+
+    local frameStroke = Instance.new("UIStroke")
+    frameStroke.Color = Theme.Border
+    frameStroke.Thickness = 1
+    frameStroke.Transparency = 0.5
+    frameStroke.Parent = frame
 
     -- Yatay duzen
     local layout = Instance.new("UIListLayout")
@@ -495,12 +514,12 @@ local function createToggleRow(scriptName, canToggle, isEnabledFn, onEnable, onD
     layout.VerticalAlignment = Enum.VerticalAlignment.Center
     layout.HorizontalAlignment = Enum.HorizontalAlignment.Left
     layout.SortOrder = Enum.SortOrder.LayoutOrder
-    layout.Padding = UDim.new(0, 4)
+    layout.Padding = UDim.new(0, 10)
     layout.Parent = frame
 
     -- Isim etiketi
     local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(0.44, 0, 1, 0)
+    label.Size = UDim2.new(0.45, 0, 1, 0)
     label.BackgroundTransparency = 1
     label.Text = scriptName
     label.TextColor3 = Theme.TextSecondary
@@ -509,41 +528,28 @@ local function createToggleRow(scriptName, canToggle, isEnabledFn, onEnable, onD
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.Parent = frame
 
-    -- ON/OFF butonu
+    -- YUVARLAK ON/OFF BUTONU
     local toggleBtn = Instance.new("TextButton")
-    toggleBtn.Size = UDim2.new(0.26, 0, 0.75, 0)
+    toggleBtn.Size = UDim2.new(0, 58, 0, 30)
     toggleBtn.Font = Enum.Font.GothamBold
     toggleBtn.TextSize = 11
-    toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    toggleBtn.TextColor3 = Theme.TextPrimary
     toggleBtn.BackgroundColor3 = Theme.ButtonOff
     toggleBtn.BorderSizePixel = 0
     toggleBtn.AutoButtonColor = false
     toggleBtn.Parent = frame
 
     local toggleCorner = Instance.new("UICorner")
-    toggleCorner.CornerRadius = UDim.new(0, 4)
+    toggleCorner.CornerRadius = UDim.new(1, 0)
     toggleCorner.Parent = toggleBtn
 
     local toggleStroke = Instance.new("UIStroke")
-    toggleStroke.Color = Theme.Accent
+    toggleStroke.Color = Theme.Border
     toggleStroke.Thickness = 1
     toggleStroke.Transparency = 0.5
     toggleStroke.Parent = toggleBtn
 
     local bindBtn = nil
-
-    -- Renk hesaplama
-    local function getTargetColor()
-        local state = false
-        if type(isEnabledFn) == 'function' then
-            local s, r = pcall(isEnabledFn)
-            if s then state = r end
-        end
-        if not canToggle then
-            return Color3.fromRGB(100, 35, 35)
-        end
-        return state and Theme.ButtonOn or Theme.ButtonOff
-    end
 
     -- Gorsel guncelleme
     local function updateVisuals()
@@ -556,12 +562,15 @@ local function createToggleRow(scriptName, canToggle, isEnabledFn, onEnable, onD
         if not canToggle then
             toggleBtn.Text = "RUN"
             toggleBtn.BackgroundColor3 = Color3.fromRGB(100, 35, 35)
+            toggleStroke.Color = Color3.fromRGB(200, 100, 100)
         elseif state then
             toggleBtn.Text = "ON"
             toggleBtn.BackgroundColor3 = Theme.ButtonOn
+            toggleStroke.Color = Theme.Accent
         else
             toggleBtn.Text = "OFF"
             toggleBtn.BackgroundColor3 = Theme.ButtonOff
+            toggleStroke.Color = Theme.Border
         end
     end
 
@@ -577,21 +586,21 @@ local function createToggleRow(scriptName, canToggle, isEnabledFn, onEnable, onD
     -- Bind butonu
     if getKeyBindFn and setKeyBindFn then
         bindBtn = Instance.new("TextButton")
-        bindBtn.Size = UDim2.new(0.26, 0, 0.75, 0)
+        bindBtn.Size = UDim2.new(0, 55, 0, 28)
         bindBtn.Font = Enum.Font.GothamMedium
-        bindBtn.TextSize = 10
-        bindBtn.TextColor3 = Theme.TextSecondary
-        bindBtn.BackgroundColor3 = Theme.BindButton
+        bindBtn.TextSize = 9
+        bindBtn.TextColor3 = Theme.TextMuted
+        bindBtn.BackgroundColor3 = Theme.ButtonOff
         bindBtn.BorderSizePixel = 0
         bindBtn.AutoButtonColor = false
         bindBtn.Parent = frame
 
         local bindCorner = Instance.new("UICorner")
-        bindCorner.CornerRadius = UDim.new(0, 4)
+        bindCorner.CornerRadius = UDim.new(1, 0)
         bindCorner.Parent = bindBtn
 
         local bindStroke = Instance.new("UIStroke")
-        bindStroke.Color = Theme.Accent
+        bindStroke.Color = Theme.Border
         bindStroke.Thickness = 1
         bindStroke.Transparency = 0.5
         bindStroke.Parent = bindBtn
@@ -614,7 +623,7 @@ local function createToggleRow(scriptName, canToggle, isEnabledFn, onEnable, onD
             }
         end
     else
-        toggleBtn.Size = UDim2.new(0.55, 0, 0.75, 0)
+        toggleBtn.Size = UDim2.new(0, 70, 0, 30)
     end
 
     -- Bind yazisi guncelleme
@@ -628,7 +637,7 @@ local function createToggleRow(scriptName, canToggle, isEnabledFn, onEnable, onD
         end
         
         bindBtn.Text = (kb and typeof(kb) == "EnumItem" and kb.Name ~= "Unknown") 
-            and "[" .. kb.Name .. "]" 
+            and kb.Name 
             or "Bind"
     end
 
@@ -647,10 +656,8 @@ local function createToggleRow(scriptName, canToggle, isEnabledFn, onEnable, onD
             if type(onEnable) == 'function' then
                 pcall(onEnable)
             end
-            toggleBtn.Text = "DONE"
-            toggleBtn.BackgroundColor3 = Theme.ButtonOn:Lerp(
-                Color3.fromRGB(10, 10, 12), 0.3
-            )
+            toggleBtn.Text = "✓"
+            toggleBtn.BackgroundColor3 = Theme.ButtonOn:Lerp(Color3.fromRGB(10, 10, 12), 0.3)
             toggleBtn.Active = false
             if bindBtn then bindBtn.Active = false end
             return
@@ -682,7 +689,7 @@ local function createToggleRow(scriptName, canToggle, isEnabledFn, onEnable, onD
                     if getter then
                         local s, r = pcall(getter)
                         if s and r and typeof(r) == "EnumItem" then
-                            txt = "[" .. r.Name .. "]"
+                            txt = r.Name
                         end
                     end
                     prevBtn.Text = txt
@@ -1186,19 +1193,11 @@ end
 -- #####################################################################
 -- #   MODUL: AUTO LOCKPICK (ANINDA ACMA - YANINA GIDINCE DIREKT)     #
 -- #####################################################################
--- #                                                                    #
--- #  NASIL CALISIR:                                                    #
--- #  1. Backpack'te Lockpick varsa otomatik kusanir                   #
--- #  2. Safe/Register'in 3 stud yanina git                            #
--- #  3. ANINDA kasa acilir (1 lockpick harcar)                        #
--- #  4. Lockpick biter, bir sonraki safe icin yeni lockpick lazim     #
--- #                                                                    #
--- #####################################################################
 
 local autoLockpickEnabled = false
 local autoLockpickConn = nil
 local lockpickCD = false
-local lastOpenedSafe = nil  -- Ayni safe'i tekrar acmaya calismasin
+local lastOpenedSafe = nil
 
 function AutoLockpick_Enable()
     if autoLockpickEnabled then return end
@@ -1920,20 +1919,16 @@ function NoRecoil_Enable()
     if noRecoilEnabled then return end
     noRecoilEnabled = true
 
-    -- Xeno'da getgc calismayabilir, alternatif yontem
     task.spawn(function()
         while noRecoilEnabled do
             pcall(function()
-                -- Calistigin oyunun silah tablolarini bul
                 for _, v in pairs(getgc(true)) do
                     if type(v) == 'table' then
-                        -- Recoil varsa sifirla
                         if rawget(v, 'Recoil') ~= nil then
                             v.Recoil = 0
                             v.Spread = 0
                             v.CameraRecoilingEnabled = false
                         end
-                        -- Angle varsa sifirla
                         if rawget(v, 'AngleX_Min') ~= nil then
                             v.AngleX_Min = 0; v.AngleX_Max = 0
                             v.AngleY_Min = 0; v.AngleY_Max = 0
@@ -1942,7 +1937,7 @@ function NoRecoil_Enable()
                     end
                 end
             end)
-            task.wait(1) -- Her saniye kontrol et
+            task.wait(1)
         end
     end)
 end
@@ -1999,7 +1994,6 @@ function SilentAim_Enable()
             end
         end
 
-        -- HEDEFE HITBOX EKLE (Drawing yerine Part kullan)
         if closestPlayer and closestPlayer.Character then
             local targetPart = closestPlayer.Character:FindFirstChild("Head") 
                 or closestPlayer.Character:FindFirstChild("HumanoidRootPart")
@@ -2179,17 +2173,14 @@ function InfiniteStamina_Enable()
     if infStaminaEnabled then return end
     infStaminaEnabled = true
 
-    -- Xeno'da hookfunction calismaz, direkt stamina degerini sifirla
     infStaminaConn = RunService.RenderStepped:Connect(function()
         if not infStaminaEnabled then return end
         
         local char = LocalPlayer.Character
         if not char then return end
         
-        -- Tum Humanoid'lerin stamina'sini sifirla
         for _, hum in pairs(char:GetDescendants()) do
             if hum:IsA("Humanoid") then
-                -- Stamina'yi max'ta tut
                 if hum.MaxStamina and hum.Stamina then
                     hum.Stamina = hum.MaxStamina
                 end
@@ -2212,21 +2203,13 @@ local autoFarmCoroutine = nil
 local farmProcessed = {}
 local farmTempIgnored = {}
 local ignoreDuration = 60
-
--- Hareket ayarları
 local moveSpeed = 22
 local targetY = 4.8
-
--- Durum değişkenleri
-local isMovingToTarget = false
 local hasReachedTargetY = false
-local currentTargetPart = nil
-
--- Path görselleştirme için
+local isMovingToTarget = false
 local pathVisuals = {}
 local pathLines = {}
 
--- Criminality event referansları
 local Events = nil
 
 local function getEvents()
@@ -2243,14 +2226,9 @@ local function getEvents()
     return Events
 end
 
--- Yol görselleştirme (yeşil çizgi)
 local function clearPathVisuals()
-    for _, v in pairs(pathVisuals) do
-        pcall(function() v:Destroy() end)
-    end
-    for _, v in pairs(pathLines) do
-        pcall(function() v:Destroy() end)
-    end
+    for _, v in pairs(pathVisuals) do pcall(function() v:Destroy() end) end
+    for _, v in pairs(pathLines) do pcall(function() v:Destroy() end) end
     pathVisuals = {}
     pathLines = {}
 end
@@ -2258,8 +2236,6 @@ end
 local function drawPath(points)
     clearPathVisuals()
     if not points or #points < 2 then return end
-    
-    -- Waypoint noktaları
     for i, pos in ipairs(points) do
         local part = Instance.new("Part")
         part.Size = Vector3.new(1, 1, 1)
@@ -2272,11 +2248,8 @@ local function drawPath(points)
         part.Parent = workspace
         table.insert(pathVisuals, part)
     end
-    
-    -- Çizgiler
     for i = 1, #points - 1 do
-        local p1 = points[i]
-        local p2 = points[i + 1]
+        local p1, p2 = points[i], points[i + 1]
         local dist = (p2 - p1).Magnitude
         local line = Instance.new("Part")
         line.Size = Vector3.new(0.2, 0.2, dist)
@@ -2291,78 +2264,49 @@ local function drawPath(points)
     end
 end
 
--- Yüksekliğe çıkma (tavana takılmayı engeller)
 local function riseToTargetY()
     if hasReachedTargetY then return end
-    
     local char = LocalPlayer.Character
     local hrp = char and char:FindFirstChild("HumanoidRootPart")
-    local hum = char and char:FindFirstChildOfClass("Humanoid")
-    
-    if hrp and hum and hum.Health > 0 and hrp.Position.Y < 4.7 then
-        print("[AutoFarm] Rising to 4.8...")
-        
-        local startPos = hrp.Position
-        local targetPos = Vector3.new(startPos.X, targetY, startPos.Z)
-        
-        -- Tween ile yüksel
+    if hrp and hrp.Position.Y < 4.7 then
+        local targetPos = Vector3.new(hrp.Position.X, targetY, hrp.Position.Z)
         local tween = TweenService:Create(hrp, TweenInfo.new(1, Enum.EasingStyle.Quad), { CFrame = CFrame.new(targetPos) })
         tween:Play()
         tween.Completed:Wait()
-        
         hrp.AssemblyLinearVelocity = Vector3.zero
-        hrp.AssemblyAngularVelocity = Vector3.zero
-        
-        print("[AutoFarm] Reached 4.8")
         task.wait(2)
         hasReachedTargetY = true
     end
 end
 
--- Basit yürüme fonksiyonu (pathfinding yok, direkt hedefe yürü)
 local function moveToTarget(targetPos)
     local char = LocalPlayer.Character
     if not char then return false end
-    
     local hrp = char:FindFirstChild("HumanoidRootPart")
     local hum = char:FindFirstChildOfClass("Humanoid")
     if not hrp or not hum then return false end
-    
-    -- Hedef pozisyonu (yerden 2.5 yukarı)
     local targetHRP = targetPos + Vector3.new(0, 2.5, 0)
-    
-    -- Path çiz (basit düz çizgi)
     drawPath({hrp.Position, targetHRP})
-    
-    -- Hedefe yürü
     hum.WalkSpeed = moveSpeed
     hum.AutoRotate = true
-    
     local startTime = tick()
     while (hrp.Position - targetHRP).Magnitude > 3.5 and tick() - startTime < 15 do
         if not autoFarmEnabled then break end
-        
         char = LocalPlayer.Character
         if not char then break end
-        
         hrp = char:FindFirstChild("HumanoidRootPart")
         hum = char:FindFirstChildOfClass("Humanoid")
         if not hrp or not hum then break end
-        
         local lookAt = (targetHRP - hrp.Position).Unit
         hrp.CFrame = CFrame.new(hrp.Position, hrp.Position + Vector3.new(lookAt.X, 0, lookAt.Z))
         hum.MoveDirection = Vector3.new(lookAt.X, 0, lookAt.Z)
-        
         wait()
     end
-    
     hum.MoveDirection = Vector3.new()
     clearPathVisuals()
-    
     return (hrp.Position - targetHRP).Magnitude <= 3.5
 end
 
--- Eşya kontrol
 local function hasTool(toolName)
     local backpack = LocalPlayer:FindFirstChild("Backpack")
     local character = LocalPlayer.Character
@@ -2379,21 +2323,16 @@ local function equipTool(toolName)
     return false
 end
 
--- Dealer bul
 local function findCrowbarDealer()
     local map = Workspace:FindFirstChild("Map")
     if not map then return nil end
     local shops = map:FindFirstChild("Shopz")
     if not shops then return nil end
-    
     local char = LocalPlayer.Character
     if not char then return nil end
     local hrp = char:FindFirstChild("HumanoidRootPart")
     if not hrp then return nil end
-    
-    local closestDealer = nil
-    local closestDist = math.huge
-    
+    local closestDealer, closestDist = nil, math.huge
     for _, shop in pairs(shops:GetChildren()) do
         local stocks = shop:FindFirstChild("CurrentStocks")
         if stocks then
@@ -2402,35 +2341,21 @@ local function findCrowbarDealer()
                 local mainPart = shop:FindFirstChild("MainPart")
                 if mainPart then
                     local dist = (hrp.Position - mainPart.Position).Magnitude
-                    if dist < closestDist then
-                        closestDist = dist
-                        closestDealer = shop
-                    end
+                    if dist < closestDist then closestDist = dist; closestDealer = shop end
                 end
             end
         end
     end
-    
     return closestDealer
 end
 
--- Crowbar satın al
 local function buyCrowbar()
     local dealer = findCrowbarDealer()
     if not dealer then return false end
-    
     local mainPart = dealer:FindFirstChild("MainPart")
     if not mainPart then return false end
-    
-    print("[AutoFarm] Going to dealer for crowbar")
-    
-    if not moveToTarget(mainPart.Position) then
-        print("[AutoFarm] Could not reach dealer")
-        return false
-    end
-    
+    if not moveToTarget(mainPart.Position) then return false end
     task.wait(1.5)
-    
     local events = getEvents()
     if events then
         pcall(function() events.BYZERSPROTEC:FireServer(true, "shop", mainPart, "IllegalStore") end)
@@ -2439,30 +2364,22 @@ local function buyCrowbar()
         task.wait(20)
         pcall(function() events.BYZERSPROTEC:FireServer(false) end)
     end
-    
     task.wait(2)
     return hasTool("Crowbar")
 end
 
--- Hedef safe bul (sadece soyulmamış)
 local function findTarget()
     local folder = Workspace.Map and Workspace.Map:FindFirstChild("BredMakurz")
     if not folder then folder = Workspace:FindFirstChild("BredMakurz") end
     if not folder then return nil end
-    
     local char = LocalPlayer.Character
     if not char then return nil end
     local hrp = char:FindFirstChild("HumanoidRootPart")
     if not hrp then return nil end
-    
-    local nearest = nil
-    local bestDist = math.huge
-    
+    local nearest, bestDist = nil, math.huge
     for _, obj in pairs(folder:GetChildren()) do
         local nameLower = obj.Name:lower()
-        if (nameLower:find("safe") or nameLower:find("register")) then
-            if farmProcessed[obj] or farmTempIgnored[obj] then goto skip end
-            
+        if (nameLower:find("safe") or nameLower:find("register")) and not farmProcessed[obj] and not farmTempIgnored[obj] then
             local values = obj:FindFirstChild("Values")
             if values then
                 local broken = values:FindFirstChild("Broken")
@@ -2470,90 +2387,63 @@ local function findTarget()
                     local mainPart = obj:FindFirstChild("MainPart") or obj.PrimaryPart
                     if mainPart and mainPart.Position.Y >= 4.8 then
                         local dist = (hrp.Position - mainPart.Position).Magnitude
-                        if dist < bestDist then
-                            bestDist = dist
-                            nearest = obj
-                        end
+                        if dist < bestDist then bestDist = dist; nearest = obj end
                     end
                 end
             end
         end
-        ::skip::
     end
-    
     return nearest
 end
 
--- Safe aç
+local function cleanupTempIgnored()
+    local now = tick()
+    for obj, expiry in pairs(farmTempIgnored) do
+        if now > expiry then farmTempIgnored[obj] = nil end
+    end
+end
+
 local function openSafe(safeObj)
     if not hasTool("Crowbar") then
-        print("[AutoFarm] No crowbar, buying...")
         local bought = buyCrowbar()
         if not bought then return false end
     end
-    
-    if not LocalPlayer.Character:FindFirstChild("Crowbar") then
-        equipTool("Crowbar")
-        task.wait(1)
-    end
-    
+    if not LocalPlayer.Character:FindFirstChild("Crowbar") then equipTool("Crowbar"); task.wait(1) end
     task.wait(1.5)
-    
     local events = getEvents()
     if not events then return false end
-    
-    local remote1 = events:FindFirstChild("XMHH.2")
-    local remote2 = events:FindFirstChild("XMHH2.2")
+    local remote1, remote2 = events:FindFirstChild("XMHH.2"), events:FindFirstChild("XMHH2.2")
     local mainPart = safeObj:FindFirstChild("MainPart") or safeObj.PrimaryPart
-    
     if not remote1 or not remote2 or not mainPart then return false end
-    
-    print("[AutoFarm] Opening safe:", safeObj.Name)
-    
-    local startTime = tick()
-    local hits = 0
-    
+    local startTime, hits = tick(), 0
     while autoFarmEnabled and safeObj and safeObj.Parent do
         local values = safeObj:FindFirstChild("Values")
         if not values then break end
         local broken = values:FindFirstChild("Broken")
         if broken and broken.Value then break end
         if tick() - startTime > 25 then break end
-        
         task.wait(0.4)
-        
         local crowbar = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Crowbar")
-        if not crowbar then
-            crowbar = LocalPlayer.Backpack and LocalPlayer.Backpack:FindFirstChild("Crowbar")
-            if crowbar then equipTool("Crowbar") end
-        end
+        if not crowbar then crowbar = LocalPlayer.Backpack and LocalPlayer.Backpack:FindFirstChild("Crowbar"); if crowbar then equipTool("Crowbar") end end
         if not crowbar then break end
-        
         local arm = LocalPlayer.Character:FindFirstChild("Right Arm")
         if not arm then break end
-        
         local success, result = pcall(function() return remote1:InvokeServer("\240\159\141\158", tick(), crowbar, "DZDRRRKI", safeObj, "Register") end)
         if success and result then
             pcall(function() remote2:FireServer("\240\159\141\158", tick(), crowbar, "2389ZFX34", result, false, arm, mainPart, safeObj, mainPart.Position, mainPart.Position) end)
             hits = hits + 1
         end
-        
         if hits % 4 == 0 then task.wait(0.8) end
     end
-    
     task.wait(2)
-    print("[AutoFarm] Safe opened, hits:", hits)
     return true
 end
 
--- Para topla
 local function collectMoneyNearTarget(targetObj)
     local mainPart = targetObj:FindFirstChild("MainPart") or targetObj.PrimaryPart
     if not mainPart then return false end
-    
     local spawnedBread = Workspace:FindFirstChild("Filter") and Workspace.Filter:FindFirstChild("SpawnedBread")
     if not spawnedBread then return false end
-    
     local collected = false
     for _, bread in pairs(spawnedBread:GetChildren()) do
         pcall(function()
@@ -2561,44 +2451,27 @@ local function collectMoneyNearTarget(targetObj)
                 if (bread.Position - mainPart.Position).Magnitude <= 20 then
                     moveToTarget(bread.Position)
                     local pickupEvent = ReplicatedStorage:FindFirstChild("Events") and ReplicatedStorage.Events:FindFirstChild("CZDPZUS")
-                    if pickupEvent then
-                        pcall(function() pickupEvent:FireServer(bread) end)
-                        collected = true
-                    end
+                    if pickupEvent then pcall(function() pickupEvent:FireServer(bread) end); collected = true end
                     task.wait(0.3)
                 end
             end
         end)
     end
-    
     return collected
 end
 
--- Temp ignore temizliği
-local function cleanupTempIgnored()
-    local now = tick()
-    for obj, expiry in pairs(farmTempIgnored) do
-        if now > expiry then
-            farmTempIgnored[obj] = nil
-        end
-    end
-end
-
--- Respawn mekanizması
 local isRespawning = false
 local respawnConn = nil
 
 local function pressE()
-    local VIM = game:GetService("VirtualInputManager")
-    VIM:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
     task.wait(0.1)
-    VIM:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
 end
 
 local function startRespawnHandler()
     if isRespawning then return end
     isRespawning = true
-    
     respawnConn = RunService.Heartbeat:Connect(function()
         local char = LocalPlayer.Character
         local hum = char and char:FindFirstChild("Humanoid")
@@ -2615,127 +2488,67 @@ end
 LocalPlayer.CharacterAdded:Connect(function()
     task.wait(3)
     hasReachedTargetY = false
-    if autoFarmEnabled then
-        riseToTargetY()
-    end
+    if autoFarmEnabled then riseToTargetY() end
 end)
 
 if LocalPlayer.Character then
     local hum = LocalPlayer.Character:FindFirstChild("Humanoid")
-    if hum then
-        hum.Died:Connect(startRespawnHandler)
-    end
+    if hum then hum.Died:Connect(startRespawnHandler) end
 end
 
--- ANA FARM LOOP
 local function farmLoop()
-    print("[AutoFarm] Started")
-    
     while autoFarmEnabled do
         task.wait(1)
-        
         cleanupTempIgnored()
-        
-        local char = LocalPlayer.Character
-        local hum = char and char:FindFirstChildOfClass("Humanoid")
-        
-        if not char or not hum or hum.Health <= 0 then
-            print("[AutoFarm] Dead, waiting...")
-            task.wait(3)
-            goto continue
-        end
-        
+        local char, hum = LocalPlayer.Character, LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if not char or not hum or hum.Health <= 0 then task.wait(3) goto continue end
         riseToTargetY()
-        
         if not hasTool("Crowbar") then
-            print("[AutoFarm] No crowbar, trying to buy")
             local bought = buyCrowbar()
-            if not bought then
-                task.wait(5)
-                goto continue
-            end
+            if not bought then task.wait(5); goto continue end
         end
-        
         local target = findTarget()
-        if not target then
-            print("[AutoFarm] No targets available")
-            task.wait(5)
-            goto continue
-        end
-        
+        if not target then task.wait(5); goto continue end
         local mainPart = target:FindFirstChild("MainPart") or target.PrimaryPart
-        if not mainPart then
-            farmProcessed[target] = true
-            goto continue
-        end
-        
-        print("[AutoFarm] Moving to:", target.Name)
-        
+        if not mainPart then farmProcessed[target] = true; goto continue end
         if moveToTarget(mainPart.Position) then
-            if not LocalPlayer.Character:FindFirstChild("Crowbar") then
-                equipTool("Crowbar")
-            end
-            
+            if not LocalPlayer.Character:FindFirstChild("Crowbar") then equipTool("Crowbar") end
             if openSafe(target) then
                 collectMoneyNearTarget(target)
                 farmProcessed[target] = true
-                print("[AutoFarm] Target completed")
             else
                 farmTempIgnored[target] = tick() + ignoreDuration
             end
         else
             farmTempIgnored[target] = tick() + ignoreDuration
         end
-        
         task.wait(2)
-        
         ::continue::
     end
-    
-    print("[AutoFarm] Stopped")
 end
 
--- KONTROL FONKSİYONLARI
 function AutoFarm_Enable()
     if autoFarmEnabled then return end
     autoFarmEnabled = true
     farmProcessed = {}
     farmTempIgnored = {}
     hasReachedTargetY = false
-    
-    if autoFarmCoroutine then
-        task.cancel(autoFarmCoroutine)
-    end
-    
-    if _G.Invis_Enable then
-        _G.Invis_Enable()
-    end
-    
+    if autoFarmCoroutine then task.cancel(autoFarmCoroutine) end
+    if _G.Invis_Enable then _G.Invis_Enable() end
     autoFarmCoroutine = task.spawn(farmLoop)
-    print("[AutoFarm] ENABLED")
 end
 
 function AutoFarm_Disable()
     autoFarmEnabled = false
-    
-    if autoFarmCoroutine then
-        task.cancel(autoFarmCoroutine)
-        autoFarmCoroutine = nil
-    end
-    
+    if autoFarmCoroutine then task.cancel(autoFarmCoroutine); autoFarmCoroutine = nil end
     farmProcessed = {}
     farmTempIgnored = {}
     clearPathVisuals()
-    print("[AutoFarm] DISABLED")
 end
 
-function AutoFarm_SetSpeed(speed)
-    moveSpeed = math.clamp(speed, 10, 45)
-end
+function AutoFarm_SetSpeed(speed) moveSpeed = math.clamp(speed, 10, 45) end
+function AutoFarm_GetSpeed() return moveSpeed end
 
-function AutoFarm_GetSpeed()
-    return moveSpeed
-end
 -- #####################################################################
 -- #                   UI CATEGORIES                                   #
 -- #####################################################################
@@ -2746,67 +2559,38 @@ local CatFrames = {}
 local CatButtons = {}
 local ActiveCat = nil
 
-for _, cat in pairs(Categories) do
-    CatFrames[cat] = {}
-end
+for _, cat in pairs(Categories) do CatFrames[cat] = {} end
 
 local function SwitchCategory(name)
     local btn = CatButtons[name]
     if not btn or btn == ActiveCat then return end
-
     if ActiveCat then
-        TweenService:Create(ActiveCat, TweenInfo.new(0.15), {
-            BackgroundColor3 = Theme.CategoryOff
-        }):Play()
-        
-        if ActiveCat.TextLabel then
-            ActiveCat.TextLabel.TextColor3 = Theme.TextSecondary
-        end
+        TweenService:Create(ActiveCat, TweenInfo.new(0.15), {BackgroundColor3 = Theme.CategoryOff}):Play()
+        if ActiveCat.TextLabel then ActiveCat.TextLabel.TextColor3 = Theme.TextSecondary end
     end
-
-    TweenService:Create(btn, TweenInfo.new(0.15), {
-        BackgroundColor3 = Theme.CategoryOn
-    }):Play()
-    
-    if btn.TextLabel then
-        btn.TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    end
-    
+    TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = Theme.CategoryOn}):Play()
+    if btn.TextLabel then btn.TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255) end
     ActiveCat = btn
-
-    for _, child in pairs(contentFrame:GetChildren()) do
-        if child:IsA("Frame") then
-            child.Parent = nil
-        end
-    end
-
+    for _, child in pairs(contentFrame:GetChildren()) do if child:IsA("Frame") then child.Parent = nil end end
     if CatFrames[name] then
-        for i, frame in pairs(CatFrames[name]) do
-            frame.Parent = contentFrame
-            frame.LayoutOrder = i
-        end
-        
+        for i, frame in pairs(CatFrames[name]) do frame.Parent = contentFrame; frame.LayoutOrder = i end
         local count = #CatFrames[name]
-        contentFrame.CanvasSize = UDim2.new(0, 0, 0, 
-            count * 38 + (count > 0 and (count - 1) * 6 or 0) + 10
-        )
+        contentFrame.CanvasSize = UDim2.new(0, 0, 0, count * 52 + 10)
     end
 end
 
 for i, cat in pairs(Categories) do
     local btn = Instance.new("TextButton")
     btn.Name = cat
-    btn.Size = UDim2.new(1, -8, 0, 28)
+    btn.Size = UDim2.new(1, -8, 0, 34)
     btn.BackgroundColor3 = Theme.CategoryOff
     btn.BorderSizePixel = 0
     btn.AutoButtonColor = false
     btn.LayoutOrder = i
     btn.Parent = sidebarFrame
-
     local btnCorner = Instance.new("UICorner")
-    btnCorner.CornerRadius = UDim.new(0, 5)
+    btnCorner.CornerRadius = UDim.new(0, 6)
     btnCorner.Parent = btn
-
     local btnLabel = Instance.new("TextLabel")
     btnLabel.Name = "TextLabel"
     btnLabel.Size = UDim2.new(1, 0, 1, 0)
@@ -2816,11 +2600,7 @@ for i, cat in pairs(Categories) do
     btnLabel.TextSize = 12
     btnLabel.TextColor3 = Theme.TextSecondary
     btnLabel.Parent = btn
-
-    btn.MouseButton1Click:Connect(function()
-        SwitchCategory(cat)
-    end)
-
+    btn.MouseButton1Click:Connect(function() SwitchCategory(cat) end)
     CatButtons[cat] = btn
 end
 
@@ -2828,140 +2608,27 @@ end
 -- #                 POPULATE CATEGORIES                               #
 -- #####################################################################
 
-table.insert(CatFrames.Combat, createToggleRow(
-    "Silent Aim", true,
-    function() return silentAimEnabled end,
-    SilentAim_Enable, SilentAim_Disable,
-    function() return KB.sa end,
-    function(v) KB.sa = v end
-))
+table.insert(CatFrames.Combat, createToggleRow("Silent Aim", true, function() return silentAimEnabled end, SilentAim_Enable, SilentAim_Disable, function() return KB.sa end, function(v) KB.sa = v end))
+table.insert(CatFrames.Combat, createToggleRow("Melee Aura", true, function() return meleeAuraEnabled end, MeleeAura_Enable, MeleeAura_Disable, function() return KB.ma end, function(v) KB.ma = v end))
+table.insert(CatFrames.Combat, createToggleRow("No Recoil", true, function() return noRecoilEnabled end, NoRecoil_Enable, NoRecoil_Disable, function() return KB.nr end, function(v) KB.nr = v end))
 
-table.insert(CatFrames.Combat, createToggleRow(
-    "Melee Aura", true,
-    function() return meleeAuraEnabled end,
-    MeleeAura_Enable, MeleeAura_Disable,
-    function() return KB.ma end,
-    function(v) KB.ma = v end
-))
+table.insert(CatFrames.Movement, createToggleRow("Fly", true, function() return flyEnabled end, Fly_Enable, Fly_Disable, function() return KB.fly end, function(v) KB.fly = v end))
+table.insert(CatFrames.Movement, createToggleRow("Noclip", true, function() return noclipEnabled end, Noclip_Enable, Noclip_Disable, function() return KB.nc end, function(v) KB.nc = v end))
+table.insert(CatFrames.Movement, createToggleRow("Inf Stamina", true, function() return infStaminaEnabled end, InfiniteStamina_Enable, InfiniteStamina_Disable, function() return KB.is end, function(v) KB.is = v end))
+table.insert(CatFrames.Movement, createToggleRow("Invisibility", true, _G.IsInvisEnabled, _G.Invis_Enable, _G.Invis_Disable, function() return KB.inv end, function(v) KB.inv = v end))
 
-table.insert(CatFrames.Combat, createToggleRow(
-    "No Recoil", true,
-    function() return noRecoilEnabled end,
-    NoRecoil_Enable, NoRecoil_Disable,
-    function() return KB.nr end,
-    function(v) KB.nr = v end
-))
+table.insert(CatFrames.Visuals, createToggleRow("Player ESP", true, function() return espEnabled end, ESP_Enable, ESP_Disable, function() return KB.esp end, function(v) KB.esp = v end))
+table.insert(CatFrames.Visuals, createToggleRow("Safe ESP", true, function() return safeESPEnabled end, SafeESP_Enable, SafeESP_Disable, function() return KB.se end, function(v) KB.se = v end))
+table.insert(CatFrames.Visuals, createToggleRow("FullBright", true, function() return fullbrightEnabled end, FullBright_Enable, FullBright_Disable, function() return KB.fb end, function(v) KB.fb = v end))
+table.insert(CatFrames.Visuals, createToggleRow("FOV", true, function() return fovEnabled end, FOV_Enable, FOV_Disable, function() return KB.fv end, function(v) KB.fv = v end))
 
-table.insert(CatFrames.Movement, createToggleRow(
-    "Fly", true,
-    function() return flyEnabled end,
-    Fly_Enable, Fly_Disable,
-    function() return KB.fly end,
-    function(v) KB.fly = v end
-))
+table.insert(CatFrames.Farming, createToggleRow("Auto Farm", true, function() return autoFarmEnabled end, AutoFarm_Enable, AutoFarm_Disable, function() return KB.af end, function(v) KB.af = v end))
+table.insert(CatFrames.Farming, createToggleRow("Auto Pickup $", true, function() return autoPickupEnabled end, AutoPickup_Enable, AutoPickup_Disable, function() return KB.ap end, function(v) KB.ap = v end))
+table.insert(CatFrames.Farming, createToggleRow("No Fail Lockpick", true, function() return noFailLPEnabled end, NoFailLP_Enable, NoFailLP_Disable, function() return KB.lp end, function(v) KB.lp = v end))
+table.insert(CatFrames.Farming, createToggleRow("Auto Lockpick", true, function() return autoLockpickEnabled end, AutoLockpick_Enable, AutoLockpick_Disable, function() return KB.al end, function(v) KB.al = v end))
 
-table.insert(CatFrames.Movement, createToggleRow(
-    "Noclip", true,
-    function() return noclipEnabled end,
-    Noclip_Enable, Noclip_Disable,
-    function() return KB.nc end,
-    function(v) KB.nc = v end
-))
-
-table.insert(CatFrames.Movement, createToggleRow(
-    "Inf Stamina", true,
-    function() return infStaminaEnabled end,
-    InfiniteStamina_Enable, InfiniteStamina_Disable,
-    function() return KB.is end,
-    function(v) KB.is = v end
-))
-
-table.insert(CatFrames.Movement, createToggleRow(
-    "Invisibility", true,
-    _G.IsInvisEnabled, _G.Invis_Enable, _G.Invis_Disable,
-    function() return KB.inv end,
-    function(v) KB.inv = v end
-))
-
-table.insert(CatFrames.Visuals, createToggleRow(
-    "Player ESP", true,
-    function() return espEnabled end,
-    ESP_Enable, ESP_Disable,
-    function() return KB.esp end,
-    function(v) KB.esp = v end
-))
-
-table.insert(CatFrames.Visuals, createToggleRow(
-    "Safe ESP", true,
-    function() return safeESPEnabled end,
-    SafeESP_Enable, SafeESP_Disable,
-    function() return KB.se end,
-    function(v) KB.se = v end
-))
-
-table.insert(CatFrames.Visuals, createToggleRow(
-    "FullBright", true,
-    function() return fullbrightEnabled end,
-    FullBright_Enable, FullBright_Disable,
-    function() return KB.fb end,
-    function(v) KB.fb = v end
-))
-
-table.insert(CatFrames.Visuals, createToggleRow(
-    "FOV", true,
-    function() return fovEnabled end,
-    FOV_Enable, FOV_Disable,
-    function() return KB.fv end,
-    function(v) KB.fv = v end
-))
-
-table.insert(CatFrames.Farming, createToggleRow(
-    "Auto Farm", true,
-    function() return autoFarmEnabled end,
-    AutoFarm_Enable, AutoFarm_Disable,
-    function() return KB.af end,
-    function(v) KB.af = v end
-))
-
-table.insert(CatFrames.Farming, createToggleRow(
-    "Auto Pickup $", true,
-    function() return autoPickupEnabled end,
-    AutoPickup_Enable, AutoPickup_Disable,
-    function() return KB.ap end,
-    function(v) KB.ap = v end
-))
-
-table.insert(CatFrames.Farming, createToggleRow(
-    "No Fail Lockpick", true,
-    function() return noFailLPEnabled end,
-    NoFailLP_Enable, NoFailLP_Disable,
-    function() return KB.lp end,
-    function(v) KB.lp = v end
-))
-
-table.insert(CatFrames.Farming, createToggleRow(
-    "Auto Lockpick", true,
-    function() return autoLockpickEnabled end,
-    AutoLockpick_Enable, AutoLockpick_Disable,
-    function() return KB.al end,
-    function(v) KB.al = v end
-))
-
-table.insert(CatFrames.Misc, createToggleRow(
-    "Admin Detector", true,
-    function() return adminCheckEnabled end,
-    AdminCheck_Enable, AdminCheck_Disable,
-    function() return KB.ad end,
-    function(v) KB.ad = v end
-))
-
-table.insert(CatFrames.Misc, createToggleRow(
-    "Auto Unlock Doors", true,
-    function() return unlockDoorsEnabled end,
-    UnlockDoors_Enable, UnlockDoors_Disable,
-    function() return KB.ud end,
-    function(v) KB.ud = v end
-))
+table.insert(CatFrames.Misc, createToggleRow("Admin Detector", true, function() return adminCheckEnabled end, AdminCheck_Enable, AdminCheck_Disable, function() return KB.ad end, function(v) KB.ad = v end))
+table.insert(CatFrames.Misc, createToggleRow("Auto Unlock Doors", true, function() return unlockDoorsEnabled end, UnlockDoors_Enable, UnlockDoors_Disable, function() return KB.ud end, function(v) KB.ud = v end))
 
 -- #####################################################################
 -- #                 KEYBIND HANDLER                                   #
@@ -2969,24 +2636,17 @@ table.insert(CatFrames.Misc, createToggleRow(
 
 UserInputService.InputBegan:Connect(function(input, gpe)
     if gpe then return end
-
-    if currentRowWaitingForKey 
-        and input.KeyCode ~= Enum.KeyCode.Unknown 
-        and input.KeyCode ~= Enum.KeyCode.K then
-        
+    if currentRowWaitingForKey and input.KeyCode ~= Enum.KeyCode.Unknown and input.KeyCode ~= Enum.KeyCode.K then
         local frame = currentRowWaitingForKey
         local bb = bindButtonRefs[frame]
         local gf = keyBindGetters[frame]
         local sf = keyBindSetters[frame]
         local fd = rowFuncData[frame]
-
         if bb and gf and sf and fd then
             local ok = nil
             local s, r = pcall(gf)
             if s then ok = r end
-
             if ok and activeBinds[ok] then activeBinds[ok] = nil end
-
             if activeBinds[input.KeyCode] then
                 local of = activeBinds[input.KeyCode].frame
                 local ob = bindButtonRefs[of]
@@ -2995,48 +2655,21 @@ UserInputService.InputBegan:Connect(function(input, gpe)
                 if ob then ob.Text = "Bind" end
                 activeBinds[input.KeyCode] = nil
             end
-
             pcall(sf, input.KeyCode)
-            bb.Text = "[" .. input.KeyCode.Name .. "]"
-
+            bb.Text = input.KeyCode.Name
             local tgb = nil
-            for _, child in pairs(frame:GetChildren()) do
-                if child:IsA("TextButton") and child ~= bb then
-                    tgb = child
-                    break
-                end
-            end
-
+            for _, child in pairs(frame:GetChildren()) do if child:IsA("TextButton") and child ~= bb then tgb = child; break end end
             if tgb then
-                activeBinds[input.KeyCode] = {
-                    frame = frame,
-                    toggleButton = tgb,
-                    isEnabledFn = fd.isEnabledFn,
-                    onEnable = fd.onEnable,
-                    onDisable = fd.onDisable,
-                    canToggle = fd.canToggle,
-                    updateFn = fd.updateFn
-                }
+                activeBinds[input.KeyCode] = { frame = frame, toggleButton = tgb, isEnabledFn = fd.isEnabledFn, onEnable = fd.onEnable, onDisable = fd.onDisable, canToggle = fd.canToggle, updateFn = fd.updateFn }
             end
-
             currentRowWaitingForKey = nil
         end
     elseif activeBinds[input.KeyCode] then
         local info = activeBinds[input.KeyCode]
-        
-        if info.canToggle 
-            and info.onEnable 
-            and info.onDisable 
-            and info.isEnabledFn 
-            and info.updateFn then
-            
+        if info.canToggle and info.onEnable and info.onDisable and info.isEnabledFn and info.updateFn then
             local s, state = pcall(info.isEnabledFn)
             if s then
-                if state then
-                    pcall(info.onDisable)
-                else
-                    pcall(info.onEnable)
-                end
+                if state then pcall(info.onDisable) else pcall(info.onEnable) end
                 task.wait()
                 pcall(info.updateFn)
             end
@@ -3051,11 +2684,7 @@ end)
 SwitchCategory("Combat")
 
 mainFrame.Size = UDim2.new(0, 0, 0, 0)
-TweenService:Create(
-    mainFrame,
-    TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-    {Size = UDim2.new(0, 440, 0, 360)}
-):Play()
+TweenService:Create(mainFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(0, 480, 0, 420)}):Play()
 
 print("================================================")
 print("  SANTES HUB v5.3 Yuklendi!")
