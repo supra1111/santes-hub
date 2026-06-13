@@ -2209,7 +2209,6 @@ end
 
 local autoFarmEnabled = false
 local autoFarmCoroutine = nil
-local farmIgnored = {}
 local farmProcessed = {}
 local farmTempIgnored = {}
 local ignoreDuration = 60
@@ -2217,20 +2216,15 @@ local ignoreDuration = 60
 -- Hareket ayarları
 local moveSpeed = 22
 local targetY = 4.8
-local waypointSpacing = 3
-local pickupDistance = 8
 
 -- Durum değişkenleri
 local isMovingToTarget = false
 local hasReachedTargetY = false
-local isRising = false
 local currentTargetPart = nil
-local statusText = "Idle"
 
--- Path görselleştirme
-local pathVisualsFolder = Instance.new("Folder")
-pathVisualsFolder.Name = "PathVisuals"
-pathVisualsFolder.Parent = workspace
+-- Path görselleştirme için
+local pathVisuals = {}
+local pathLines = {}
 
 -- Criminality event referansları
 local Events = nil
@@ -2249,108 +2243,55 @@ local function getEvents()
     return Events
 end
 
--- YOL GÖRSELLEŞTİRME (YEŞİL ÇİZGİ)
+-- Yol görselleştirme (yeşil çizgi)
 local function clearPathVisuals()
-    for _, child in pairs(pathVisualsFolder:GetChildren()) do
-        pcall(function() child:Destroy() end)
+    for _, v in pairs(pathVisuals) do
+        pcall(function() v:Destroy() end)
     end
+    for _, v in pairs(pathLines) do
+        pcall(function() v:Destroy() end)
+    end
+    pathVisuals = {}
+    pathLines = {}
 end
 
-local function visualizePath(waypoints, startPos)
+local function drawPath(points)
     clearPathVisuals()
-    if not waypoints or #waypoints == 0 then return end
+    if not points or #points < 2 then return end
     
-    for i, wp in ipairs(waypoints) do
+    -- Waypoint noktaları
+    for i, pos in ipairs(points) do
         local part = Instance.new("Part")
-        part.Name = "Waypoint_" .. i
-        part.Size = Vector3.new(1.5, 1.5, 1.5)
-        part.Position = wp.Position
+        part.Size = Vector3.new(1, 1, 1)
+        part.Position = pos
         part.Anchored = true
         part.CanCollide = false
         part.Material = Enum.Material.Neon
-        part.Color = Color3.fromHSV(i / #waypoints, 1, 1)
+        part.BrickColor = BrickColor.new("Bright green")
         part.Transparency = 0.3
-        part.Parent = pathVisualsFolder
+        part.Parent = workspace
+        table.insert(pathVisuals, part)
     end
     
-    local prevPos = startPos
-    for i, wp in ipairs(waypoints) do
-        local nextPos = wp.Position
-        local dist = (nextPos - prevPos).Magnitude
-        if dist > 0.5 then
-            local line = Instance.new("Part")
-            line.Name = "PathLine_" .. i
-            line.Anchored = true
-            line.CanCollide = false
-            line.Material = Enum.Material.Neon
-            line.Color = Color3.new(0, 1, 0)
-            line.Transparency = 0.4
-            line.Size = Vector3.new(0.3, 0.3, dist)
-            line.CFrame = CFrame.lookAt(prevPos + (nextPos - prevPos) / 2, nextPos)
-            line.Parent = pathVisualsFolder
-        end
-        prevPos = nextPos
+    -- Çizgiler
+    for i = 1, #points - 1 do
+        local p1 = points[i]
+        local p2 = points[i + 1]
+        local dist = (p2 - p1).Magnitude
+        local line = Instance.new("Part")
+        line.Size = Vector3.new(0.2, 0.2, dist)
+        line.CFrame = CFrame.new(p1, p2) * CFrame.new(0, 0, -dist/2)
+        line.Anchored = true
+        line.CanCollide = false
+        line.Material = Enum.Material.Neon
+        line.BrickColor = BrickColor.new("Lime green")
+        line.Transparency = 0.2
+        line.Parent = workspace
+        table.insert(pathLines, line)
     end
 end
 
--- PATHFINDING İLE YOL BULMA
-local function computePath(startPos, endPos)
-    local pathParamsList = {
-        { Radius = 1, Height = 4, Spacing = 2 },
-        { Radius = 1.2, Height = 4.5, Spacing = 2.5 },
-        { Radius = 1.5, Height = 5, Spacing = 3 },
-        { Radius = 2, Height = 5.5, Spacing = 4 },
-        { Radius = 2.5, Height = 6, Spacing = 5 },
-        { Radius = 3, Height = 6.5, Spacing = 5 },
-        { Radius = 3.5, Height = 7, Spacing = 6 },
-        { Radius = 4, Height = 7.5, Spacing = 6 }
-    }
-    
-    for _, params in ipairs(pathParamsList) do
-        local pathParams = {
-            AgentRadius = params.Radius,
-            AgentHeight = params.Height,
-            AgentCanJump = true,
-            AgentCanClimb = true,
-            WaypointSpacing = params.Spacing,
-            CostCalibration = true
-        }
-        
-        local path = PathfindingService:CreatePath(pathParams)
-        local success, _ = pcall(function() path:ComputeAsync(startPos, endPos) end)
-        
-        if success and path.Status == Enum.PathStatus.Success then
-            local rawWaypoints = path:GetWaypoints()
-            if not rawWaypoints or #rawWaypoints < 2 then return rawWaypoints end
-            
-            local refinedWaypoints = {}
-            table.insert(refinedWaypoints, rawWaypoints[1])
-            
-            for i = 2, #rawWaypoints do
-                local prev = rawWaypoints[i - 1].Position
-                local curr = rawWaypoints[i].Position
-                local dist = (curr - prev).Magnitude
-                
-                if dist <= waypointSpacing then
-                    table.insert(refinedWaypoints, rawWaypoints[i])
-                else
-                    local steps = math.ceil(dist / waypointSpacing)
-                    for j = 1, steps do
-                        local alpha = j / steps
-                        local pos = prev:Lerp(curr, alpha)
-                        local action = (j == steps and rawWaypoints[i].Action) or Enum.PathWaypointAction.Walk
-                        table.insert(refinedWaypoints, { Position = pos, Action = action })
-                    end
-                end
-            end
-            return refinedWaypoints
-        end
-        task.wait(0.05)
-    end
-    return nil
-end
-
--- YÜKSEKLİĞE ÇIKMA (TAVANA TAKILMAYI ENGELLER)
+-- Yüksekliğe çıkma (tavana takılmayı engeller)
 local function riseToTargetY()
     if hasReachedTargetY then return end
     
@@ -2358,82 +2299,28 @@ local function riseToTargetY()
     local hrp = char and char:FindFirstChild("HumanoidRootPart")
     local hum = char and char:FindFirstChildOfClass("Humanoid")
     
-    if hrp and hum and hum.Health > 0 and hrp.Position.Y < 4.7 and not isRising then
+    if hrp and hum and hum.Health > 0 and hrp.Position.Y < 4.7 then
         print("[AutoFarm] Rising to 4.8...")
-        statusText = "Rising to 4.8"
-        isRising = true
         
         local startPos = hrp.Position
-        local targetYPos = 4.8
-        local startY = startPos.Y
-        local deltaY = targetYPos - startY
+        local targetPos = Vector3.new(startPos.X, targetY, startPos.Z)
         
-        if deltaY > 0 then
-            local steps = math.max(3, math.floor(deltaY * 2))
-            local waypoints = {}
-            
-            for i = 1, steps do
-                local alpha = i / steps
-                local y = startY + deltaY * alpha
-                table.insert(waypoints, Vector3.new(startPos.X, y, startPos.Z))
-            end
-            
-            for _, wp in ipairs(waypoints) do
-                if not autoFarmEnabled then break end
-                local currentRot = hrp.CFrame - hrp.CFrame.Position
-                local targetCF = CFrame.new(wp) * currentRot
-                local dist = (wp - hrp.Position).Magnitude
-                local duration = math.min(0.5, dist / 10)
-                
-                local tween = TweenService:Create(hrp, TweenInfo.new(duration, Enum.EasingStyle.Linear), { CFrame = targetCF })
-                tween:Play()
-                tween.Completed:Wait()
-            end
-            
-            hrp.CFrame = CFrame.new(startPos.X, targetYPos, startPos.Z) * (hrp.CFrame - hrp.CFrame.Position)
-            hrp.AssemblyLinearVelocity = Vector3.zero
-            hrp.AssemblyAngularVelocity = Vector3.zero
-            
-            print("[AutoFarm] Reached 4.8, waiting 3 seconds...")
-            task.wait(3)
-        end
+        -- Tween ile yüksel
+        local tween = TweenService:Create(hrp, TweenInfo.new(1, Enum.EasingStyle.Quad), { CFrame = CFrame.new(targetPos) })
+        tween:Play()
+        tween.Completed:Wait()
         
-        isRising = false
+        hrp.AssemblyLinearVelocity = Vector3.zero
+        hrp.AssemblyAngularVelocity = Vector3.zero
+        
+        print("[AutoFarm] Reached 4.8")
+        task.wait(2)
         hasReachedTargetY = true
-        statusText = "Idle"
     end
 end
 
--- HEDEFE YÜRÜME (PATHFINDING İLE)
-local function getPositionInFrontOfTarget(targetPart, fromPos)
-    if not targetPart then return nil end
-    
-    local success, cf = pcall(function() return targetPart.CFrame end)
-    if not success then return nil end
-    
-    local lookVec = cf.LookVector
-    lookVec = Vector3.new(lookVec.X, 0, lookVec.Z).Unit
-    
-    if lookVec.Magnitude < 0.1 then
-        lookVec = (fromPos - cf.Position).Unit
-        lookVec = Vector3.new(lookVec.X, 0, lookVec.Z).Unit
-        if lookVec.Magnitude < 0.1 then lookVec = Vector3.new(1, 0, 0) end
-    end
-    
-    return cf.Position + lookVec * 3.5
-end
-
-local function getFootPosition()
-    local char = LocalPlayer.Character
-    if not char then return nil end
-    local hrp = char:FindFirstChild("HumanoidRootPart")
-    if not hrp then return nil end
-    return hrp.Position - Vector3.new(0, 2.5, 0)
-end
-
-local function moveToTarget(targetPart)
-    riseToTargetY()
-    
+-- Basit yürüme fonksiyonu (pathfinding yok, direkt hedefe yürü)
+local function moveToTarget(targetPos)
     local char = LocalPlayer.Character
     if not char then return false end
     
@@ -2441,78 +2328,41 @@ local function moveToTarget(targetPart)
     local hum = char:FindFirstChildOfClass("Humanoid")
     if not hrp or not hum then return false end
     
-    if not targetPart or not targetPart:IsA("BasePart") then return false end
+    -- Hedef pozisyonu (yerden 2.5 yukarı)
+    local targetHRP = targetPos + Vector3.new(0, 2.5, 0)
     
-    currentTargetPart = targetPart
-    isMovingToTarget = true
-    statusText = "Moving to target"
+    -- Path çiz (basit düz çizgi)
+    drawPath({hrp.Position, targetHRP})
     
-    local startPos = hrp.Position
-    local targetFrontPos = getPositionInFrontOfTarget(targetPart, startPos)
-    if not targetFrontPos then
-        isMovingToTarget = false
-        statusText = "Idle"
-        return false
+    -- Hedefe yürü
+    hum.WalkSpeed = moveSpeed
+    hum.AutoRotate = true
+    
+    local startTime = tick()
+    while (hrp.Position - targetHRP).Magnitude > 3.5 and tick() - startTime < 15 do
+        if not autoFarmEnabled then break end
+        
+        char = LocalPlayer.Character
+        if not char then break end
+        
+        hrp = char:FindFirstChild("HumanoidRootPart")
+        hum = char:FindFirstChildOfClass("Humanoid")
+        if not hrp or not hum then break end
+        
+        local lookAt = (targetHRP - hrp.Position).Unit
+        hrp.CFrame = CFrame.new(hrp.Position, hrp.Position + Vector3.new(lookAt.X, 0, lookAt.Z))
+        hum.MoveDirection = Vector3.new(lookAt.X, 0, lookAt.Z)
+        
+        wait()
     end
     
-    local endPos = targetFrontPos
-    print("[AutoFarm] Finding path, distance: " .. math.floor((endPos - startPos).Magnitude))
-    
-    local path = computePath(startPos, endPos)
-    if not path then
-        print("[AutoFarm] Path not found")
-        isMovingToTarget = false
-        statusText = "Idle"
-        return false
-    end
-    
-    print("[AutoFarm] Path found, waypoints: " .. #path)
-    visualizePath(path, startPos)
-    
-    for _, waypoint in ipairs(path) do
-        if not autoFarmEnabled then
-            clearPathVisuals()
-            isMovingToTarget = false
-            statusText = "Idle"
-            return false
-        end
-        
-        local footPos = getFootPosition()
-        if not footPos then continue end
-        
-        local targetPos = waypoint.Position
-        local targetHRP = targetPos + Vector3.new(0, 2.5, 0)
-        local currentRot = hrp.CFrame - hrp.CFrame.Position
-        local targetCF = CFrame.new(targetHRP) * currentRot
-        local dist = (targetHRP - hrp.Position).Magnitude
-        
-        if dist > 0.2 then
-            local tween = TweenService:Create(hrp, TweenInfo.new(dist / moveSpeed, Enum.EasingStyle.Linear), { CFrame = targetCF })
-            tween:Play()
-            tween.Completed:Wait()
-        end
-        
-        if waypoint.Action == Enum.PathWaypointAction.Jump then
-            hum.Jump = true
-            task.wait(0.1)
-        end
-    end
-    
+    hum.MoveDirection = Vector3.new()
     clearPathVisuals()
     
-    local finalPos = endPos
-    local finalHRP = finalPos + Vector3.new(0, 2.5, 0)
-    hrp.CFrame = CFrame.new(finalHRP) * CFrame.Angles(0, math.rad(90), 0)
-    hrp.AssemblyLinearVelocity = Vector3.zero
-    hrp.AssemblyAngularVelocity = Vector3.zero
-    
-    print("[AutoFarm] Reached target")
-    isMovingToTarget = false
-    statusText = "Idle"
-    return true
+    return (hrp.Position - targetHRP).Magnitude <= 3.5
 end
 
--- EŞYA KONTROL VE KUŞANMA
+-- Eşya kontrol
 local function hasTool(toolName)
     local backpack = LocalPlayer:FindFirstChild("Backpack")
     local character = LocalPlayer.Character
@@ -2529,7 +2379,7 @@ local function equipTool(toolName)
     return false
 end
 
--- DEALER BULMA
+-- Dealer bul
 local function findCrowbarDealer()
     local map = Workspace:FindFirstChild("Map")
     if not map then return nil end
@@ -2564,7 +2414,7 @@ local function findCrowbarDealer()
     return closestDealer
 end
 
--- CROWBAR SATIN ALMA
+-- Crowbar satın al
 local function buyCrowbar()
     local dealer = findCrowbarDealer()
     if not dealer then return false end
@@ -2572,44 +2422,29 @@ local function buyCrowbar()
     local mainPart = dealer:FindFirstChild("MainPart")
     if not mainPart then return false end
     
-    statusText = "Path to dealer"
     print("[AutoFarm] Going to dealer for crowbar")
     
-    local moveSuccess = moveToTarget(mainPart)
-    if not moveSuccess then
+    if not moveToTarget(mainPart.Position) then
         print("[AutoFarm] Could not reach dealer")
-        statusText = "Idle"
         return false
     end
     
-    statusText = "Buying crowbar"
     task.wait(1.5)
     
     local events = getEvents()
     if events then
-        print("[AutoFarm] Opening shop")
         pcall(function() events.BYZERSPROTEC:FireServer(true, "shop", mainPart, "IllegalStore") end)
         task.wait(1)
-        print("[AutoFarm] Purchasing crowbar")
         pcall(function() events.SSHPRMTE1:InvokeServer("IllegalStore", "Melees", "Crowbar", mainPart, nil, true) end)
         task.wait(20)
-        print("[AutoFarm] Closing shop")
         pcall(function() events.BYZERSPROTEC:FireServer(false) end)
     end
     
     task.wait(2)
-    local crowbar = hasTool("Crowbar")
-    if crowbar then
-        print("[AutoFarm] Crowbar purchased successfully")
-    else
-        print("[AutoFarm] Failed to purchase crowbar")
-    end
-    
-    statusText = "Idle"
-    return crowbar
+    return hasTool("Crowbar")
 end
 
--- HEDEF BULMA (SADECE SOYULMAMIŞ SAFELER)
+-- Hedef safe bul (sadece soyulmamış)
 local function findTarget()
     local folder = Workspace.Map and Workspace.Map:FindFirstChild("BredMakurz")
     if not folder then folder = Workspace:FindFirstChild("BredMakurz") end
@@ -2632,7 +2467,7 @@ local function findTarget()
             if values then
                 local broken = values:FindFirstChild("Broken")
                 if broken and broken:IsA("BoolValue") and not broken.Value then
-                    local mainPart = obj:FindFirstChild("MainPart") or obj.PrimaryPart or obj:FindFirstChildOfClass("BasePart")
+                    local mainPart = obj:FindFirstChild("MainPart") or obj.PrimaryPart
                     if mainPart and mainPart.Position.Y >= 4.8 then
                         local dist = (hrp.Position - mainPart.Position).Magnitude
                         if dist < bestDist then
@@ -2649,26 +2484,12 @@ local function findTarget()
     return nearest
 end
 
--- TEMPORARY IGNORE TEMİZLİĞİ
-local function cleanupTempIgnored()
-    local now = tick()
-    for obj, expiry in pairs(farmTempIgnored) do
-        if now > expiry then
-            farmTempIgnored[obj] = nil
-            print("[AutoFarm] Temp ignore expired for:", obj.Name)
-        end
-    end
-end
-
--- SAFE AÇMA (CROWBAR İLE)
+-- Safe aç
 local function openSafe(safeObj)
     if not hasTool("Crowbar") then
-        print("[AutoFarm] No crowbar, trying to buy...")
+        print("[AutoFarm] No crowbar, buying...")
         local bought = buyCrowbar()
-        if not bought then
-            print("[AutoFarm] Could not buy crowbar, skipping")
-            return false
-        end
+        if not bought then return false end
     end
     
     if not LocalPlayer.Character:FindFirstChild("Crowbar") then
@@ -2676,35 +2497,18 @@ local function openSafe(safeObj)
         task.wait(1)
     end
     
-    if not hasTool("Crowbar") then
-        print("[AutoFarm] Crowbar still not available")
-        return false
-    end
-    
     task.wait(1.5)
     
     local events = getEvents()
-    if not events then
-        print("[AutoFarm] Events folder not found")
-        return false
-    end
+    if not events then return false end
     
     local remote1 = events:FindFirstChild("XMHH.2")
     local remote2 = events:FindFirstChild("XMHH2.2")
     local mainPart = safeObj:FindFirstChild("MainPart") or safeObj.PrimaryPart
     
-    if not remote1 or not remote2 then
-        print("[AutoFarm] Remote events not found")
-        return false
-    end
-    
-    if not mainPart then
-        print("[AutoFarm] Safe has no MainPart")
-        return false
-    end
+    if not remote1 or not remote2 or not mainPart then return false end
     
     print("[AutoFarm] Opening safe:", safeObj.Name)
-    statusText = "Opening safe"
     
     local startTime = tick()
     local hits = 0
@@ -2713,14 +2517,8 @@ local function openSafe(safeObj)
         local values = safeObj:FindFirstChild("Values")
         if not values then break end
         local broken = values:FindFirstChild("Broken")
-        if broken and broken.Value then
-            print("[AutoFarm] Safe already opened")
-            break
-        end
-        if tick() - startTime > 25 then
-            print("[AutoFarm] Timeout opening safe")
-            break
-        end
+        if broken and broken.Value then break end
+        if tick() - startTime > 25 then break end
         
         task.wait(0.4)
         
@@ -2731,7 +2529,7 @@ local function openSafe(safeObj)
         end
         if not crowbar then break end
         
-        local arm = LocalPlayer.Character:FindFirstChild("Right Arm") or LocalPlayer.Character:FindFirstChild("RightHand")
+        local arm = LocalPlayer.Character:FindFirstChild("Right Arm")
         if not arm then break end
         
         local success, result = pcall(function() return remote1:InvokeServer("\240\159\141\158", tick(), crowbar, "DZDRRRKI", safeObj, "Register") end)
@@ -2744,12 +2542,11 @@ local function openSafe(safeObj)
     end
     
     task.wait(2)
-    print("[AutoFarm] Safe opening finished, hits:", hits)
-    statusText = "Idle"
+    print("[AutoFarm] Safe opened, hits:", hits)
     return true
 end
 
--- PARA TOPLAMA
+-- Para topla
 local function collectMoneyNearTarget(targetObj)
     local mainPart = targetObj:FindFirstChild("MainPart") or targetObj.PrimaryPart
     if not mainPart then return false end
@@ -2757,110 +2554,82 @@ local function collectMoneyNearTarget(targetObj)
     local spawnedBread = Workspace:FindFirstChild("Filter") and Workspace.Filter:FindFirstChild("SpawnedBread")
     if not spawnedBread then return false end
     
-    local moneyParts = {}
+    local collected = false
     for _, bread in pairs(spawnedBread:GetChildren()) do
         pcall(function()
             if bread:IsA("Part") and bread.Transparency < 1 then
-                if (bread.Position - mainPart.Position).Magnitude <= 25 then
-                    table.insert(moneyParts, bread)
+                if (bread.Position - mainPart.Position).Magnitude <= 20 then
+                    moveToTarget(bread.Position)
+                    local pickupEvent = ReplicatedStorage:FindFirstChild("Events") and ReplicatedStorage.Events:FindFirstChild("CZDPZUS")
+                    if pickupEvent then
+                        pcall(function() pickupEvent:FireServer(bread) end)
+                        collected = true
+                    end
+                    task.wait(0.3)
                 end
             end
         end)
     end
     
-    if #moneyParts == 0 then return false end
-    
-    print("[AutoFarm] Collecting", #moneyParts, "money bags")
-    statusText = "Collecting money"
-    
-    for _, money in ipairs(moneyParts) do
-        if not autoFarmEnabled then break end
-        pcall(function()
-            if money and money.Parent and money.Transparency < 1 then
-                moveToTarget(money)
-                local pickupEvent = ReplicatedStorage:FindFirstChild("Events") and ReplicatedStorage.Events:FindFirstChild("CZDPZUS")
-                if pickupEvent then
-                    pcall(function() pickupEvent:FireServer(money) end)
-                end
-                task.wait(0.3)
-            end
-        end)
-    end
-    
-    statusText = "Idle"
-    return #moneyParts > 0
+    return collected
 end
 
--- RESPAWN MEKANİZMASI
-local isRespawning = false
-local respawnConnection = nil
-
-local function pressE()
-    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
-    task.wait(0.1)
-    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
-end
-
-local function stopRespawnHandler()
-    if isRespawning then
-        isRespawning = false
-        if respawnConnection then
-            respawnConnection:Disconnect()
-            respawnConnection = nil
+-- Temp ignore temizliği
+local function cleanupTempIgnored()
+    local now = tick()
+    for obj, expiry in pairs(farmTempIgnored) do
+        if now > expiry then
+            farmTempIgnored[obj] = nil
         end
     end
+end
+
+-- Respawn mekanizması
+local isRespawning = false
+local respawnConn = nil
+
+local function pressE()
+    local VIM = game:GetService("VirtualInputManager")
+    VIM:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+    task.wait(0.1)
+    VIM:SendKeyEvent(false, Enum.KeyCode.E, false, game)
 end
 
 local function startRespawnHandler()
     if isRespawning then return end
     isRespawning = true
-    print("[AutoFarm] Death detected - pressing E to respawn")
-    statusText = "Dead - Respawning"
     
-    respawnConnection = RunService.Heartbeat:Connect(function()
-        if not isRespawning then
-            if respawnConnection then
-                respawnConnection:Disconnect()
-                respawnConnection = nil
-            end
-            return
-        end
+    respawnConn = RunService.Heartbeat:Connect(function()
         local char = LocalPlayer.Character
         local hum = char and char:FindFirstChild("Humanoid")
         if char and hum and hum.Health > 0 then
-            stopRespawnHandler()
-            statusText = "Idle"
+            if respawnConn then respawnConn:Disconnect() end
+            respawnConn = nil
+            isRespawning = false
             return
         end
         pcall(pressE)
     end)
 end
 
-local function onCharacterAdded(newChar)
-    stopRespawnHandler()
+LocalPlayer.CharacterAdded:Connect(function()
     task.wait(3)
-    isRising = false
     hasReachedTargetY = false
     if autoFarmEnabled then
-        task.wait(1)
         riseToTargetY()
-        print("[AutoFarm] Character respawned, continuing")
-        statusText = "Idle"
     end
-    local hum = newChar:WaitForChild("Humanoid", 5)
+end)
+
+if LocalPlayer.Character then
+    local hum = LocalPlayer.Character:FindFirstChild("Humanoid")
     if hum then
         hum.Died:Connect(startRespawnHandler)
     end
 end
 
-LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
-if LocalPlayer.Character then
-    onCharacterAdded(LocalPlayer.Character)
-end
-
 -- ANA FARM LOOP
 local function farmLoop()
-    print("[AutoFarm] Farm loop started")
+    print("[AutoFarm] Started")
     
     while autoFarmEnabled do
         task.wait(1)
@@ -2871,8 +2640,7 @@ local function farmLoop()
         local hum = char and char:FindFirstChildOfClass("Humanoid")
         
         if not char or not hum or hum.Health <= 0 then
-            print("[AutoFarm] Waiting for respawn...")
-            statusText = "Waiting for respawn"
+            print("[AutoFarm] Dead, waiting...")
             task.wait(3)
             goto continue
         end
@@ -2883,7 +2651,6 @@ local function farmLoop()
             print("[AutoFarm] No crowbar, trying to buy")
             local bought = buyCrowbar()
             if not bought then
-                print("[AutoFarm] Could not buy crowbar, waiting 5 seconds")
                 task.wait(5)
                 goto continue
             end
@@ -2891,41 +2658,32 @@ local function farmLoop()
         
         local target = findTarget()
         if not target then
-            print("[AutoFarm] No available targets found")
-            statusText = "No targets available"
+            print("[AutoFarm] No targets available")
             task.wait(5)
             goto continue
         end
         
         local mainPart = target:FindFirstChild("MainPart") or target.PrimaryPart
         if not mainPart then
-            print("[AutoFarm] Target has no MainPart, skipping")
             farmProcessed[target] = true
             goto continue
         end
         
-        print("[AutoFarm] Moving to target:", target.Name)
-        statusText = "Moving to " .. target.Name
+        print("[AutoFarm] Moving to:", target.Name)
         
-        local moveSuccess = moveToTarget(mainPart)
-        if moveSuccess then
+        if moveToTarget(mainPart.Position) then
             if not LocalPlayer.Character:FindFirstChild("Crowbar") then
                 equipTool("Crowbar")
             end
             
-            print("[AutoFarm] Opening safe")
-            local openSuccess = openSafe(target)
-            if openSuccess then
-                print("[AutoFarm] Safe opened, collecting money")
+            if openSafe(target) then
                 collectMoneyNearTarget(target)
                 farmProcessed[target] = true
-                print("[AutoFarm] Target fully processed")
+                print("[AutoFarm] Target completed")
             else
-                print("[AutoFarm] Failed to open safe, temp ignoring")
                 farmTempIgnored[target] = tick() + ignoreDuration
             end
         else
-            print("[AutoFarm] Could not reach target, temp ignoring")
             farmTempIgnored[target] = tick() + ignoreDuration
         end
         
@@ -2934,33 +2692,27 @@ local function farmLoop()
         ::continue::
     end
     
-    print("[AutoFarm] Farm loop ended")
+    print("[AutoFarm] Stopped")
 end
 
--- AUTO FARM KONTROL FONKSİYONLARI
+-- KONTROL FONKSİYONLARI
 function AutoFarm_Enable()
     if autoFarmEnabled then return end
-    
     autoFarmEnabled = true
-    farmIgnored = {}
     farmProcessed = {}
     farmTempIgnored = {}
     hasReachedTargetY = false
-    isRising = false
     
     if autoFarmCoroutine then
         task.cancel(autoFarmCoroutine)
-        autoFarmCoroutine = nil
     end
     
-    -- Invisible ol
     if _G.Invis_Enable then
         _G.Invis_Enable()
     end
     
     autoFarmCoroutine = task.spawn(farmLoop)
-    
-    print("[AutoFarm] Auto Farm ENABLED")
+    print("[AutoFarm] ENABLED")
 end
 
 function AutoFarm_Disable()
@@ -2971,14 +2723,10 @@ function AutoFarm_Disable()
         autoFarmCoroutine = nil
     end
     
-    farmIgnored = {}
     farmProcessed = {}
     farmTempIgnored = {}
     clearPathVisuals()
-    isMovingToTarget = false
-    statusText = "Idle"
-    
-    print("[AutoFarm] Auto Farm DISABLED")
+    print("[AutoFarm] DISABLED")
 end
 
 function AutoFarm_SetSpeed(speed)
@@ -2988,7 +2736,6 @@ end
 function AutoFarm_GetSpeed()
     return moveSpeed
 end
-
 -- #####################################################################
 -- #                   UI CATEGORIES                                   #
 -- #####################################################################
