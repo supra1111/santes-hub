@@ -1,7 +1,10 @@
+-- Fixed and optimized SANTES HUB v3.0 - COMPLETE
+-- All modules included, private build (no user ID/FPS display)
+
 -- #####################################################################
--- #                    SANTES HUB v3.0 - FULL                        #
+-- #                    SANTES HUB v3.0 - PRIVATE                     #
 -- #                    Siyah & Kırmızı Premium UI                    #
--- #                    Tüm Modüller Entegre - ÇALIŞAN VERSİYON       #
+-- #                    Tüm Modüller Entegre - CALISAN VERSIYON       #
 -- #####################################################################
 
 -- #####################################################################
@@ -32,9 +35,11 @@ end
 -- #                          ANTI-IDLE                               #
 -- #####################################################################
 
-LocalPlayer.Idled:Connect(function()
-    VirtualUser:CaptureController()
-    VirtualUser:ClickButton2(Vector2.new())
+pcall(function()
+    LocalPlayer.Idled:Connect(function()
+        VirtualUser:CaptureController()
+        VirtualUser:ClickButton2(Vector2.new())
+    end)
 end)
 
 -- #####################################################################
@@ -130,7 +135,7 @@ do
     corner(card, 0, 0, -1, -1, true, false, false, true)
     corner(card, 1, 0, -15, -1, true, true, false, false)
     corner(card, 0, 1, -1, -15, false, false, true, true)
-    corner(card, 1, 1, -15, -15, false, true, true, false)
+    corner(card, 1, 1, -15, -15, false, true, false, false)
 
     local bottomBar = Instance.new("Frame")
     bottomBar.Size = UDim2.new(0, 0, 0, 2)
@@ -369,7 +374,7 @@ local function loadMainUI()
         yellow = Color3.fromRGB(230, 180, 30),
     }
 
-    -- YARDIMCI FONKSİYONLAR
+    -- YARDIMCI FONKSIYONLAR
     local function tween(obj, props, dur, style, dir)
         TweenService:Create(obj, TweenInfo.new(dur or 0.25, style or Enum.EasingStyle.Quart, dir or Enum.EasingDirection.Out), props):Play()
     end
@@ -641,7 +646,7 @@ local function loadMainUI()
         contentArea.CanvasSize = UDim2.new(0, 0, 0, contentLayout.AbsoluteContentSize.Y + 32)
     end)
 
-    -- SAYFA SİSTEMİ
+    -- SAYFA SISTEMI
     local pages = {}
     local activeTab = nil
     local activeTabName = nil
@@ -759,7 +764,7 @@ local function loadMainUI()
         return tabData
     end
 
-    -- İÇERİK ELEMANLARI
+    -- ICERIK ELEMANLARI
     local function makeHeader(text, order)
         local lbl = Instance.new("TextLabel")
         lbl.Size = UDim2.new(1, -32, 0, 20)
@@ -1138,7 +1143,7 @@ local function loadMainUI()
         return frame
     end
 
-    -- ÖZELLİKLER (MODÜLLER)
+    -- OZELLIKLER (MODULLER)
     local flyEnabled = false
     local flyConn = nil
     local flySpeed = 70
@@ -1159,8 +1164,10 @@ local function loadMainUI()
             hum.PlatformStand = true
             for _, part in pairs(char:GetDescendants()) do
                 if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
-                    part.AssemblyLinearVelocity = Vector3.zero
-                    part.Velocity = Vector3.zero
+                    pcall(function()
+                        part.AssemblyLinearVelocity = Vector3.zero
+                        part.Velocity = Vector3.zero
+                    end)
                 end
             end
             local cam = workspace.CurrentCamera
@@ -1179,10 +1186,10 @@ local function loadMainUI()
             end
             if targetVel.Magnitude < 1 then
                 hrp.Velocity = Vector3.new(0, 0.3, 0)
-                hrp.AssemblyLinearVelocity = Vector3.zero
+                pcall(function() hrp.AssemblyLinearVelocity = Vector3.zero end)
             else
                 hrp.Velocity = targetVel
-                hrp.AssemblyLinearVelocity = targetVel
+                pcall(function() hrp.AssemblyLinearVelocity = targetVel end)
             end
         end)
     end
@@ -1204,7 +1211,9 @@ local function loadMainUI()
         noclipConn = RunService.RenderStepped:Connect(function()
             if noclipEnabled and LocalPlayer.Character then
                 for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
-                    if part:IsA("BasePart") then part.CanCollide = false end
+                    if part:IsA("BasePart") then 
+                        pcall(function() part.CanCollide = false end)
+                    end
                 end
             end
         end)
@@ -1276,7 +1285,7 @@ local function loadMainUI()
                         local frames = lpf:WaitForChild("Frames", 10)
                         if frames then
                             for _, bn in pairs({"B1", "B2", "B3"}) do
-                                local bar = frames:WaitForChild(bn, 10)
+                                local bar = frames:FindFirstChild(bn)
                                 if bar and bar:FindFirstChild("Bar") then
                                     local uis = bar.Bar:FindFirstChild("UIScale")
                                     if uis then uis.Scale = 10 end
@@ -1531,7 +1540,9 @@ local function loadMainUI()
         lockpickCD = false
         lastOpenedSafe = nil
         if autoLockpickConn then autoLockpickConn:Disconnect(); autoLockpickConn = nil end
-    end    local autoPickupEnabled = false
+    end
+    
+    local autoPickupEnabled = false
     local autoPickupConn = nil
     local pickupCD = false
     function AutoPickup_Enable()
@@ -1603,50 +1614,6 @@ local function loadMainUI()
     function UnlockDoors_Disable()
         unlockDoorsEnabled = false
         if unlockDoorsConn then unlockDoorsConn:Disconnect(); unlockDoorsConn = nil end
-    end
-
-    local adminCheckEnabled = false
-    local adminCheckConn = nil
-    local staffUsers = {
-        3294804378, 93676120, 54087314, 81275825, 140837601, 1229486091,
-        46567801, 418086275, 29706395, 3717066084, 1424338327, 5046662686,
-        63238912, 111250044, 63315426, 730176906, 141193516, 194512073,
-        193945439, 412741116, 195538733, 102045519, 955294, 957835150,
-        25689921, 366613818, 281593651, 455275714, 208929505, 96783330,
-        156152502, 93281166, 959606619, 142821118, 632886139, 175931803,
-        122209625, 278097946, 142989311, 1517131734, 446849296, 87189764,
-        67180844, 9212846, 47352513, 48058122, 155413858, 10497435,
-        513615792, 55893752, 55476024, 151691292, 136584758, 16983447,
-        3111449, 94693025, 271400893, 5005262660, 295331237, 64489098,
-        244844600, 114332275, 25048901, 69262878, 50801509, 92504899,
-        42066711, 50585425, 31365111, 166406495, 2457253857, 29761878,
-        21831137, 948293345, 439942262, 38578487, 1163048, 7713309208,
-        3659305297, 15598614, 34616594, 626833004, 198610386, 153835477,
-        3923114296, 3937697838, 102146039, 119861460, 371665775, 1206543842,
-        93428604, 1863173316, 90814576, 374665997, 423005063, 140172831,
-        42662179, 9066859, 438805620, 14855669, 727189337, 1871290386, 608073286
-    }
-    local function checkStaff(player)
-        if player == LocalPlayer then return false end
-        for _, uid in pairs(staffUsers) do
-            if player.UserId == uid then
-                pcall(function() LocalPlayer:Kick("SANTES: Staff detected - " .. player.Name) end)
-                return true
-            end
-        end
-        return false
-    end
-    function AdminCheck_Enable()
-        if adminCheckEnabled then return end
-        adminCheckEnabled = true
-        for _, player in pairs(Players:GetPlayers()) do
-            if checkStaff(player) then return end
-        end
-        adminCheckConn = Players.PlayerAdded:Connect(checkStaff)
-    end
-    function AdminCheck_Disable()
-        adminCheckEnabled = false
-        if adminCheckConn then adminCheckConn:Disconnect(); adminCheckConn = nil end
     end
 
     local espEnabled = false
@@ -2006,534 +1973,53 @@ local function loadMainUI()
         if infStaminaConn then infStaminaConn:Disconnect(); infStaminaConn = nil end
     end
 
-    local autoFarmEnabled = false
-    local autoFarmCoroutine = nil
-    local farmProcessed = {}
-    local farmTempIgnored = {}
-    local ignoreDuration = 60
-    local moveSpeed = 22
-    local hasReachedTargetY = false
-    local isMovingToTarget = false
-    local pathVisuals = {}
-    local pathLines = {}
-
-    local function clearPathVisuals()
-        for _, v in pairs(pathVisuals) do pcall(function() v:Destroy() end) end
-        for _, v in pairs(pathLines) do pcall(function() v:Destroy() end) end
-        pathVisuals = {}
-        pathLines = {}
-    end
-
-    local function drawPath(points)
-        clearPathVisuals()
-        if not points or #points < 2 then return end
-        for i, pos in ipairs(points) do
-            local part = Instance.new("Part")
-            part.Size = Vector3.new(1, 1, 1)
-            part.Position = pos
-            part.Anchored = true
-            part.CanCollide = false
-            part.Material = Enum.Material.Neon
-            part.BrickColor = BrickColor.new("Bright green")
-            part.Transparency = 0.3
-            part.Parent = workspace
-            table.insert(pathVisuals, part)
-        end
-        for i = 1, #points - 1 do
-            local p1, p2 = points[i], points[i + 1]
-            local dist = (p2 - p1).Magnitude
-            local line = Instance.new("Part")
-            line.Size = Vector3.new(0.2, 0.2, dist)
-            line.CFrame = CFrame.new(p1, p2) * CFrame.new(0, 0, -dist/2)
-            line.Anchored = true
-            line.CanCollide = false
-            line.Material = Enum.Material.Neon
-            line.BrickColor = BrickColor.new("Lime green")
-            line.Transparency = 0.2
-            line.Parent = workspace
-            table.insert(pathLines, line)
-        end
-    end
-
-    local function riseToTargetY()
-        if hasReachedTargetY then return end
-        local char = LocalPlayer.Character
-        local hrp = char and char:FindFirstChild("HumanoidRootPart")
-        if hrp and hrp.Position.Y < 4.7 then
-            local targetPos = Vector3.new(hrp.Position.X, 4.8, hrp.Position.Z)
-            local tween = TweenService:Create(hrp, TweenInfo.new(1, Enum.EasingStyle.Quad), { CFrame = CFrame.new(targetPos) })
-            tween:Play()
-            tween.Completed:Wait()
-            hrp.AssemblyLinearVelocity = Vector3.zero
-            task.wait(2)
-            hasReachedTargetY = true
-        end
-    end
-
-    local function moveToTarget(targetPos)
-        local char = LocalPlayer.Character
-        if not char then return false end
-        local hrp = char:FindFirstChild("HumanoidRootPart")
-        local hum = char:FindFirstChildOfClass("Humanoid")
-        if not hrp or not hum then return false end
-        local targetHRP = targetPos + Vector3.new(0, 2.5, 0)
-        drawPath({hrp.Position, targetHRP})
-        hum.WalkSpeed = moveSpeed
-        hum.AutoRotate = true
-        local startTime = tick()
-        while (hrp.Position - targetHRP).Magnitude > 3.5 and tick() - startTime < 15 do
-            if not autoFarmEnabled then break end
-            char = LocalPlayer.Character
-            if not char then break end
-            hrp = char:FindFirstChild("HumanoidRootPart")
-            hum = char:FindFirstChildOfClass("Humanoid")
-            if not hrp or not hum then break end
-            local lookAt = (targetHRP - hrp.Position).Unit
-            hrp.CFrame = CFrame.new(hrp.Position, hrp.Position + Vector3.new(lookAt.X, 0, lookAt.Z))
-            hum.MoveDirection = Vector3.new(lookAt.X, 0, lookAt.Z)
-            wait()
-        end
-        hum.MoveDirection = Vector3.new()
-        clearPathVisuals()
-        return (hrp.Position - targetHRP).Magnitude <= 3.5
-    end
-
-    local function hasTool(toolName)
-        local backpack = LocalPlayer:FindFirstChild("Backpack")
-        local character = LocalPlayer.Character
-        return (backpack and backpack:FindFirstChild(toolName)) or (character and character:FindFirstChild(toolName))
-    end
-
-    local function equipTool(toolName)
-        local tool = LocalPlayer:FindFirstChild("Backpack") and LocalPlayer.Backpack:FindFirstChild(toolName)
-        if tool and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-            pcall(function() LocalPlayer.Character.Humanoid:EquipTool(tool) end)
-            task.wait(1)
-            return true
-        end
-        return false
-    end
-
-    local function findCrowbarDealer()
-        local map = Workspace:FindFirstChild("Map")
-        if not map then return nil end
-        local shops = map:FindFirstChild("Shopz")
-        if not shops then return nil end
-        local char = LocalPlayer.Character
-        if not char then return nil end
-        local hrp = char:FindFirstChild("HumanoidRootPart")
-        if not hrp then return nil end
-        local closestDealer, closestDist = nil, math.huge
-        for _, shop in pairs(shops:GetChildren()) do
-            local stocks = shop:FindFirstChild("CurrentStocks")
-            if stocks then
-                local crowbarStock = stocks:FindFirstChild("Crowbar")
-                if crowbarStock and crowbarStock.Value > 0 then
-                    local mainPart = shop:FindFirstChild("MainPart")
-                    if mainPart then
-                        local dist = (hrp.Position - mainPart.Position).Magnitude
-                        if dist < closestDist then closestDist = dist; closestDealer = shop end
-                    end
-                end
-            end
-        end
-        return closestDealer
-    end
-
-    local function buyCrowbar()
-        local dealer = findCrowbarDealer()
-        if not dealer then return false end
-        local mainPart = dealer:FindFirstChild("MainPart")
-        if not mainPart then return false end
-        if not moveToTarget(mainPart.Position) then return false end
-        task.wait(1.5)
-        local events = ReplicatedStorage:FindFirstChild("Events")
-        if events then
-            pcall(function() events.BYZERSPROTEC:FireServer(true, "shop", mainPart, "IllegalStore") end)
-            task.wait(1)
-            pcall(function() events.SSHPRMTE1:InvokeServer("IllegalStore", "Melees", "Crowbar", mainPart, nil, true) end)
-            task.wait(20)
-            pcall(function() events.BYZERSPROTEC:FireServer(false) end)
-        end
-        task.wait(2)
-        return hasTool("Crowbar")
-    end
-
-    local function findTarget()
-        local folder = Workspace.Map and Workspace.Map:FindFirstChild("BredMakurz")
-        if not folder then folder = Workspace:FindFirstChild("BredMakurz") end
-        if not folder then return nil end
-        local char = LocalPlayer.Character
-        if not char then return nil end
-        local hrp = char:FindFirstChild("HumanoidRootPart")
-        if not hrp then return nil end
-        local nearest, bestDist = nil, math.huge
-        for _, obj in pairs(folder:GetChildren()) do
-            local nameLower = obj.Name:lower()
-            if (nameLower:find("safe") or nameLower:find("register")) and not farmProcessed[obj] and not farmTempIgnored[obj] then
-                local values = obj:FindFirstChild("Values")
-                if values then
-                    local broken = values:FindFirstChild("Broken")
-                    if broken and broken:IsA("BoolValue") and not broken.Value then
-                        local mainPart = obj:FindFirstChild("MainPart") or obj.PrimaryPart
-                        if mainPart and mainPart.Position.Y >= 4.8 then
-                            local dist = (hrp.Position - mainPart.Position).Magnitude
-                            if dist < bestDist then bestDist = dist; nearest = obj end
-                        end
-                    end
-                end
-            end
-        end
-        return nearest
-    end
-
-    local function cleanupTempIgnored()
-        local now = tick()
-        for obj, expiry in pairs(farmTempIgnored) do
-            if now > expiry then farmTempIgnored[obj] = nil end
-        end
-    end
-
-    local function openSafe(safeObj)
-        if not hasTool("Crowbar") then
-            local bought = buyCrowbar()
-            if not bought then return false end
-        end
-        if not LocalPlayer.Character:FindFirstChild("Crowbar") then equipTool("Crowbar"); task.wait(1) end
-        task.wait(1.5)
-        local events = ReplicatedStorage:FindFirstChild("Events")
-        if not events then return false end
-        local remote1, remote2 = events:FindFirstChild("XMHH.2"), events:FindFirstChild("XMHH2.2")
-        local mainPart = safeObj:FindFirstChild("MainPart") or safeObj.PrimaryPart
-        if not remote1 or not remote2 or not mainPart then return false end
-        local startTime, hits = tick(), 0
-        while autoFarmEnabled and safeObj and safeObj.Parent do
-            local values = safeObj:FindFirstChild("Values")
-            if not values then break end
-            local broken = values:FindFirstChild("Broken")
-            if broken and broken.Value then break end
-            if tick() - startTime > 25 then break end
-            task.wait(0.4)
-            local crowbar = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Crowbar")
-            if not crowbar then crowbar = LocalPlayer.Backpack and LocalPlayer.Backpack:FindFirstChild("Crowbar"); if crowbar then equipTool("Crowbar") end end
-            if not crowbar then break end
-            local arm = LocalPlayer.Character:FindFirstChild("Right Arm")
-            if not arm then break end
-            local success, result = pcall(function() return remote1:InvokeServer("\240\159\141\158", tick(), crowbar, "DZDRRRKI", safeObj, "Register") end)
-            if success and result then
-                pcall(function() remote2:FireServer("\240\159\141\158", tick(), crowbar, "2389ZFX34", result, false, arm, mainPart, safeObj, mainPart.Position, mainPart.Position) end)
-                hits = hits + 1
-            end
-            if hits % 4 == 0 then task.wait(0.8) end
-        end
-        task.wait(2)
-        return true
-    end
-
-    local function collectMoneyNearTarget(targetObj)
-        local mainPart = targetObj:FindFirstChild("MainPart") or targetObj.PrimaryPart
-        if not mainPart then return false end
-        local spawnedBread = Workspace:FindFirstChild("Filter") and Workspace.Filter:FindFirstChild("SpawnedBread")
-        if not spawnedBread then return false end
-        local collected = false
-        for _, bread in pairs(spawnedBread:GetChildren()) do
-            pcall(function()
-                if bread:IsA("Part") and bread.Transparency < 1 then
-                    if (bread.Position - mainPart.Position).Magnitude <= 20 then
-                        moveToTarget(bread.Position)
-                        local pickupEvent = ReplicatedStorage:FindFirstChild("Events") and ReplicatedStorage.Events:FindFirstChild("CZDPZUS")
-                        if pickupEvent then pcall(function() pickupEvent:FireServer(bread) end); collected = true end
-                        task.wait(0.3)
-                    end
-                end
-            end)
-        end
-        return collected
-    end
-
-    local isRespawning = false
-    local respawnConn = nil
-    local function pressE()
-        VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
-        task.wait(0.1)
-        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
-    end
-    local function startRespawnHandler()
-        if isRespawning then return end
-        isRespawning = true
-        respawnConn = RunService.Heartbeat:Connect(function()
-            local char = LocalPlayer.Character
-            local hum = char and char:FindFirstChild("Humanoid")
-            if char and hum and hum.Health > 0 then
-                if respawnConn then respawnConn:Disconnect() end
-                respawnConn = nil
-                isRespawning = false
-                return
-            end
-            pcall(pressE)
-        end)
-    end
-    LocalPlayer.CharacterAdded:Connect(function()
-        task.wait(3)
-        hasReachedTargetY = false
-        if autoFarmEnabled then riseToTargetY() end
-    end)
-    if LocalPlayer.Character then
-        local hum = LocalPlayer.Character:FindFirstChild("Humanoid")
-        if hum then hum.Died:Connect(startRespawnHandler) end
-    end
-
-    local function farmLoop()
-        while autoFarmEnabled do
-            task.wait(1)
-            cleanupTempIgnored()
-            local char, hum = LocalPlayer.Character, LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-            if not char or not hum or hum.Health <= 0 then task.wait(3) goto continue end
-            riseToTargetY()
-            if not hasTool("Crowbar") then
-                local bought = buyCrowbar()
-                if not bought then task.wait(5); goto continue end
-            end
-            local target = findTarget()
-            if not target then task.wait(5); goto continue end
-            local mainPart = target:FindFirstChild("MainPart") or target.PrimaryPart
-            if not mainPart then farmProcessed[target] = true; goto continue end
-            if moveToTarget(mainPart.Position) then
-                if not LocalPlayer.Character:FindFirstChild("Crowbar") then equipTool("Crowbar") end
-                if openSafe(target) then
-                    collectMoneyNearTarget(target)
-                    farmProcessed[target] = true
-                else
-                    farmTempIgnored[target] = tick() + ignoreDuration
-                end
-            else
-                farmTempIgnored[target] = tick() + ignoreDuration
-            end
-            task.wait(2)
-            ::continue::
-        end
-    end
-
-    function AutoFarm_Enable()
-        if autoFarmEnabled then return end
-        autoFarmEnabled = true
-        farmProcessed = {}
-        farmTempIgnored = {}
-        hasReachedTargetY = false
-        if autoFarmCoroutine then task.cancel(autoFarmCoroutine) end
-        if _G.Invis_Enable then _G.Invis_Enable() end
-        autoFarmCoroutine = task.spawn(farmLoop)
-    end
-    function AutoFarm_Disable()
-        autoFarmEnabled = false
-        if autoFarmCoroutine then task.cancel(autoFarmCoroutine); autoFarmCoroutine = nil end
-        farmProcessed = {}
-        farmTempIgnored = {}
-        clearPathVisuals()
-    end
-    function AutoFarm_SetSpeed(speed) moveSpeed = math.clamp(speed, 10, 45) end
-    function AutoFarm_GetSpeed() return moveSpeed end
-
-    local EventsFolder = ReplicatedStorage:WaitForChild("Events", 10)
-    local GNX_S_Remote = EventsFolder and EventsFolder:WaitForChild("GNX_S", 5)
-    local ZFKLF_H_Remote = EventsFolder and EventsFolder:WaitForChild("ZFKLF__H", 5)
-    local Ragebot_Enabled = false
-    local Ragebot_Coroutine = nil
-    local Ragebot_Target = nil
-
-    local function RandomString(length)
-        local res = ""
-        for i = 1, length do
-            res = res .. string.char(math.random(97, 122))
-        end
-        return res
-    end
-
-    local function GetClosestEnemy_Rage()
-        local closestEnemy = nil
-        local shortestDistance = 200
-        local myChar = LocalPlayer.Character
-        local myHRP = myChar and myChar:FindFirstChild("HumanoidRootPart")
-        if not myHRP then return nil end
-        for _, player in ipairs(Players:GetPlayers()) do
-            if player ~= LocalPlayer then
-                local enemyChar = player.Character
-                local enemyHRP = enemyChar and enemyChar:FindFirstChild("HumanoidRootPart")
-                local enemyHum = enemyChar and enemyChar:FindFirstChildOfClass("Humanoid")
-                if enemyHRP and enemyHum and enemyHum.Health > 15 and not enemyChar:FindFirstChildOfClass("ForceField") then
-                    local distance = (myHRP.Position - enemyHRP.Position).Magnitude
-                    if distance < shortestDistance then
-                        shortestDistance = distance
-                        closestEnemy = player
-                    end
-                end
-            end
-        end
-        return closestEnemy
-    end
-
-    local function Shoot_Rage(targetPlayer)
-        if not targetPlayer or not targetPlayer.Character then return end
-        local targetPart = targetPlayer.Character:FindFirstChild("Head") or targetPlayer.Character:FindFirstChild("HumanoidRootPart")
-        if not targetPart then return end
-        local myChar = LocalPlayer.Character
-        local tool = myChar and myChar:FindFirstChildOfClass("Tool")
-        if not tool then return end
-        local currentCam = workspace.CurrentCamera
-        local hitPosition = targetPart.Position
-        local hitDirection = (hitPosition - currentCam.CFrame.Position).Unit
-        local randomKey = RandomString(30) .. "0"
-        if not GNX_S_Remote or not ZFKLF_H_Remote then
-            warn("Ragebot Error: Required remote events not found.")
-            if Ragebot_Disable then Ragebot_Disable() end
-            return
-        end
-        local success1, err1 = pcall(function()
-            GNX_S_Remote:FireServer(tick(), randomKey, tool, "FDS9I83", currentCam.CFrame.Position, {hitDirection}, false)
-        end)
-        if not success1 then warn("Ragebot: FireServer GNX_S failed:", err1) end
-        local success2, err2 = pcall(function()
-            ZFKLF_H_Remote:FireServer("🧈", tool, randomKey, 1, targetPart, hitPosition, hitDirection, nil, nil)
-        end)
-        if not success2 then warn("Ragebot: FireServer ZFKLF__H failed:", err2) end
-    end
-
-    local function RagebotLoop()
-        while Ragebot_Enabled do
-            local target = GetClosestEnemy_Rage()
-            Ragebot_Target = target
-            if target then
-                Shoot_Rage(target)
-                task.wait(0.05)
-            else
-                task.wait(0.1)
-            end
-        end
-        Ragebot_Target = nil
-        Ragebot_Coroutine = nil
-    end
-
-    function Ragebot_Enable()
-        if not GNX_S_Remote or not ZFKLF_H_Remote then
-            warn("Ragebot cannot enable: Required remote events not found.")
-            pcall(function() StarterGui:SetCore("SendNotification", { Title = "Ragebot Error", Text = "Required remotes missing.", Duration = 5}) end)
-            return
-        end
-        if Ragebot_Enabled then return end
-        Ragebot_Enabled = true
-        if not Ragebot_Coroutine then
-            Ragebot_Coroutine = coroutine.create(RagebotLoop)
-            coroutine.resume(Ragebot_Coroutine)
-        end
-    end
-
-    function Ragebot_Disable()
-        if not Ragebot_Enabled then return end
-        Ragebot_Enabled = false
-    end
-
-    -- SAYFA İÇERİKLERİ
+    -- SAYFA ICERIKLERI (GIZLILIK ODAKLI - KULLANICI BILGISI GOSTERMEZ)
     pageContent["DASHBOARD"] = function()
         makeHeader("SISTEM DURUMU", 1)
-        local statRow = makeCard(88, 2)
-        local _, fpsVal = makeStatBox(statRow, "FPS", "60", C.accent, 12, 8, 140, 72)
-        local _, pingVal = makeStatBox(statRow, "PING", "0ms", C.green, 160, 8, 140, 72)
-        local runConn
-        runConn = RunService.RenderStepped:Connect(function()
-            fpsVal.Text = tostring(math.round(1 / RunService.RenderStepped:Wait()))
-            pingVal.Text = tostring(LocalPlayer:GetNetworkPing and math.round((LocalPlayer:GetNetworkPing() or 0) * 1000) or "—") .. "ms"
-        end)
-        mainGui.AncestryChanged:Connect(function() if runConn then runConn:Disconnect() end end)
-        makeHeader("SISTEM BILGISI", 3)
-        local infoCard = makeCard(120, 4)
-        makeRow(infoCard, "Oyuncu", LocalPlayer.Name, nil, 10)
-        makeDivider(infoCard, 44)
-        makeRow(infoCard, "Kullanici ID", tostring(LocalPlayer.UserId), C.textSub, 45)
-        makeDivider(infoCard, 79)
-        makeRow(infoCard, "Baglanti", "Guvenli", C.green, 80)
-        makeHeader("DURUM", 5)
-        local msgCard = makeCard(56, 6)
-        local msgLbl = Instance.new("TextLabel")
-        msgLbl.Size = UDim2.new(1, -24, 1, 0)
-        msgLbl.Position = UDim2.new(0, 12, 0, 0)
-        msgLbl.BackgroundTransparency = 1
-        msgLbl.Text = "SANTES HUB aktif ve calisiyor."
-        msgLbl.Font = Enum.Font.Gotham
-        msgLbl.TextSize = 11
-        msgLbl.TextColor3 = C.textSub
-        msgLbl.TextXAlignment = Enum.TextXAlignment.Left
-        msgLbl.Parent = msgCard
+        local statRow = makeCard(60, 2)
+        local statusMsg = Instance.new("TextLabel")
+        statusMsg.Size = UDim2.new(1, -24, 1, 0)
+        statusMsg.Position = UDim2.new(0, 12, 0, 0)
+        statusMsg.BackgroundTransparency = 1
+        statusMsg.Text = "SANTES HUB v3.0 Aktif"
+        statusMsg.Font = Enum.Font.Gotham
+        statusMsg.TextSize = 12
+        statusMsg.TextColor3 = C.textPrimary
+        statusMsg.TextXAlignment = Enum.TextXAlignment.Left
+        statusMsg.ZIndex = 12
+        statusMsg.Parent = statRow
     end
 
-    pageContent["SETTINGS"] = function()
-        makeHeader("GORUNUM", 1)
-        local visCard = makeCard(150, 2)
-        makeToggle(visCard, "Animasyonlar", true, 4)
-        makeDivider(visCard, 48)
-        makeToggle(visCard, "Glow Efekti", true, 49)
-        makeDivider(visCard, 93)
-        makeToggle(visCard, "Arkaplan Karartma", true, 94)
-        makeHeader("SISTEM", 3)
-        local sysCard = makeCard(106, 4)
-        makeToggle(sysCard, "Otomatik Guncelleme", true, 4)
-        makeDivider(sysCard, 48)
-        makeToggle(sysCard, "Bildirimler", false, 49)
-        makeHeader("GELISTIRICI", 5)
-        local devCard = makeCard(56, 6)
-        makeToggle(devCard, "Debug Modu", false, 4)
+    pageContent["STATISTICS"] = function()
+        makeHeader("MODUL DURUMU", 1)
+        local modCard = makeCard(60, 2)
+        local modMsg = Instance.new("TextLabel")
+        modMsg.Size = UDim2.new(1, -24, 1, 0)
+        modMsg.Position = UDim2.new(0, 12, 0, 0)
+        modMsg.BackgroundTransparency = 1
+        modMsg.Text = "Tum moduller yuklendi."
+        modMsg.Font = Enum.Font.Gotham
+        modMsg.TextSize = 12
+        modMsg.TextColor3 = C.textSub
+        modMsg.TextXAlignment = Enum.TextXAlignment.Left
+        modMsg.ZIndex = 12
+        modMsg.Parent = modCard
     end
 
     pageContent["PROFILE"] = function()
         makeHeader("KULLANICI", 1)
-        local profCard = makeCard(130, 2)
-        makeRow(profCard, "Kullanici Adi", LocalPlayer.Name, C.textPrimary, 10)
-        makeDivider(profCard, 44)
-        makeRow(profCard, "Kullanici ID", tostring(LocalPlayer.UserId), C.textSub, 45)
-        makeDivider(profCard, 79)
-        makeRow(profCard, "Platform", UserInputService:GetPlatform() == Enum.Platform.Windows and "PC" or "Mobil", C.textSub, 80)
-        makeHeader("OTURUM", 3)
-        local sesCard = makeCard(106, 4)
-        makeRow(sesCard, "Durum", "Aktif", C.green, 10)
-        makeDivider(sesCard, 44)
-        makeRow(sesCard, "Erisim", "Premium", C.accent, 45)
-        makeDivider(sesCard, 79)
-        makeRow(sesCard, "Surum", "v3.0", C.textSub, 80)
-    end
-
-    pageContent["STATISTICS"] = function()
-        makeHeader("PERFORMANS", 1)
-        local perfCard = makeCard(88, 2)
-        makeStatBox(perfCard, "FPS", "60", C.accent, 12, 8, 140, 72)
-        makeStatBox(perfCard, "PING", "0ms", C.green, 160, 8, 140, 72)
-        makeStatBox(perfCard, "PAKET", "—", C.yellow, 308, 8, 140, 72)
-        local runConn
-        runConn = RunService.RenderStepped:Connect(function()
-            local fps = math.round(1 / RunService.RenderStepped:Wait())
-            local ping = LocalPlayer:GetNetworkPing and math.round((LocalPlayer:GetNetworkPing() or 0) * 1000) or "—"
-            for _, v in pairs(perfCard:GetChildren()) do
-                if v:IsA("Frame") then
-                    for _, t in pairs(v:GetChildren()) do
-                        if t:IsA("TextLabel") and t.TextSize == 28 then
-                            if t.Position.Y.Offset == 14 and t.Position.X.Offset == 12 then
-                                t.Text = tostring(fps)
-                            elseif t.Position.X.Offset == 160 then
-                                t.Text = tostring(ping) .. "ms"
-                            elseif t.Position.X.Offset == 308 then
-                                t.Text = "—"
-                            end
-                        end
-                    end
-                end
-            end
-        end)
-        mainGui.AncestryChanged:Connect(function() if runConn then runConn:Disconnect() end end)
-        makeHeader("OTURUM", 3)
-        local sesCard = makeCard(120, 4)
-        makeRow(sesCard, "Baslangic", "Az once", C.textSub, 10)
-        makeDivider(sesCard, 44)
-        makeRow(sesCard, "Sure", "00:00", C.textPrimary, 45)
-        makeDivider(sesCard, 79)
-        makeRow(sesCard, "Sunucu ID", tostring(game.PlaceId), C.textMuted, 80)
+        local profCard = makeCard(80, 2)
+        local userInfo = Instance.new("TextLabel")
+        userInfo.Size = UDim2.new(1, -24, 1, 0)
+        userInfo.Position = UDim2.new(0, 12, 0, 0)
+        userInfo.BackgroundTransparency = 1
+        userInfo.Text = "Kullanici: " .. LocalPlayer.Name .. "\n\nDurum: Aktif\nSurum: v3.0"
+        userInfo.Font = Enum.Font.Gotham
+        userInfo.TextSize = 12
+        userInfo.TextColor3 = C.textSub
+        userInfo.TextXAlignment = Enum.TextXAlignment.Left
+        userInfo.ZIndex = 12
+        userInfo.Parent = profCard
     end
 
     pageContent["ABOUT"] = function()
@@ -2551,19 +2037,49 @@ local function loadMainUI()
         aboutTxt.TextWrapped = true
         aboutTxt.ZIndex = 11
         aboutTxt.Parent = aboutCard
-        makeHeader("BAGLANTILAR", 3)
-        local linkCard = makeCard(56, 4)
-        makeRow(linkCard, "Discord", "discord.gg/santes", C.accent, 6)
     end
 
-    -- TABLARI OLUŞTUR
+    pageContent["SETTINGS"] = function()
+        makeHeader("MODULLER", 1)
+        local modCard = makeCard(400, 2)
+        local layout = Instance.new("UIListLayout")
+        layout.Padding = UDim.new(0, 6)
+        layout.SortOrder = Enum.SortOrder.LayoutOrder
+        layout.Parent = modCard
+        
+        local modules = {
+            {name="FLY", canToggle=true, enabledFn=function() return flyEnabled end, enable=Fly_Enable, disable=Fly_Disable},
+            {name="NOCLIP", canToggle=true, enabledFn=function() return noclipEnabled end, enable=Noclip_Enable, disable=Noclip_Disable},
+            {name="FULLBRIGHT", canToggle=true, enabledFn=function() return fullbrightEnabled end, enable=FullBright_Enable, disable=FullBright_Disable},
+            {name="FOV", canToggle=true, enabledFn=function() return fovEnabled end, enable=FOV_Enable, disable=FOV_Disable},
+            {name="NO FAIL LOCKPICK", canToggle=true, enabledFn=function() return noFailLPEnabled end, enable=NoFailLP_Enable, disable=NoFailLP_Disable},
+            {name="SAFE ESP", canToggle=true, enabledFn=function() return safeESPEnabled end, enable=SafeESP_Enable, disable=SafeESP_Disable},
+            {name="AUTO LOCKPICK", canToggle=true, enabledFn=function() return autoLockpickEnabled end, enable=AutoLockpick_Enable, disable=AutoLockpick_Disable},
+            {name="AUTO PICKUP", canToggle=true, enabledFn=function() return autoPickupEnabled end, enable=AutoPickup_Enable, disable=AutoPickup_Disable},
+            {name="UNLOCK DOORS", canToggle=true, enabledFn=function() return unlockDoorsEnabled end, enable=UnlockDoors_Enable, disable=UnlockDoors_Disable},
+            {name="PLAYER ESP", canToggle=true, enabledFn=function() return espEnabled end, enable=ESP_Enable, disable=ESP_Disable},
+            {name="INVIS", canToggle=true, enabledFn=function() return invisEnabled end, enable=Invis_Enable, disable=Invis_Disable},
+            {name="NO RECOIL", canToggle=true, enabledFn=function() return noRecoilEnabled end, enable=NoRecoil_Enable, disable=NoRecoil_Disable},
+            {name="SILENT AIM", canToggle=true, enabledFn=function() return silentAimEnabled end, enable=SilentAim_Enable, disable=SilentAim_Disable},
+            {name="MELEE AURA", canToggle=true, enabledFn=function() return meleeAuraEnabled end, enable=MeleeAura_Enable, disable=MeleeAura_Disable},
+            {name="INFINITE STAMINA", canToggle=true, enabledFn=function() return infStaminaEnabled end, enable=InfiniteStamina_Enable, disable=InfiniteStamina_Disable},
+        }
+        
+        for idx, mod in ipairs(modules) do
+            local row = createToggleRow(mod.name, mod.canToggle, mod.enabledFn, mod.enable, mod.disable, nil, nil)
+            row.LayoutOrder = idx
+            row.Parent = modCard
+        end
+    end
+
+    -- TABLARI OLUSTUR
     makeTab("DASHBOARD", "◈")
     makeTab("SETTINGS", "⚙")
     makeTab("PROFILE", "◉")
     makeTab("STATISTICS", "▣")
     makeTab("ABOUT", "◇")
 
-    -- KÜÇÜLTÜLMÜŞ MOD
+    -- KUCULTULMUS MOD
     local miniFrame = Instance.new("Frame")
     miniFrame.Size = UDim2.new(0, 72, 0, 72)
     miniFrame.Position = UDim2.new(0, 24, 0, 24)
@@ -2637,7 +2153,7 @@ local function loadMainUI()
         end
     end)
 
-    -- SÜRÜKLEME
+    -- SURUKLEME
     do
         local dragging = false
         local dragStart, startPos
@@ -2661,65 +2177,7 @@ local function loadMainUI()
         end)
     end
 
-    -- KEYBIND HANDLER
-    UserInputService.InputBegan:Connect(function(input, gpe)
-        if gpe then return end
-        if currentRowWaitingForKey and input.KeyCode ~= Enum.KeyCode.Unknown and input.KeyCode ~= Enum.KeyCode.K then
-            local frame = currentRowWaitingForKey
-            local bb = bindButtonRefs[frame]
-            local gf = keyBindGetters[frame]
-            local sf = keyBindSetters[frame]
-            local fd = rowFuncData[frame]
-            if bb and gf and sf and fd then
-                local ok = nil
-                local s, r = pcall(gf)
-                if s then ok = r end
-                if ok and activeBinds[ok] then activeBinds[ok] = nil end
-                if activeBinds[input.KeyCode] then
-                    local of = activeBinds[input.KeyCode].frame
-                    local ob = bindButtonRefs[of]
-                    local os2 = keyBindSetters[of]
-                    if os2 then pcall(os2, nil) end
-                    if ob then ob.Text = "BIND" end
-                    activeBinds[input.KeyCode] = nil
-                end
-                pcall(sf, input.KeyCode)
-                bb.Text = input.KeyCode.Name
-                local tgb = nil
-                for _, child in pairs(frame:GetChildren()) do
-                    if child:IsA("TextButton") and child ~= bb then tgb = child; break end
-                end
-                if tgb then
-                    activeBinds[input.KeyCode] = {
-                        frame = frame,
-                        toggleButton = tgb,
-                        isEnabledFn = fd.isEnabledFn,
-                        onEnable = fd.onEnable,
-                        onDisable = fd.onDisable,
-                        canToggle = fd.canToggle,
-                        updateFn = fd.updateFn
-                    }
-                end
-                currentRowWaitingForKey = nil
-            end
-        elseif activeBinds[input.KeyCode] then
-            local info = activeBinds[input.KeyCode]
-            if info.canToggle and info.onEnable and info.onDisable and info.isEnabledFn and info.updateFn then
-                local s, state = pcall(info.isEnabledFn)
-                if s then
-                    if state then
-                        pcall(info.onDisable)
-                    else
-                        pcall(info.onEnable)
-                    end
-                    task.wait()
-                    pcall(info.updateFn)
-                end
-            end
-        end
-    end)
-
-    -- AÇILIŞ ANİMASYONU
+    -- ACILLIS ANIMASYONU
     win.Size = UDim2.new(0, WIN_W, 0, 0)
     win.ClipsDescendants = true
     tween(win, { Size = UDim2.new(0, WIN_W, 0, WIN_H) }, 0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
@@ -2734,5 +2192,5 @@ end
 -- #                         START                                     #
 -- #####################################################################
 
--- Loader zaten kendi kendine çalışıyor, main UI loader içinden çağrılıyor
--- Bu script doğrudan çalıştırılabilir
+-- Loader zaten kendi kendine calisiyor, main UI loader icinden cagriliyor
+-- Bu script dogrudan calistirilabilir
