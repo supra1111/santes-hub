@@ -1,9 +1,8 @@
---[[
-    ╔══════════════════════════════════════════════════════════════════╗
-    ║              SANTES HUB v3.0 | PREMIUM EDITION                 ║
-    ║               Siyah & Kırmızı Tema | Tüm Özellikler            ║
-    ╚══════════════════════════════════════════════════════════════════╝
---]]
+-- #####################################################################
+-- #                    SANTES HUB v3.0 - FULL                        #
+-- #                    Siyah & Kırmızı Premium UI                    #
+-- #                    Tüm Modüller Entegre - ÇALIŞAN VERSİYON       #
+-- #####################################################################
 
 -- #####################################################################
 -- #                          SERVICES                                #
@@ -19,6 +18,7 @@ local Lighting = game:GetService("Lighting")
 local StarterGui = game:GetService("StarterGui")
 local CoreGui = game:GetService("CoreGui")
 local VirtualUser = game:GetService("VirtualUser")
+local VirtualInputManager = game:GetService("VirtualInputManager")
 
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui", 10)
@@ -78,7 +78,6 @@ do
     local BORDER_COL = Color3.fromRGB(140, 18, 18)
 
     local CARD_W, CARD_H = 360, 320
-
     local LOAD_MESSAGES = {
         "SISTEM BASLATILIYOR...",
         "MODULLER YUKLENIYOR...",
@@ -351,9 +350,7 @@ end
 -- #####################################################################
 
 local function loadMainUI()
-    -- =============================================
-    -- TEMA RENKLERI (Siyah & Kırmızı)
-    -- =============================================
+    -- TEMA RENKLERI
     local C = {
         bg = Color3.fromRGB(6, 6, 9),
         panel = Color3.fromRGB(11, 11, 16),
@@ -372,9 +369,7 @@ local function loadMainUI()
         yellow = Color3.fromRGB(230, 180, 30),
     }
 
-    -- =============================================
     -- YARDIMCI FONKSİYONLAR
-    -- =============================================
     local function tween(obj, props, dur, style, dir)
         TweenService:Create(obj, TweenInfo.new(dur or 0.25, style or Enum.EasingStyle.Quart, dir or Enum.EasingDirection.Out), props):Play()
     end
@@ -433,9 +428,7 @@ local function loadMainUI()
         end)
     end
 
-    -- =============================================
     -- ANA GUI
-    -- =============================================
     local mainGui = Instance.new("ScreenGui")
     mainGui.Name = "SantesHub_Main"
     mainGui.ResetOnSpawn = false
@@ -477,9 +470,7 @@ local function loadMainUI()
     winGlow.Parent = mainGui
     addCorner(winGlow, 18)
 
-    -- =============================================
-    -- TITLE BAR
-    -- =============================================
+    -- Title Bar
     local titleBar = Instance.new("Frame")
     titleBar.Size = UDim2.new(1, 0, 0, 56)
     titleBar.BackgroundColor3 = C.panel
@@ -487,7 +478,6 @@ local function loadMainUI()
     titleBar.ZIndex = 10
     titleBar.Parent = win
 
-    -- Sol kırmızı aksent çizgisi
     local titleAccent = Instance.new("Frame")
     titleAccent.Size = UDim2.new(0, 4, 1, 0)
     titleAccent.BackgroundColor3 = C.accent
@@ -495,7 +485,6 @@ local function loadMainUI()
     titleAccent.ZIndex = 11
     titleAccent.Parent = titleBar
 
-    -- Logo
     local logoText = Instance.new("TextLabel")
     logoText.Size = UDim2.new(0, 140, 1, 0)
     logoText.Position = UDim2.new(0, 18, 0, 0)
@@ -521,7 +510,6 @@ local function loadMainUI()
     hubTag.Parent = titleBar
     addCorner(hubTag, 4)
 
-    -- Versiyon
     local verLabel = Instance.new("TextLabel")
     verLabel.Size = UDim2.new(0, 70, 1, 0)
     verLabel.Position = UDim2.new(0, 152, 0, 0)
@@ -534,7 +522,6 @@ local function loadMainUI()
     verLabel.ZIndex = 11
     verLabel.Parent = titleBar
 
-    -- Pencere butonları
     local function makeWindowBtn(offsetX, icon, bgColor)
         local btn = Instance.new("TextButton")
         btn.Size = UDim2.new(0, 32, 0, 32)
@@ -558,7 +545,6 @@ local function loadMainUI()
     addHover(minimizeBtn, C.card, C.cardHover, nil, nil)
     addHover(closeBtn, C.accent, C.accentBright, nil, nil)
 
-    -- Başlık altı çizgi
     local titleLine = Instance.new("Frame")
     titleLine.Size = UDim2.new(1, 0, 0, 1)
     titleLine.Position = UDim2.new(0, 0, 0, 56)
@@ -567,9 +553,7 @@ local function loadMainUI()
     titleLine.ZIndex = 10
     titleLine.Parent = win
 
-    -- =============================================
-    -- SOL SIDEBAR
-    -- =============================================
+    -- Sidebar
     local SIDEBAR_W = 158
     local sidebar = Instance.new("Frame")
     sidebar.Size = UDim2.new(0, SIDEBAR_W, 1, -57)
@@ -594,7 +578,6 @@ local function loadMainUI()
     addPadding(sidebarInner, nil, 14, 14, 10, 10)
     addLayout(sidebarInner, 6, Enum.HorizontalAlignment.Center)
 
-    -- Sidebar footer (kullanıcı bilgisi)
     local sideFooter = Instance.new("Frame")
     sideFooter.Size = UDim2.new(1, 0, 0, 52)
     sideFooter.Position = UDim2.new(0, 0, 1, -52)
@@ -634,9 +617,7 @@ local function loadMainUI()
     sideStatus.ZIndex = 11
     sideStatus.Parent = sideFooter
 
-    -- =============================================
-    -- İÇERİK ALANI
-    -- =============================================
+    -- Content Area
     local contentArea = Instance.new("ScrollingFrame")
     contentArea.Size = UDim2.new(1, -(SIDEBAR_W + 1), 1, -57)
     contentArea.Position = UDim2.new(0, SIDEBAR_W + 1, 0, 57)
@@ -660,9 +641,7 @@ local function loadMainUI()
         contentArea.CanvasSize = UDim2.new(0, 0, 0, contentLayout.AbsoluteContentSize.Y + 32)
     end)
 
-    -- =============================================
     -- SAYFA SİSTEMİ
-    -- =============================================
     local pages = {}
     local activeTab = nil
     local activeTabName = nil
@@ -780,9 +759,7 @@ local function loadMainUI()
         return tabData
     end
 
-    -- =============================================
-    -- İÇERİK ELEMANLARI (Builder Fonksiyonlar)
-    -- =============================================
+    -- İÇERİK ELEMANLARI
     local function makeHeader(text, order)
         local lbl = Instance.new("TextLabel")
         lbl.Size = UDim2.new(1, -32, 0, 20)
@@ -891,7 +868,6 @@ local function loadMainUI()
         addCorner(knob, 9)
 
         local isOn = defaultOn or false
-
         local clickArea = Instance.new("TextButton")
         clickArea.Size = UDim2.new(1, 0, 1, 0)
         clickArea.BackgroundTransparency = 1
@@ -953,9 +929,7 @@ local function loadMainUI()
         return box, valLbl
     end
 
-    -- =============================================
-    -- TOGGLE ROW CREATOR (UI ile uyumlu)
-    -- =============================================
+    -- TOGGLE ROW CREATOR
     local activeBinds = {}
     local currentRowWaitingForKey = nil
     local bindButtonRefs = {}
@@ -983,7 +957,7 @@ local function loadMainUI()
         label.Size = UDim2.new(0.45, 0, 1, 0)
         label.BackgroundTransparency = 1
         label.Text = scriptName
-        label.TextColor3 = C.textSecondary
+        label.TextColor3 = C.textSub
         label.Font = Enum.Font.GothamSemibold
         label.TextSize = 13
         label.TextXAlignment = Enum.TextXAlignment.Left
@@ -994,7 +968,7 @@ local function loadMainUI()
         toggleBtn.Font = Enum.Font.GothamBold
         toggleBtn.TextSize = 12
         toggleBtn.TextColor3 = C.textPrimary
-        toggleBtn.BackgroundColor3 = C.buttonOff or Color3.fromRGB(35, 35, 45)
+        toggleBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
         toggleBtn.BorderSizePixel = 0
         toggleBtn.AutoButtonColor = false
         toggleBtn.Parent = frame
@@ -1164,11 +1138,7 @@ local function loadMainUI()
         return frame
     end
 
-    -- =============================================
-    -- TÜM MODÜLLER (Özellikler)
-    -- =============================================
-
-    -- FLY
+    -- ÖZELLİKLER (MODÜLLER)
     local flyEnabled = false
     local flyConn = nil
     local flySpeed = 70
@@ -1226,7 +1196,6 @@ local function loadMainUI()
         end
     end
 
-    -- NOCLIP
     local noclipEnabled = false
     local noclipConn = nil
     function Noclip_Enable()
@@ -1245,7 +1214,6 @@ local function loadMainUI()
         if noclipConn then noclipConn:Disconnect(); noclipConn = nil end
     end
 
-    -- FULLBRIGHT
     local fullbrightEnabled = false
     local fullbrightConn = nil
     local origLighting = {}
@@ -1279,7 +1247,6 @@ local function loadMainUI()
         end
     end
 
-    -- FOV
     local fovEnabled = false
     local fovVal = 80
     local fovOrig = 70
@@ -1295,7 +1262,6 @@ local function loadMainUI()
         if fovEnabled and workspace.CurrentCamera then workspace.CurrentCamera.FieldOfView = fovVal end
     end)
 
-    -- NO FAIL LOCKPICK
     local noFailLPEnabled = false
     local noFailLPConn = nil
     function NoFailLP_Enable()
@@ -1327,7 +1293,6 @@ local function loadMainUI()
         if noFailLPConn then noFailLPConn:Disconnect(); noFailLPConn = nil end
     end
 
-    -- SAFE ESP
     local safeESPEnabled = false
     local safeESPConn = nil
     local safeTimerData = {}
@@ -1455,7 +1420,6 @@ local function loadMainUI()
         safeTimerData = {}
     end
 
-    -- AUTO LOCKPICK
     local autoLockpickEnabled = false
     local autoLockpickConn = nil
     local lockpickCD = false
@@ -1567,10 +1531,7 @@ local function loadMainUI()
         lockpickCD = false
         lastOpenedSafe = nil
         if autoLockpickConn then autoLockpickConn:Disconnect(); autoLockpickConn = nil end
-    end
-
-    -- AUTO PICKUP MONEY
-    local autoPickupEnabled = false
+    end    local autoPickupEnabled = false
     local autoPickupConn = nil
     local pickupCD = false
     function AutoPickup_Enable()
@@ -1603,7 +1564,6 @@ local function loadMainUI()
         if autoPickupConn then autoPickupConn:Disconnect(); autoPickupConn = nil end
     end
 
-    -- AUTO UNLOCK DOORS
     local unlockDoorsEnabled = false
     local unlockDoorsConn = nil
     function UnlockDoors_Enable()
@@ -1645,7 +1605,6 @@ local function loadMainUI()
         if unlockDoorsConn then unlockDoorsConn:Disconnect(); unlockDoorsConn = nil end
     end
 
-    -- ADMIN DETECTOR
     local adminCheckEnabled = false
     local adminCheckConn = nil
     local staffUsers = {
@@ -1690,7 +1649,6 @@ local function loadMainUI()
         if adminCheckConn then adminCheckConn:Disconnect(); adminCheckConn = nil end
     end
 
-    -- PLAYER ESP
     local espEnabled = false
     local espConns = {}
     local espList = {}
@@ -1754,7 +1712,6 @@ local function loadMainUI()
         end
     end
 
-    -- INVISIBILITY (SHADOW MODE)
     local invisEnabled = false
     local invisUsable = true
     local invisTrack = nil
@@ -1873,7 +1830,6 @@ local function loadMainUI()
     function Invis_Enable() _G.Invis_Enable() end
     function Invis_Disable() _G.Invis_Disable() end
 
-    -- NO RECOIL
     local noRecoilEnabled = false
     function NoRecoil_Enable()
         if noRecoilEnabled then return end
@@ -1904,7 +1860,6 @@ local function loadMainUI()
         noRecoilEnabled = false
     end
 
-    -- SILENT AIM
     local silentAimEnabled = false
     local silentAimConn = nil
     local silentAimFOV = 150
@@ -1974,7 +1929,6 @@ local function loadMainUI()
     function SilentAim_SetFOV(value) silentAimFOV = math.clamp(value, 50, 500) end
     function SilentAim_GetFOV() return silentAimFOV end
 
-    -- MELEE AURA
     local meleeAuraEnabled = false
     local meleeAuraConn = nil
     local meleeTarget = "Head"
@@ -2031,7 +1985,6 @@ local function loadMainUI()
     end
     function MeleeAura_GetTarget() return meleeTarget == "Head" and "Head" or "Body" end
 
-    -- INFINITE STAMINA
     local infStaminaEnabled = false
     local infStaminaConn = nil
     function InfiniteStamina_Enable()
@@ -2053,7 +2006,6 @@ local function loadMainUI()
         if infStaminaConn then infStaminaConn:Disconnect(); infStaminaConn = nil end
     end
 
-    -- AUTO FARM
     local autoFarmEnabled = false
     local autoFarmCoroutine = nil
     local farmProcessed = {}
@@ -2382,7 +2334,6 @@ local function loadMainUI()
     function AutoFarm_SetSpeed(speed) moveSpeed = math.clamp(speed, 10, 45) end
     function AutoFarm_GetSpeed() return moveSpeed end
 
-    -- RAGEBOT
     local EventsFolder = ReplicatedStorage:WaitForChild("Events", 10)
     local GNX_S_Remote = EventsFolder and EventsFolder:WaitForChild("GNX_S", 5)
     local ZFKLF_H_Remote = EventsFolder and EventsFolder:WaitForChild("ZFKLF__H", 5)
@@ -2434,7 +2385,7 @@ local function loadMainUI()
         local randomKey = RandomString(30) .. "0"
         if not GNX_S_Remote or not ZFKLF_H_Remote then
             warn("Ragebot Error: Required remote events not found.")
-            if typeof(Ragebot_Disable) == "function" then Ragebot_Disable() end
+            if Ragebot_Disable then Ragebot_Disable() end
             return
         end
         local success1, err1 = pcall(function()
@@ -2481,11 +2432,7 @@ local function loadMainUI()
         Ragebot_Enabled = false
     end
 
-    -- =============================================
-    -- SAYFA İÇERİKLERİ (Dashboard, Settings, etc.)
-    -- =============================================
-
-    -- DASHBOARD PANEL
+    -- SAYFA İÇERİKLERİ
     pageContent["DASHBOARD"] = function()
         makeHeader("SISTEM DURUMU", 1)
         local statRow = makeCard(88, 2)
@@ -2518,7 +2465,6 @@ local function loadMainUI()
         msgLbl.Parent = msgCard
     end
 
-    -- SETTINGS PANEL
     pageContent["SETTINGS"] = function()
         makeHeader("GORUNUM", 1)
         local visCard = makeCard(150, 2)
@@ -2537,7 +2483,6 @@ local function loadMainUI()
         makeToggle(devCard, "Debug Modu", false, 4)
     end
 
-    -- PROFILE PANEL
     pageContent["PROFILE"] = function()
         makeHeader("KULLANICI", 1)
         local profCard = makeCard(130, 2)
@@ -2555,7 +2500,6 @@ local function loadMainUI()
         makeRow(sesCard, "Surum", "v3.0", C.textSub, 80)
     end
 
-    -- STATISTICS PANEL
     pageContent["STATISTICS"] = function()
         makeHeader("PERFORMANS", 1)
         local perfCard = makeCard(88, 2)
@@ -2592,7 +2536,6 @@ local function loadMainUI()
         makeRow(sesCard, "Sunucu ID", tostring(game.PlaceId), C.textMuted, 80)
     end
 
-    -- ABOUT PANEL
     pageContent["ABOUT"] = function()
         makeHeader("SANTES HUB", 1)
         local aboutCard = makeCard(140, 2)
@@ -2613,18 +2556,14 @@ local function loadMainUI()
         makeRow(linkCard, "Discord", "discord.gg/santes", C.accent, 6)
     end
 
-    -- =============================================
     -- TABLARI OLUŞTUR
-    -- =============================================
     makeTab("DASHBOARD", "◈")
     makeTab("SETTINGS", "⚙")
     makeTab("PROFILE", "◉")
     makeTab("STATISTICS", "▣")
     makeTab("ABOUT", "◇")
 
-    -- =============================================
     -- KÜÇÜLTÜLMÜŞ MOD
-    -- =============================================
     local miniFrame = Instance.new("Frame")
     miniFrame.Size = UDim2.new(0, 72, 0, 72)
     miniFrame.Position = UDim2.new(0, 24, 0, 24)
@@ -2662,9 +2601,7 @@ local function loadMainUI()
     miniSub.ZIndex = 1000
     miniSub.Parent = miniFrame
 
-    -- =============================================
     -- KONTROL OLAYLARI
-    -- =============================================
     minimizeBtn.MouseButton1Click:Connect(function()
         win.Visible = false
         overlay.Visible = false
@@ -2700,9 +2637,7 @@ local function loadMainUI()
         end
     end)
 
-    -- =============================================
     -- SÜRÜKLEME
-    -- =============================================
     do
         local dragging = false
         local dragStart, startPos
@@ -2726,9 +2661,7 @@ local function loadMainUI()
         end)
     end
 
-    -- =============================================
     -- KEYBIND HANDLER
-    -- =============================================
     UserInputService.InputBegan:Connect(function(input, gpe)
         if gpe then return end
         if currentRowWaitingForKey and input.KeyCode ~= Enum.KeyCode.Unknown and input.KeyCode ~= Enum.KeyCode.K then
@@ -2786,15 +2719,11 @@ local function loadMainUI()
         end
     end)
 
-    -- =============================================
     -- AÇILIŞ ANİMASYONU
-    -- =============================================
     win.Size = UDim2.new(0, WIN_W, 0, 0)
     win.ClipsDescendants = true
     tween(win, { Size = UDim2.new(0, WIN_W, 0, WIN_H) }, 0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-
     winGlow.Position = UDim2.new(win.Position.X.Scale, win.Position.X.Offset - 20, win.Position.Y.Scale, win.Position.Y.Offset - 20)
-
     task.wait(0.05)
     switchPage("DASHBOARD")
 
@@ -2805,4 +2734,5 @@ end
 -- #                         START                                     #
 -- #####################################################################
 
-playIntro()
+-- Loader zaten kendi kendine çalışıyor, main UI loader içinden çağrılıyor
+-- Bu script doğrudan çalıştırılabilir
