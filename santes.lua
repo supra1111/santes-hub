@@ -1,9 +1,10 @@
 -- ============================================
--- SANTES HUB LOADER (Sadece Card - 7 Saniye)
+-- SANTES HUB LOADER + SCRIPT (FULL PACKAGE)
 -- ============================================
 
 local TweenService = game:GetService("TweenService")
 
+-- ========== LOADER ==========
 local loaderGui = Instance.new("ScreenGui")
 loaderGui.Name = "SantesHubLoader"
 loaderGui.ResetOnSpawn = false
@@ -12,7 +13,6 @@ loaderGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 loaderGui.DisplayOrder = 1000
 loaderGui.Parent = game:GetService("CoreGui")
 
--- Sadece Card (Arka plan yok, transparan)
 local card = Instance.new("Frame")
 card.Name = "Card"
 card.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -37,7 +37,6 @@ cardGradient.Color = ColorSequence.new({
 })
 cardGradient.Rotation = 90
 
--- Top accent bar (kırmızı)
 local accentBar = Instance.new("Frame")
 accentBar.Name = "AccentBar"
 accentBar.Size = UDim2.new(1, 0, 0, 3)
@@ -56,7 +55,6 @@ accentGradient.Color = ColorSequence.new({
     ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 10, 10)),
 })
 
--- Title
 local title = Instance.new("TextLabel")
 title.Name = "Title"
 title.Size = UDim2.new(1, 0, 0, 44)
@@ -86,7 +84,6 @@ subtitle.TextSize = 13
 subtitle.Font = Enum.Font.Gotham
 subtitle.Parent = card
 
--- Loading bar
 local barBg = Instance.new("Frame")
 barBg.Name = "BarBackground"
 barBg.Size = UDim2.new(0.8, 0, 0, 6)
@@ -114,7 +111,6 @@ barGradient.Color = ColorSequence.new({
     ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 60, 60)),
 })
 
--- Bar glow
 local barGlow = Instance.new("Frame")
 barGlow.Name = "BarGlow"
 barGlow.AnchorPoint = Vector2.new(1, 0.5)
@@ -129,7 +125,6 @@ barGlow.Parent = bar
 local barGlowCorner = Instance.new("UICorner", barGlow)
 barGlowCorner.CornerRadius = UDim.new(1, 0)
 
--- Status text
 local statusText = Instance.new("TextLabel")
 statusText.Name = "StatusText"
 statusText.Size = UDim2.new(1, 0, 0, 18)
@@ -141,7 +136,6 @@ statusText.TextSize = 12
 statusText.Font = Enum.Font.Code
 statusText.Parent = card
 
--- Footer
 local footer = Instance.new("TextLabel")
 footer.Name = "Footer"
 footer.Size = UDim2.new(1, 0, 0, 18)
@@ -153,8 +147,8 @@ footer.TextSize = 10
 footer.Font = Enum.Font.Gotham
 footer.Parent = card
 
--- ===== Loading sequence (7 saniye) =====
-local function animateLoader()
+-- ===== LOADING SEQUENCE (7 saniye) =====
+local function StartLoader()
     local steps = {
         { progress = 0.10, text = "Loading Santes Hub..." },
         { progress = 0.25, text = "Loading modules..." },
@@ -165,7 +159,7 @@ local function animateLoader()
         { progress = 1.0, text = "Ready!" },
     }
 
-    local totalTime = 7 -- 7 saniye
+    local totalTime = 7
     local stepTime = totalTime / #steps
 
     for _, step in ipairs(steps) do
@@ -182,7 +176,6 @@ local function animateLoader()
     statusText.TextColor3 = Color3.fromRGB(255, 80, 80)
     task.wait(0.5)
 
-    -- Fade out
     local cardFade = TweenService:Create(card, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
         BackgroundTransparency = 1,
     })
@@ -195,12 +188,9 @@ local function animateLoader()
     StartSantesHub()
 end
 
--- Loader'ı başlat
-animateLoader()
-
 
 -- ============================================================
--- SANTES HUB ANA SCRIPT (Tüm Modüller ile)
+-- SANTES HUB ANA SCRIPT
 -- ============================================================
 
 function StartSantesHub()
@@ -338,7 +328,7 @@ contentLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 contentLayout.Parent = contentScroll
 
 -- ============================================================
--- TÜM MODÜLLER (Aynen korundu)
+-- TÜM MODÜLLER
 -- ============================================================
 
 -- MODÜL: No Fail Lockpick
@@ -2009,3 +1999,6 @@ end)
 print("SANTES HUB v2.0 Loaded Successfully!")
 
 end -- StartSantesHub fonksiyonu sonu
+
+-- ========== LOADER'ı BAŞLAT ==========
+StartLoader()
