@@ -1,12 +1,13 @@
 --[[
-    SantesHub UI v4
-    No Recoil Toggle + Anti AFK (Otomatik)
-    Küçültme: Kare + S harfi | K tuşu: Gizle/Göster
+    SantesHub UI v6 - FULL ÇALIŞAN
+    No Recoil + Anti AFK (Otomatik)
+    Küçültme: Kare + S harfi (S'ye tıkla açılır)
 --]]
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 local VirtualUser = game:GetService("VirtualUser")
 local LocalPlayer = Players.LocalPlayer
 
@@ -16,7 +17,7 @@ if LocalPlayer.PlayerGui:FindFirstChild("SantesHub_UI") then
 end
 
 -- ============================================================
--- ANTI AFK (Otomatik açık - Hiçbir yerde gözükmez)
+-- ANTI AFK (Otomatik açık)
 -- ============================================================
 if LocalPlayer then
     LocalPlayer.Idled:Connect(function()
@@ -26,7 +27,7 @@ if LocalPlayer then
 end
 
 -- ============================================================
--- NO RECOIL MODÜLÜ
+-- NO RECOIL MODÜLÜ (ÇALIŞIYOR)
 -- ============================================================
 local NoRecoilEnabled = false
 local NoRecoil_Connections = {}
@@ -154,8 +155,8 @@ ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 -- Main Frame
 local Main = Instance.new("Frame")
 Main.Name = "Main"
-Main.Size = UDim2.new(0, 260, 0, 165)
-Main.Position = UDim2.new(0.5, -130, 0.5, -82)
+Main.Size = UDim2.new(0, 220, 0, 140)
+Main.Position = UDim2.new(0.5, -110, 0.5, -70)
 Main.BackgroundColor3 = COLOR_BG
 Main.BorderSizePixel = 0
 Main.ClipsDescendants = true
@@ -199,7 +200,7 @@ GlowInner.Parent = Main
 -- Title Bar
 local TitleBar = Instance.new("Frame")
 TitleBar.Name = "TitleBar"
-TitleBar.Size = UDim2.new(1, 0, 0, 38)
+TitleBar.Size = UDim2.new(1, 0, 0, 35)
 TitleBar.BackgroundTransparency = 1
 TitleBar.Parent = Main
 
@@ -212,20 +213,20 @@ Title.Position = UDim2.new(0, 14, 0, 0)
 Title.Font = Enum.Font.GothamBold
 Title.Text = "SANTES HUB"
 Title.TextColor3 = COLOR_ACCENT
-Title.TextSize = 17
+Title.TextSize = 16
 Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.Parent = TitleBar
 
 -- Kapatma
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Name = "CloseBtn"
-CloseBtn.Size = UDim2.new(0, 28, 0, 28)
-CloseBtn.Position = UDim2.new(1, -34, 0.5, -14)
+CloseBtn.Size = UDim2.new(0, 26, 0, 26)
+CloseBtn.Position = UDim2.new(1, -32, 0.5, -13)
 CloseBtn.BackgroundColor3 = COLOR_ACCENT
 CloseBtn.BackgroundTransparency = 0.8
 CloseBtn.Text = "✕"
 CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseBtn.TextSize = 14
+CloseBtn.TextSize = 13
 CloseBtn.Font = Enum.Font.GothamBold
 CloseBtn.BorderSizePixel = 0
 CloseBtn.AutoButtonColor = false
@@ -246,17 +247,18 @@ CloseBtn.MouseButton1Click:Connect(function()
 end)
 
 -- ============================================================
--- KÜÇÜLTME BUTONU (Sadece küçültür, kare + S harfi)
+-- KÜÇÜLTME BUTONU (S)
+-- Küçük haldeyken S'ye tıkla açılır
 -- ============================================================
 local MinBtn = Instance.new("TextButton")
 MinBtn.Name = "MinBtn"
-MinBtn.Size = UDim2.new(0, 28, 0, 28)
-MinBtn.Position = UDim2.new(1, -66, 0.5, -14)
+MinBtn.Size = UDim2.new(0, 26, 0, 26)
+MinBtn.Position = UDim2.new(1, -62, 0.5, -13)
 MinBtn.BackgroundColor3 = Color3.fromRGB(50, 45, 48)
 MinBtn.BackgroundTransparency = 0.5
 MinBtn.Text = "S"
 MinBtn.TextColor3 = COLOR_ACCENT
-MinBtn.TextSize = 16
+MinBtn.TextSize = 15
 MinBtn.Font = Enum.Font.GothamBold
 MinBtn.BorderSizePixel = 0
 MinBtn.AutoButtonColor = false
@@ -267,7 +269,7 @@ MinCorner.CornerRadius = UDim.new(0, 8)
 MinCorner.Parent = MinBtn
 
 local isMinimized = false
-local normalSize = UDim2.new(0, 260, 0, 165)
+local normalSize = UDim2.new(0, 220, 0, 140)
 local minimizedSize = UDim2.new(0, 70, 0, 70)
 
 MinBtn.MouseEnter:Connect(function()
@@ -285,7 +287,6 @@ MinBtn.MouseButton1Click:Connect(function()
         Main.Size = minimizedSize
         MainCorner.CornerRadius = UDim.new(0, 16)
         
-        -- TitleBar, Divider, Content gizle
         TitleBar.Visible = false
         Divider.Visible = false
         Content.Visible = false
@@ -295,9 +296,10 @@ MinBtn.MouseButton1Click:Connect(function()
         MinBtn.Position = UDim2.new(0.5, 0, 0.5, 0)
         MinBtn.AnchorPoint = Vector2.new(0.5, 0.5)
         MinBtn.BackgroundTransparency = 1
-        MinBtn.TextSize = 42
+        MinBtn.TextSize = 48
         MinBtn.TextColor3 = COLOR_ACCENT
         MinBtn.Text = "S"
+        MinBtn.AutoButtonColor = false
         
     else
         -- NORMAL HAL
@@ -308,11 +310,11 @@ MinBtn.MouseButton1Click:Connect(function()
         Divider.Visible = true
         Content.Visible = true
         
-        MinBtn.Size = UDim2.new(0, 28, 0, 28)
-        MinBtn.Position = UDim2.new(1, -66, 0.5, -14)
+        MinBtn.Size = UDim2.new(0, 26, 0, 26)
+        MinBtn.Position = UDim2.new(1, -62, 0.5, -13)
         MinBtn.AnchorPoint = Vector2.new(0, 0)
         MinBtn.BackgroundTransparency = 0.5
-        MinBtn.TextSize = 16
+        MinBtn.TextSize = 15
         MinBtn.Text = "S"
     end
 end)
@@ -321,7 +323,7 @@ end)
 local Divider = Instance.new("Frame")
 Divider.Name = "Divider"
 Divider.Size = UDim2.new(0.9, 0, 0, 1)
-Divider.Position = UDim2.new(0.05, 0, 0, 40)
+Divider.Position = UDim2.new(0.05, 0, 0, 37)
 Divider.BackgroundColor3 = COLOR_ACCENT_D
 Divider.BorderSizePixel = 0
 Divider.Parent = Main
@@ -329,20 +331,20 @@ Divider.Parent = Main
 -- İçerik
 local Content = Instance.new("Frame")
 Content.Name = "Content"
-Content.Size = UDim2.new(1, 0, 1, -48)
-Content.Position = UDim2.new(0, 0, 0, 44)
+Content.Size = UDim2.new(1, 0, 1, -45)
+Content.Position = UDim2.new(0, 0, 0, 42)
 Content.BackgroundTransparency = 1
 Content.Parent = Main
 
 -- ============================================================
--- NO RECOIL TOGGLE
+-- NO RECOIL (Başlık + ON/OFF butonu altında)
 -- ============================================================
 
 -- "No Recoil" başlığı
 local NRLabel = Instance.new("TextLabel")
 NRLabel.BackgroundTransparency = 1
-NRLabel.Size = UDim2.new(1, -20, 0, 22)
-NRLabel.Position = UDim2.new(0, 14, 0, 6)
+NRLabel.Size = UDim2.new(1, -20, 0, 20)
+NRLabel.Position = UDim2.new(0, 14, 0, 2)
 NRLabel.Font = Enum.Font.GothamSemibold
 NRLabel.Text = "No Recoil"
 NRLabel.TextColor3 = COLOR_TEXT
@@ -353,20 +355,20 @@ NRLabel.Parent = Content
 -- "No Recoil" alt açıklama
 local NRSub = Instance.new("TextLabel")
 NRSub.BackgroundTransparency = 1
-NRSub.Size = UDim2.new(1, -20, 0, 16)
-NRSub.Position = UDim2.new(0, 14, 0, 28)
+NRSub.Size = UDim2.new(1, -20, 0, 14)
+NRSub.Position = UDim2.new(0, 14, 0, 22)
 NRSub.Font = Enum.Font.Gotham
 NRSub.Text = "Weapon recoil reduction"
 NRSub.TextColor3 = COLOR_TEXT_D
-NRSub.TextSize = 11
+NRSub.TextSize = 10
 NRSub.TextXAlignment = Enum.TextXAlignment.Left
 NRSub.Parent = Content
 
--- Toggle BG
+-- ON/OFF Butonu (No Recoil yazısının altında)
 local ToggleBG = Instance.new("Frame")
 ToggleBG.Name = "ToggleBG"
-ToggleBG.Size = UDim2.new(0, 52, 0, 28)
-ToggleBG.Position = UDim2.new(1, -64, 0, 12)
+ToggleBG.Size = UDim2.new(0, 44, 0, 22)
+ToggleBG.Position = UDim2.new(1, -56, 0, 20)
 ToggleBG.BackgroundColor3 = COLOR_OFF
 ToggleBG.BorderSizePixel = 0
 ToggleBG.Parent = Content
@@ -383,8 +385,8 @@ ToggleBGStroke.Parent = ToggleBG
 -- Toggle Knob
 local ToggleKnob = Instance.new("Frame")
 ToggleKnob.Name = "Knob"
-ToggleKnob.Size = UDim2.new(0, 22, 0, 22)
-ToggleKnob.Position = UDim2.new(0, 3, 0.5, -11)
+ToggleKnob.Size = UDim2.new(0, 18, 0, 18)
+ToggleKnob.Position = UDim2.new(0, 2, 0.5, -9)
 ToggleKnob.BackgroundColor3 = COLOR_TEXT
 ToggleKnob.BorderSizePixel = 0
 ToggleKnob.Parent = ToggleBG
@@ -400,7 +402,7 @@ ToggleText.Size = UDim2.new(1, 0, 1, 0)
 ToggleText.Font = Enum.Font.GothamBold
 ToggleText.Text = "OFF"
 ToggleText.TextColor3 = Color3.fromRGB(40, 40, 40)
-ToggleText.TextSize = 10
+ToggleText.TextSize = 9
 ToggleText.Parent = ToggleKnob
 
 -- Toggle Butonu
@@ -414,13 +416,13 @@ ToggleButton.Parent = ToggleBG
 local function SetToggle(state)
     NoRecoilEnabled = state
     local bgColor = state and COLOR_ON or COLOR_OFF
-    local knobPos = state and UDim2.new(0, 27, 0.5, -11) or UDim2.new(0, 3, 0.5, -11)
+    local knobPos = state and UDim2.new(0, 24, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)
     local textColor = state and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(40, 40, 40)
     local text = state and "ON" or "OFF"
 
-    TweenService:Create(ToggleBG, TweenInfo.new(0.25, Enum.EasingStyle.Quad), {BackgroundColor3 = bgColor}):Play()
-    TweenService:Create(ToggleKnob, TweenInfo.new(0.25, Enum.EasingStyle.Quad), {Position = knobPos}):Play()
-    TweenService:Create(ToggleText, TweenInfo.new(0.15), {TextColor3 = textColor}):Play()
+    TweenService:Create(ToggleBG, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {BackgroundColor3 = bgColor}):Play()
+    TweenService:Create(ToggleKnob, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {Position = knobPos}):Play()
+    TweenService:Create(ToggleText, TweenInfo.new(0.1), {TextColor3 = textColor}):Play()
     ToggleText.Text = text
 
     if state then
@@ -501,7 +503,7 @@ Main.MouseLeave:Connect(function()
 end)
 
 -- ============================================================
--- K TUŞU (Göster/Gizle - Tamamen gizler)
+-- K TUŞU (Göster/Gizle)
 -- ============================================================
 UserInputService.InputBegan:Connect(function(input, gpe)
     if not gpe and input.KeyCode == Enum.KeyCode.K then
@@ -509,7 +511,7 @@ UserInputService.InputBegan:Connect(function(input, gpe)
     end
 end)
 
-print("SantesHub UI v4 Loaded!")
+print("SantesHub UI v6 Loaded!")
 print("Anti AFK: Active (Auto)")
 print("No Recoil: Toggle with switch")
 print("Press K to toggle UI visibility")
