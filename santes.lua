@@ -1,10 +1,11 @@
 -- ============================================
--- SANTES HUB LOADER + SCRIPT (FULL PACKAGE)
+-- SANTES HUB LOADER + SCRIPT (GLOW & MODERN)
 -- ============================================
 
 local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 
--- ========== LOADER ==========
+-- ========== LOADER (GLOW & MODERN) ==========
 local loaderGui = Instance.new("ScreenGui")
 loaderGui.Name = "SantesHubLoader"
 loaderGui.ResetOnSpawn = false
@@ -13,30 +14,66 @@ loaderGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 loaderGui.DisplayOrder = 1000
 loaderGui.Parent = game:GetService("CoreGui")
 
+-- Arka plan blur efekti için transparan backdrop
+local backdrop = Instance.new("Frame")
+backdrop.Name = "Backdrop"
+backdrop.Size = UDim2.new(1, 0, 1, 0)
+backdrop.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+backdrop.BackgroundTransparency = 0.4
+backdrop.BorderSizePixel = 0
+backdrop.Parent = loaderGui
+
+-- Arka plan glow (kırmızı sis efekti)
+local bgGlow = Instance.new("ImageLabel)
+bgGlow.Name = "BgGlow"
+bgGlow.AnchorPoint = Vector2.new(0.5, 0.5)
+bgGlow.Position = UDim2.new(0.5, 0, 0.5, 0)
+bgGlow.Size = UDim2.new(0, 800, 0, 800)
+bgGlow.BackgroundTransparency = 1
+bgGlow.Image = "rbxassetid://5028857084"
+bgGlow.ImageColor3 = Color3.fromRGB(200, 20, 20)
+bgGlow.ImageTransparency = 0.6
+bgGlow.Parent = backdrop
+
 local card = Instance.new("Frame")
 card.Name = "Card"
 card.AnchorPoint = Vector2.new(0.5, 0.5)
 card.Position = UDim2.new(0.5, 0, 0.5, 0)
-card.Size = UDim2.new(0, 380, 0, 220)
-card.BackgroundColor3 = Color3.fromRGB(12, 10, 12)
+card.Size = UDim2.new(0, 400, 0, 250)
+card.BackgroundColor3 = Color3.fromRGB(10, 8, 10)
 card.BorderSizePixel = 0
-card.Parent = loaderGui
+card.ClipsDescendants = true
+card.Parent = backdrop
 
 local cardCorner = Instance.new("UICorner", card)
-cardCorner.CornerRadius = UDim.new(0, 16)
+cardCorner.CornerRadius = UDim.new(0, 20)
+
+-- Card glow (dış parlaklık)
+local cardGlow = Instance.new("ImageLabel")
+cardGlow.Name = "CardGlow"
+cardGlow.AnchorPoint = Vector2.new(0.5, 0.5)
+cardGlow.Position = UDim2.new(0.5, 0, 0.5, 0)
+cardGlow.Size = UDim2.new(1, 40, 1, 40)
+cardGlow.BackgroundTransparency = 1
+cardGlow.Image = "rbxassetid://5028857084"
+cardGlow.ImageColor3 = Color3.fromRGB(200, 30, 30)
+cardGlow.ImageTransparency = 0.5
+cardGlow.ZIndex = 0
+cardGlow.Parent = card
 
 local cardStroke = Instance.new("UIStroke", card)
 cardStroke.Color = Color3.fromRGB(200, 30, 30)
 cardStroke.Thickness = 1.5
-cardStroke.Transparency = 0.4
+cardStroke.Transparency = 0.3
 
 local cardGradient = Instance.new("UIGradient", card)
 cardGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(22, 16, 18)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 8, 10)),
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 15, 18)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(8, 6, 8)),
 })
-cardGradient.Rotation = 90
+cardGradient.Rotation = 135
 
+-- Üst glow çizgisi
 local accentBar = Instance.new("Frame")
 accentBar.Name = "AccentBar"
 accentBar.Size = UDim2.new(1, 0, 0, 3)
@@ -51,44 +88,48 @@ accentCorner.CornerRadius = UDim.new(1, 0)
 local accentGradient = Instance.new("UIGradient", accentBar)
 accentGradient.Color = ColorSequence.new({
     ColorSequenceKeypoint.new(0, Color3.fromRGB(180, 10, 10)),
-    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 50, 50)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 60, 60)),
     ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 10, 10)),
 })
 
+-- Title
 local title = Instance.new("TextLabel")
 title.Name = "Title"
-title.Size = UDim2.new(1, 0, 0, 44)
-title.Position = UDim2.new(0, 0, 0, 28)
+title.Size = UDim2.new(1, 0, 0, 50)
+title.Position = UDim2.new(0, 0, 0, 25)
 title.BackgroundTransparency = 1
 title.Text = "SANTES HUB"
-title.TextColor3 = Color3.fromRGB(235, 220, 220)
-title.TextSize = 30
+title.TextColor3 = Color3.fromRGB(240, 220, 220)
+title.TextSize = 34
 title.Font = Enum.Font.GothamBold
 title.Parent = card
 
+-- Title glow (altta parlayan metin)
 local titleGlow = title:Clone()
 titleGlow.Name = "TitleGlow"
 titleGlow.TextColor3 = Color3.fromRGB(200, 30, 30)
-titleGlow.TextTransparency = 0.7
+titleGlow.TextTransparency = 0.6
 titleGlow.ZIndex = title.ZIndex - 1
+titleGlow.Position = UDim2.new(0, 0, 0, 27)
 titleGlow.Parent = card
 
 local subtitle = Instance.new("TextLabel")
 subtitle.Name = "Subtitle"
-subtitle.Size = UDim2.new(1, 0, 0, 18)
-subtitle.Position = UDim2.new(0, 0, 0, 76)
+subtitle.Size = UDim2.new(1, 0, 0, 20)
+subtitle.Position = UDim2.new(0, 0, 0, 80)
 subtitle.BackgroundTransparency = 1
 subtitle.Text = "Loading Santes Hub..."
-subtitle.TextColor3 = Color3.fromRGB(160, 140, 140)
-subtitle.TextSize = 13
+subtitle.TextColor3 = Color3.fromRGB(180, 150, 150)
+subtitle.TextSize = 14
 subtitle.Font = Enum.Font.Gotham
 subtitle.Parent = card
 
+-- Loading bar (glow efektiyle)
 local barBg = Instance.new("Frame")
 barBg.Name = "BarBackground"
-barBg.Size = UDim2.new(0.8, 0, 0, 6)
-barBg.Position = UDim2.new(0.1, 0, 0, 120)
-barBg.BackgroundColor3 = Color3.fromRGB(30, 25, 25)
+barBg.Size = UDim2.new(0.85, 0, 0, 6)
+barBg.Position = UDim2.new(0.075, 0, 0, 125)
+barBg.BackgroundColor3 = Color3.fromRGB(25, 20, 22)
 barBg.BorderSizePixel = 0
 barBg.Parent = card
 
@@ -108,16 +149,17 @@ barCorner.CornerRadius = UDim.new(1, 0)
 local barGradient = Instance.new("UIGradient", bar)
 barGradient.Color = ColorSequence.new({
     ColorSequenceKeypoint.new(0, Color3.fromRGB(180, 10, 10)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 60, 60)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 70, 70)),
 })
 
+-- Bar glow (ışık efekti)
 local barGlow = Instance.new("Frame")
 barGlow.Name = "BarGlow"
 barGlow.AnchorPoint = Vector2.new(1, 0.5)
-barGlow.Size = UDim2.new(0, 14, 0, 14)
+barGlow.Size = UDim2.new(0, 20, 0, 20)
 barGlow.Position = UDim2.new(0, 0, 0.5, 0)
 barGlow.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
-barGlow.BackgroundTransparency = 0.3
+barGlow.BackgroundTransparency = 0.4
 barGlow.BorderSizePixel = 0
 barGlow.ZIndex = 2
 barGlow.Parent = bar
@@ -125,21 +167,23 @@ barGlow.Parent = bar
 local barGlowCorner = Instance.new("UICorner", barGlow)
 barGlowCorner.CornerRadius = UDim.new(1, 0)
 
+-- Status text
 local statusText = Instance.new("TextLabel")
 statusText.Name = "StatusText"
-statusText.Size = UDim2.new(1, 0, 0, 18)
-statusText.Position = UDim2.new(0, 0, 0, 136)
+statusText.Size = UDim2.new(1, 0, 0, 20)
+statusText.Position = UDim2.new(0, 0, 0, 145)
 statusText.BackgroundTransparency = 1
 statusText.Text = "Initializing..."
-statusText.TextColor3 = Color3.fromRGB(130, 110, 110)
+statusText.TextColor3 = Color3.fromRGB(140, 120, 120)
 statusText.TextSize = 12
 statusText.Font = Enum.Font.Code
 statusText.Parent = card
 
+-- Footer
 local footer = Instance.new("TextLabel")
 footer.Name = "Footer"
 footer.Size = UDim2.new(1, 0, 0, 18)
-footer.Position = UDim2.new(0, 0, 1, -28)
+footer.Position = UDim2.new(0, 0, 1, -25)
 footer.BackgroundTransparency = 1
 footer.Text = "SANTES HUB v2.0"
 footer.TextColor3 = Color3.fromRGB(100, 70, 70)
@@ -147,7 +191,36 @@ footer.TextSize = 10
 footer.Font = Enum.Font.Gotham
 footer.Parent = card
 
--- ===== LOADING SEQUENCE (7 saniye) =====
+-- Glow pulse animasyonu
+local function pulseGlow()
+    task.spawn(function()
+        while card.Parent do
+            local tween1 = TweenService:Create(cardGlow, TweenInfo.new(2.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+                ImageTransparency = 0.3,
+                Size = UDim2.new(1, 50, 1, 50)
+            })
+            local tween2 = TweenService:Create(cardGlow, TweenInfo.new(2.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+                ImageTransparency = 0.6,
+                Size = UDim2.new(1, 30, 1, 30)
+            })
+            local tween3 = TweenService:Create(bgGlow, TweenInfo.new(3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+                ImageTransparency = 0.5,
+            })
+            local tween4 = TweenService:Create(bgGlow, TweenInfo.new(3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+                ImageTransparency = 0.7,
+            })
+            tween1:Play()
+            tween3:Play()
+            tween1.Completed:Wait()
+            tween2:Play()
+            tween4:Play()
+            tween2.Completed:Wait()
+        end
+    end)
+end
+
+pulseGlow()
+
 local function StartLoader()
     local steps = {
         { progress = 0.10, text = "Loading Santes Hub..." },
@@ -176,25 +249,27 @@ local function StartLoader()
     statusText.TextColor3 = Color3.fromRGB(255, 80, 80)
     task.wait(0.5)
 
-    local cardFade = TweenService:Create(card, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+    local fadeOut = TweenService:Create(backdrop, TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
         BackgroundTransparency = 1,
     })
+    local cardFade = TweenService:Create(card, TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+        BackgroundTransparency = 1,
+    })
+    fadeOut:Play()
     cardFade:Play()
-    cardFade.Completed:Wait()
+    fadeOut.Completed:Wait()
 
     loaderGui:Destroy()
-    
     StartSantesHub()
 end
 
 
 -- ============================================================
--- SANTES HUB ANA SCRIPT (Kategorili UI)
+-- SANTES HUB ANA UI (GLOW & MODERN)
 -- ============================================================
 
 function StartSantesHub()
 
---[[ Original Anti-Idle ]]--
 local VirtualUser = game:GetService('VirtualUser')
 if game:GetService('Players').LocalPlayer then
     game:GetService('Players').LocalPlayer.Idled:Connect(function()
@@ -203,7 +278,6 @@ if game:GetService('Players').LocalPlayer then
     end)
 end
 
---[[ Services ]]--
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -211,122 +285,264 @@ local TweenService = game:GetService("TweenService")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
---[[ Destroy Existing UI ]]--
 local oldGui = PlayerGui:FindFirstChild("SantesHubScreenGui")
 if oldGui then oldGui:Destroy() end
 
-local oldCategorizedGui = PlayerGui:FindFirstChild("SantesHubScreenGui_Categorized")
-if oldCategorizedGui then oldCategorizedGui:Destroy() end
-
-
 -- ============================================================
--- 1. ANA UI (Kategorili - Kırmızı/Siyah Tema)
+-- ANA UI (GLOW & MODERN - KIRMIZI/SİYAH)
 -- ============================================================
 
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "SantesHubScreenGui_Categorized"
+screenGui.Name = "SantesHubScreenGui"
 screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.Parent = PlayerGui
 
 local mainFrame = Instance.new("Frame")
-mainFrame.Name = "SantesHubMainFrame"
-mainFrame.Size = UDim2.new(0, 450, 0, 350)
-mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-mainFrame.BackgroundColor3 = Color3.fromRGB(10, 8, 10)
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 460, 0, 400)
+mainFrame.Position = UDim2.new(0.5, -230, 0.5, -200)
+mainFrame.BackgroundColor3 = Color3.fromRGB(8, 6, 8)
 mainFrame.BorderSizePixel = 0
 mainFrame.ClipsDescendants = true
-mainFrame.Visible = true
-mainFrame.Active = true
-mainFrame.Draggable = false
 mainFrame.Parent = screenGui
 
-local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 12)
-corner.Parent = mainFrame
+local mainCorner = Instance.new("UICorner", mainFrame)
+mainCorner.CornerRadius = UDim.new(0, 16)
 
-local stroke = Instance.new("UIStroke")
-stroke.Color = Color3.fromRGB(180, 20, 20)
-stroke.Thickness = 1
-stroke.Transparency = 0.4
-stroke.Parent = mainFrame
+-- Ana glow
+local mainGlow = Instance.new("ImageLabel")
+mainGlow.Name = "MainGlow"
+mainGlow.AnchorPoint = Vector2.new(0.5, 0.5)
+mainGlow.Position = UDim2.new(0.5, 0, 0.5, 0)
+mainGlow.Size = UDim2.new(1, 60, 1, 60)
+mainGlow.BackgroundTransparency = 1
+mainGlow.Image = "rbxassetid://5028857084"
+mainGlow.ImageColor3 = Color3.fromRGB(200, 30, 30)
+mainGlow.ImageTransparency = 0.4
+mainGlow.ZIndex = 0
+mainGlow.Parent = mainFrame
 
+local mainStroke = Instance.new("UIStroke", mainFrame)
+mainStroke.Color = Color3.fromRGB(200, 30, 30)
+mainStroke.Thickness = 1.5
+mainStroke.Transparency = 0.25
+
+local mainGradient = Instance.new("UIGradient", mainFrame)
+mainGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 12, 14)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(6, 4, 6)),
+})
+mainGradient.Rotation = 135
+
+-- Header (glow çizgili)
+local header = Instance.new("Frame")
+header.Name = "Header"
+header.Size = UDim2.new(1, 0, 0, 55)
+header.BackgroundColor3 = Color3.fromRGB(10, 6, 8)
+header.BorderSizePixel = 0
+header.Parent = mainFrame
+
+local headerCorner = Instance.new("UICorner", header)
+headerCorner.CornerRadius = UDim.new(0, 16)
+
+-- Header glow accent
+local headerAccent = Instance.new("Frame")
+headerAccent.Name = "HeaderAccent"
+headerAccent.Size = UDim2.new(1, 0, 0, 2)
+headerAccent.Position = UDim2.new(0, 0, 1, 0)
+headerAccent.BackgroundColor3 = Color3.fromRGB(200, 30, 30)
+headerAccent.BorderSizePixel = 0
+headerAccent.Parent = header
+
+local accentGrad = Instance.new("UIGradient", headerAccent)
+accentGrad.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(180, 10, 10)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 60, 60)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 10, 10)),
+})
+
+-- Title
 local titleLabel = Instance.new("TextLabel")
 titleLabel.Name = "Title"
-titleLabel.Size = UDim2.new(1, -40, 0, 40)
-titleLabel.Position = UDim2.new(0, 20, 0, 5)
+titleLabel.Size = UDim2.new(1, -100, 1, 0)
+titleLabel.Position = UDim2.new(0, 18, 0, 0)
 titleLabel.BackgroundTransparency = 1
-titleLabel.Text = "SANTES HUB v.2.0"
-titleLabel.Font = Enum.Font.GothamSemibold
-titleLabel.TextColor3 = Color3.fromRGB(200, 30, 30)
-titleLabel.TextSize = 20
+titleLabel.Text = "SANTES HUB"
+titleLabel.TextColor3 = Color3.fromRGB(230, 210, 210)
+titleLabel.TextSize = 22
+titleLabel.Font = Enum.Font.GothamBold
 titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-titleLabel.Parent = mainFrame
+titleLabel.Parent = header
 
-local line = Instance.new("Frame")
-line.Name = "Divider"
-line.Size = UDim2.new(1, -40, 0, 1)
-line.Position = UDim2.new(0, 20, 0, 40)
-line.BackgroundColor3 = Color3.fromRGB(180, 20, 20)
-line.BorderSizePixel = 0
-line.Parent = mainFrame
+-- Title glow
+local titleGlow2 = titleLabel:Clone()
+titleGlow2.Name = "TitleGlow"
+titleGlow2.TextColor3 = Color3.fromRGB(200, 30, 30)
+titleGlow2.TextTransparency = 0.5
+titleGlow2.ZIndex = titleLabel.ZIndex - 1
+titleGlow2.Position = UDim2.new(0, 18, 0, 2)
+titleGlow2.Parent = header
 
-local footerLabel = Instance.new("TextLabel")
-footerLabel.Name = "Footer"
-footerLabel.Size = UDim2.new(1, -20, 0, 20)
-footerLabel.Position = UDim2.new(0, 10, 1, -25)
-footerLabel.BackgroundTransparency = 1
-footerLabel.Text = "By Santes | Press K to Toggle"
-footerLabel.Font = Enum.Font.Gotham
-footerLabel.TextSize = 10
-footerLabel.TextColor3 = Color3.fromRGB(120, 80, 80)
-footerLabel.TextXAlignment = Enum.TextXAlignment.Right
-footerLabel.Parent = mainFrame
+-- Kapatma Butonu
+local closeBtn = Instance.new("TextButton")
+closeBtn.Name = "CloseBtn"
+closeBtn.Size = UDim2.new(0, 30, 0, 30)
+closeBtn.Position = UDim2.new(1, -42, 0.5, -15)
+closeBtn.BackgroundColor3 = Color3.fromRGB(180, 20, 20)
+closeBtn.BackgroundTransparency = 0.6
+closeBtn.Text = "✕"
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.TextSize = 15
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.BorderSizePixel = 0
+closeBtn.AutoButtonColor = false
+closeBtn.Parent = header
 
-local sidebarFrame = Instance.new("Frame")
-sidebarFrame.Name = "SidebarFrame"
-sidebarFrame.Size = UDim2.new(0, 120, 1, -70)
-sidebarFrame.Position = UDim2.new(0, 10, 0, 50)
-sidebarFrame.BackgroundColor3 = Color3.fromRGB(15, 12, 15)
-sidebarFrame.BorderSizePixel = 0
-sidebarFrame.Parent = mainFrame
+local closeCorner = Instance.new("UICorner", closeBtn)
+closeCorner.CornerRadius = UDim.new(0, 8)
+local closeStroke = Instance.new("UIStroke", closeBtn)
+closeStroke.Color = Color3.fromRGB(200, 30, 30)
+closeStroke.Thickness = 1
+closeStroke.Transparency = 0.5
 
-local sidebarCorner = Instance.new("UICorner")
-sidebarCorner.CornerRadius = UDim.new(0, 8)
-sidebarCorner.Parent = sidebarFrame
+-- Küçültme Butonu
+local minBtn = Instance.new("TextButton")
+minBtn.Name = "MinBtn"
+minBtn.Size = UDim2.new(0, 30, 0, 30)
+minBtn.Position = UDim2.new(1, -78, 0.5, -15)
+minBtn.BackgroundColor3 = Color3.fromRGB(50, 30, 30)
+minBtn.BackgroundTransparency = 0.5
+minBtn.Text = "−"
+minBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+minBtn.TextSize = 18
+minBtn.Font = Enum.Font.GothamBold
+minBtn.BorderSizePixel = 0
+minBtn.AutoButtonColor = false
+minBtn.Parent = header
 
-local sidebarLayout = Instance.new("UIListLayout")
-sidebarLayout.Padding = UDim.new(0, 5)
-sidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
-sidebarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-sidebarLayout.Parent = sidebarFrame
+local minCorner = Instance.new("UICorner", minBtn)
+minCorner.CornerRadius = UDim.new(0, 8)
+local minStroke = Instance.new("UIStroke", minBtn)
+minStroke.Color = Color3.fromRGB(200, 30, 30)
+minStroke.Thickness = 1
+minStroke.Transparency = 0.5
 
-local contentFrame = Instance.new("ScrollingFrame")
-contentFrame.Name = "ContentFrame"
-contentFrame.Size = UDim2.new(1, -150, 1, -70)
-contentFrame.Position = UDim2.new(0, 140, 0, 50)
-contentFrame.BackgroundColor3 = Color3.fromRGB(15, 12, 15)
-contentFrame.BorderSizePixel = 0
-contentFrame.ScrollingDirection = Enum.ScrollingDirection.Y
-contentFrame.ScrollBarThickness = 6
-contentFrame.ScrollBarImageColor3 = Color3.fromRGB(180, 20, 20)
-contentFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-contentFrame.Parent = mainFrame
+local isMinimized = false
+local originalSize = mainFrame.Size
 
-local contentCorner = Instance.new("UICorner")
-contentCorner.CornerRadius = UDim.new(0, 8)
-contentCorner.Parent = contentFrame
+closeBtn.MouseEnter:Connect(function()
+    TweenService:Create(closeBtn, TweenInfo.new(0.1), { BackgroundTransparency = 0.2 }):Play()
+end)
+closeBtn.MouseLeave:Connect(function()
+    TweenService:Create(closeBtn, TweenInfo.new(0.1), { BackgroundTransparency = 0.6 }):Play()
+end)
+closeBtn.MouseButton1Click:Connect(function() screenGui:Destroy() end)
 
-local contentLayout = Instance.new("UIListLayout")
-contentLayout.Padding = UDim.new(0, 8)
-contentLayout.SortOrder = Enum.SortOrder.LayoutOrder
-contentLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-contentLayout.Parent = contentFrame
+minBtn.MouseEnter:Connect(function()
+    TweenService:Create(minBtn, TweenInfo.new(0.1), { BackgroundTransparency = 0.2 }):Play()
+end)
+minBtn.MouseLeave:Connect(function()
+    TweenService:Create(minBtn, TweenInfo.new(0.1), { BackgroundTransparency = 0.5 }):Play()
+end)
+minBtn.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    if isMinimized then
+        mainFrame.Size = UDim2.new(0, 120, 0, 55)
+        minBtn.Text = "+"
+        contentContainer.Visible = false
+    else
+        mainFrame.Size = originalSize
+        minBtn.Text = "−"
+        contentContainer.Visible = true
+    end
+end)
+
+-- Ana içerik
+local contentContainer = Instance.new("Frame")
+contentContainer.Name = "ContentContainer"
+contentContainer.Size = UDim2.new(1, -24, 1, -65)
+contentContainer.Position = UDim2.new(0, 12, 0, 60)
+contentContainer.BackgroundTransparency = 1
+contentContainer.Parent = mainFrame
+
+-- Sol menü
+local menuFrame = Instance.new("Frame")
+menuFrame.Name = "MenuFrame"
+menuFrame.Size = UDim2.new(0, 110, 1, 0)
+menuFrame.BackgroundColor3 = Color3.fromRGB(10, 6, 8)
+menuFrame.BorderSizePixel = 0
+menuFrame.Parent = contentContainer
+
+local menuCorner = Instance.new("UICorner", menuFrame)
+menuCorner.CornerRadius = UDim.new(0, 10)
+
+local menuStroke = Instance.new("UIStroke", menuFrame)
+menuStroke.Color = Color3.fromRGB(200, 30, 30)
+menuStroke.Thickness = 1
+menuStroke.Transparency = 0.4
+
+-- Menu glow
+local menuGlow = Instance.new("ImageLabel")
+menuGlow.Name = "MenuGlow"
+menuGlow.AnchorPoint = Vector2.new(0.5, 0.5)
+menuGlow.Position = UDim2.new(0.5, 0, 0.5, 0)
+menuGlow.Size = UDim2.new(1, 20, 1, 20)
+menuGlow.BackgroundTransparency = 1
+menuGlow.Image = "rbxassetid://5028857084"
+menuGlow.ImageColor3 = Color3.fromRGB(200, 30, 30)
+menuGlow.ImageTransparency = 0.3
+menuGlow.ZIndex = 0
+menuGlow.Parent = menuFrame
+
+local menuLayout = Instance.new("UIListLayout")
+menuLayout.Padding = UDim.new(0, 5)
+menuLayout.SortOrder = Enum.SortOrder.LayoutOrder
+menuLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+menuLayout.Parent = menuFrame
+
+-- Sağ scroll
+local scrollFrame = Instance.new("ScrollingFrame")
+scrollFrame.Name = "ScrollFrame"
+scrollFrame.Size = UDim2.new(1, -125, 1, 0)
+scrollFrame.Position = UDim2.new(0, 120, 0, 0)
+scrollFrame.BackgroundColor3 = Color3.fromRGB(8, 4, 6)
+scrollFrame.BorderSizePixel = 0
+scrollFrame.ScrollingDirection = Enum.ScrollingDirection.Y
+scrollFrame.ScrollBarThickness = 4
+scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(200, 30, 30)
+scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+scrollFrame.Parent = contentContainer
+
+local scrollCorner = Instance.new("UICorner", scrollFrame)
+scrollCorner.CornerRadius = UDim.new(0, 10)
+
+local scrollStroke = Instance.new("UIStroke", scrollFrame)
+scrollStroke.Color = Color3.fromRGB(200, 30, 30)
+scrollStroke.Thickness = 1
+scrollStroke.Transparency = 0.4
+
+local scrollGlow = Instance.new("ImageLabel")
+scrollGlow.Name = "ScrollGlow"
+scrollGlow.AnchorPoint = Vector2.new(0.5, 0.5)
+scrollGlow.Position = UDim2.new(0.5, 0, 0.5, 0)
+scrollGlow.Size = UDim2.new(1, 20, 1, 20)
+scrollGlow.BackgroundTransparency = 1
+scrollGlow.Image = "rbxassetid://5028857084"
+scrollGlow.ImageColor3 = Color3.fromRGB(200, 30, 30)
+scrollGlow.ImageTransparency = 0.3
+scrollGlow.ZIndex = 0
+scrollGlow.Parent = scrollFrame
+
+local scrollLayout = Instance.new("UIListLayout")
+scrollLayout.Padding = UDim.new(0, 6)
+scrollLayout.SortOrder = Enum.SortOrder.LayoutOrder
+scrollLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+scrollLayout.Parent = scrollFrame
 
 
 -- ============================================================
--- 2. PENCERE SÜRÜKLEME
+-- SÜRÜKLEME
 -- ============================================================
 do
     local dragging = false
@@ -341,57 +557,38 @@ do
         mainFrame.Position = UDim2.new(startPos.X.Scale, newX, startPos.Y.Scale, newY)
     end
 
-    mainFrame.InputBegan:Connect(function(input)
+    header.InputBegan:Connect(function(input)
         if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
-            local absPos = mainFrame.AbsolutePosition
-            local absSize = mainFrame.AbsoluteSize
-            local headerHeight = 45
-
-            if input.Position.Y < absPos.Y + headerHeight and input.Position.Y > absPos.Y and input.Position.X > absPos.X and input.Position.X < absPos.X + absSize.X then
-                dragging = true
-                dragStart = input.Position
-                startPos = mainFrame.Position
-
-                input.Changed:Connect(function()
-                    if input.UserInputState == Enum.UserInputState.End then
-                        dragging = false
-                    end
-                end)
-            end
-        end
-    end)
-
-    mainFrame.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-            dragInput = input
+            dragging = true
+            dragStart = input.Position
+            startPos = mainFrame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then dragging = false end
+            end)
         end
     end)
 
     UserInputService.InputChanged:Connect(function(input)
-        if input == dragInput and dragging then
-            update(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         end
     end)
 end
 
-
--- ============================================================
--- 3. [K] TUŞU İLE GÖSTER/GİZLE
--- ============================================================
+-- [K] tuşu
 UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
-    if not gameProcessedEvent then
-        if input.KeyCode == Enum.KeyCode.K then
-            mainFrame.Visible = not mainFrame.Visible
-        end
+    if not gameProcessedEvent and input.KeyCode == Enum.KeyCode.K then
+        mainFrame.Visible = not mainFrame.Visible
     end
 end)
 
 
 -- ============================================================
--- 4. TÜM MODÜLLER
+-- TÜM MODÜLLER
 -- ============================================================
 
---======================= NO FAIL LOCKPICK =========================--
+-- No Fail Lockpick
 local NoFailLockpick_Enabled = false
 local lockpickAddedConnection = nil
 
@@ -425,26 +622,9 @@ function NoFailLockpick_Disable()
         lockpickAddedConnection:Disconnect()
         lockpickAddedConnection = nil
     end
-    local PlayerGui = LocalPlayer:FindFirstChild("PlayerGui")
-    if not PlayerGui then return end
-    local lockpickGui = PlayerGui:FindFirstChild("LockpickGUI")
-    if lockpickGui then
-        local frames = lockpickGui:FindFirstChild("MF")
-        if frames then
-            local lpFrame = frames:FindFirstChild("LP_Frame")
-            if lpFrame then
-                local bars = lpFrame:FindFirstChild("Frames")
-                if bars then
-                    if bars.B1 and bars.B1.Bar and bars.B1.Bar:FindFirstChild("UIScale") then bars.B1.Bar.UIScale.Scale = 1 end
-                    if bars.B2 and bars.B2.Bar and bars.B2.Bar:FindFirstChild("UIScale") then bars.B2.Bar.UIScale.Scale = 1 end
-                    if bars.B3 and bars.B3.Bar and bars.B3.Bar:FindFirstChild("UIScale") then bars.B3.Bar.UIScale.Scale = 1 end
-                end
-            end
-        end
-    end
 end
 
---======================= SAFE/REGISTER ESP =========================--
+-- Safe ESP
 local BredMakurz_Enabled = false
 local bredMakurzConnection = nil
 
@@ -514,15 +694,9 @@ function BredMakurz_Disable()
     if not BredMakurz_Enabled then return end
     BredMakurz_Enabled = false
     if bredMakurzConnection then bredMakurzConnection:Disconnect() bredMakurzConnection = nil end
-    local bredMakurzFolder = workspace.Map:FindFirstChild("BredMakurz")
-    if bredMakurzFolder then
-        for _, v in pairs(bredMakurzFolder:GetChildren()) do
-            pcall(function() if v:FindFirstChild("Ahh") then v.Ahh:Destroy() end end)
-        end
-    end
 end
 
---======================= OPEN/UNLOCK NEARBY DOORS =========================--
+-- Open/Unlock Doors
 local OpenNearbyDoors_Enabled = false
 local UnlockNearbyDoors_Enabled = false
 local NearbyDoorInteraction_Coroutine = nil
@@ -609,7 +783,7 @@ function UnlockNearbyDoors_Disable()
     StartStopDoorInteractionLoop()
 end
 
---======================= AUTO PICKUP MONEY =========================--
+-- Auto Pickup Money
 local AutoPickupMoney_Enabled = false
 local AutoPickupMoney_Connection = nil
 local AutoPickupMoney_Coroutine = nil
@@ -658,7 +832,7 @@ function AutoPickupMoney_Disable()
     CoolDowns.AutoPickUps.MoneyCooldown = false
 end
 
---============================ FLY ============================--
+-- Fly
 local Fly_Enabled = false
 local Fly_Connection = nil
 local Fly_Speed = 50
@@ -690,7 +864,7 @@ function Fly_Disable()
     if Fly_Connection then Fly_Connection:Disconnect() Fly_Connection = nil end
 end
 
---============================ FULLBRIGHT ============================--
+-- FullBright
 local FullBright_Enabled = false
 local Lighting = game:GetService("Lighting")
 local FullBright_Connection = nil
@@ -735,7 +909,7 @@ function FullBright_Disable()
     Lighting.FogEnd = OriginalValues.FogEnd
 end
 
---============================ FOV ============================--
+-- FOV
 local Fov_Enabled = false
 local Fov_Value = 80
 local Camera = workspace.CurrentCamera
@@ -754,7 +928,7 @@ RunService.RenderStepped:Connect(function()
     if Fov_Enabled then Camera.FieldOfView = Fov_Value end
 end)
 
---============================ NOCLIP ============================--
+-- Noclip
 local Noclip_Enabled = false
 local Noclip_Connection = nil
 local originalCollisions = {}
@@ -799,32 +973,21 @@ function Noclip_Disable()
     originalCollisions = {}
 end
 
---========================== ADMIN CHECK (CRIMINALITY) ===========================--
+-- Admin Check
 local AdminCheck_Enabled = false
 local AdminCheck_Connection = nil
 
 local staffPlayers = {
     groups = {
-        -- Criminality Groups
-        [4793755] = { -- Criminality Group
-            ["Tester"] = true, ["Contributor"] = true, ["Tester+"] = true, 
-            ["Developer"] = true, ["Developer+"] = true, 
+        [4793755] = { -- Criminality
+            ["Tester"] = true, ["Contributor"] = true, ["Tester+"] = true,
+            ["Developer"] = true, ["Developer+"] = true,
             ["Community Manager"] = true, ["Manager"] = true, ["Owner"] = true
         },
-        [4165692] = { -- crimcorp
-            ["Tester"] = true, ["Contributor"] = true, ["Tester+"] = true, ["Developer"] = true,
-            ["Developer+"] = true, ["Community Manager"] = true, ["Manager"] = true, ["Owner"] = true
-        },
-        [32406137] = { -- staff thing
-            ["Junior"] = true, ["Moderator"] = true, ["Senior"] = true, ["Administrator"] = true,
-            ["Manager"] = true, ["Holder"] = true
-        },
-        [8024440] = { -- r3shape fanclub
-            ["zzzz"] = true, ["reshape enjoyer"] = true, ["i heart reshape"] = true, ["reshape superfan"] = true
-        },
-        [14927228] = { -- War Room
-            ["♞"] = true
-        }
+        [4165692] = { ["Tester"] = true, ["Contributor"] = true, ["Tester+"] = true, ["Developer"] = true,
+            ["Developer+"] = true, ["Community Manager"] = true, ["Manager"] = true, ["Owner"] = true },
+        [32406137] = { ["Junior"] = true, ["Moderator"] = true, ["Senior"] = true, ["Administrator"] = true,
+            ["Manager"] = true, ["Holder"] = true },
     },
     users = {
         3294804378, 93676120, 54087314, 81275825, 140837601, 1229486091, 46567801, 418086275, 29706395,
@@ -839,9 +1002,7 @@ local staffPlayers = {
         38578487, 1163048, 7713309208, 3659305297, 15598614, 34616594, 626833004, 198610386, 153835477,
         3923114296, 3937697838, 102146039, 119861460, 371665775, 1206543842, 93428604, 1863173316, 90814576,
         374665997, 423005063, 140172831, 42662179, 9066859, 438805620, 14855669, 727189337, 1871290386,
-        608073286,
-        -- Criminality Developers (ekstra)
-        111250044, 140172831, 42662179, 9066859, 438805620, 14855669, 727189337
+        608073286
     }
 }
 
@@ -943,7 +1104,7 @@ local AntiAFK_Enabled_Dummy = true
 function AntiAFK_Enable() AntiAFK_Enabled_Dummy = true end
 function AntiAFK_Disable() AntiAFK_Enabled_Dummy = false end
 
---=================== MELEE AURA =====================--
+-- Melee Aura
 local MeleeAura_Enabled = false
 local MeleeAura_Connection = nil
 
@@ -1017,7 +1178,7 @@ function MeleeAura_Disable()
     end
 end
 
---======================= RAGEBOT =======================--
+-- Ragebot
 local Ragebot_Enabled = false
 local Ragebot_Coroutine = nil
 local Ragebot_Target = nil
@@ -1103,7 +1264,7 @@ function Ragebot_Disable()
     Ragebot_Enabled = false
 end
 
---======================= AIMBOT =========================--
+-- Aimbot
 local players_aim = Players
 local localPlayer_aim = LocalPlayer
 local CurrentCamera_aim = workspace.CurrentCamera
@@ -1285,7 +1446,7 @@ function Aimbot_Disable()
     else warn("Cannot disable Aimbot: AimBotSettings is nil") end
 end
 
---======================= INFINITE STAMINA =========================--
+-- Infinite Stamina
 local isInfiniteStaminaEnabled = false
 local oldStaminaFunction = nil
 local targetFunction = nil
@@ -1321,7 +1482,7 @@ function InfiniteStamina_Disable()
     isInfiniteStaminaEnabled = false
 end
 
---======================= NO RECOIL =========================--
+-- No Recoil
 local NoRecoil_Enabled=false
 local NoRecoil_Connections={}
 local GlobalOriginalValues={}
@@ -1400,42 +1561,156 @@ function NoRecoil_Disable()
     NoRecoil_Connections={}
 end
 
---======================= ESP (WALLHACK) =========================--
+-- ESP (DÜZELTİLDİ)
 local ESP_Enabled=false
 local ESP_Loading=false
 local LastToggleTime=0
 local DEBOUNCE_TIME=0.5
+local ESP_Connection = nil
+local ESP_Objects = {}
 
 function ESP_Enable()
     if os.clock()-LastToggleTime<DEBOUNCE_TIME then return end
     LastToggleTime=os.clock()
     if ESP_Loading or ESP_Enabled then return end
     ESP_Loading=true
-    local success, err=pcall(function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/kskdkdkdmsmdmdm0-dot/lolsjkskf/refs/heads/main/walhaczek", true))()
-        ESP_Enabled=true
-        ESP_Loading=false
+    
+    local success, err = pcall(function()
+        -- Önce eski ESP'leri temizle
+        ESP_Disable()
+        
+        -- Yeni ESP sistemi
+        local function createESP(player)
+            if player == LocalPlayer then return end
+            if ESP_Objects[player] then return end
+            
+            local char = player.Character
+            if not char then return end
+            
+            local hrp = char:FindFirstChild("HumanoidRootPart")
+            if not hrp then return end
+            
+            local espGui = Instance.new("BillboardGui")
+            espGui.Name = "ESP_Gui"
+            espGui.Size = UDim2.new(0, 200, 0, 50)
+            espGui.AlwaysOnTop = true
+            espGui.Adornee = hrp
+            espGui.MaxDistance = 500
+            espGui.Parent = hrp
+            
+            local nameLabel = Instance.new("TextLabel", espGui)
+            nameLabel.Size = UDim2.new(1, 0, 0.5, 0)
+            nameLabel.BackgroundTransparency = 1
+            nameLabel.Text = player.Name
+            nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            nameLabel.TextSize = 14
+            nameLabel.Font = Enum.Font.GothamBold
+            nameLabel.TextStrokeTransparency = 0.3
+            nameLabel.Position = UDim2.new(0, 0, 0, 0)
+            
+            local distLabel = Instance.new("TextLabel", espGui)
+            distLabel.Size = UDim2.new(1, 0, 0.5, 0)
+            distLabel.Position = UDim2.new(0, 0, 0.5, 0)
+            distLabel.BackgroundTransparency = 1
+            distLabel.Text = ""
+            distLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+            distLabel.TextSize = 12
+            distLabel.Font = Enum.Font.Gotham
+            
+            local healthBar = Instance.new("Frame", espGui)
+            healthBar.Size = UDim2.new(0.8, 0, 0, 4)
+            healthBar.Position = UDim2.new(0.1, 0, 1, -6)
+            healthBar.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+            healthBar.BorderSizePixel = 0
+            
+            local healthBg = Instance.new("Frame", espGui)
+            healthBg.Size = UDim2.new(0.8, 0, 0, 4)
+            healthBg.Position = UDim2.new(0.1, 0, 1, -6)
+            healthBg.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+            healthBg.BorderSizePixel = 0
+            healthBg.ZIndex = 0
+            
+            ESP_Objects[player] = {
+                Gui = espGui,
+                NameLabel = nameLabel,
+                DistLabel = distLabel,
+                HealthBar = healthBar,
+                HealthBg = healthBg
+            }
+            
+            -- Update loop for this player
+            task.spawn(function()
+                while ESP_Enabled and ESP_Objects[player] do
+                    task.wait(0.1)
+                    local char2 = player.Character
+                    if not char2 then break end
+                    local hum = char2:FindFirstChildOfClass("Humanoid")
+                    if not hum then break end
+                    
+                    local hrp2 = char2:FindFirstChild("HumanoidRootPart")
+                    if not hrp2 then break end
+                    
+                    local myChar = LocalPlayer.Character
+                    local myHrp = myChar and myChar:FindFirstChild("HumanoidRootPart")
+                    if myHrp then
+                        local dist = (myHrp.Position - hrp2.Position).Magnitude
+                        ESP_Objects[player].DistLabel.Text = math.floor(dist) .. " studs"
+                    end
+                    
+                    local health = hum.Health / hum.MaxHealth
+                    ESP_Objects[player].HealthBar.Size = UDim2.new(0.8 * health, 0, 0, 4)
+                    
+                    if health > 0.6 then
+                        ESP_Objects[player].HealthBar.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+                    elseif health > 0.3 then
+                        ESP_Objects[player].HealthBar.BackgroundColor3 = Color3.fromRGB(200, 200, 0)
+                    else
+                        ESP_Objects[player].HealthBar.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+                    end
+                end
+            end)
+        end
+        
+        -- PlayerAdded listener
+        ESP_Connection = Players.PlayerAdded:Connect(createESP)
+        
+        -- Mevcut oyuncular için ESP oluştur
+        for _, player in ipairs(Players:GetPlayers()) do
+            createESP(player)
+        end
+        
+        ESP_Enabled = true
+        ESP_Loading = false
     end)
+    
     if not success then
         warn("ESP Error: "..tostring(err))
-        ESP_Loading=false
-        ESP_Enabled=false
+        ESP_Loading = false
+        ESP_Enabled = false
     end
 end
 
 function ESP_Disable()
     if os.clock()-LastToggleTime<DEBOUNCE_TIME then return end
     LastToggleTime=os.clock()
-    if not ESP_Enabled then return end
-    ESP_Enabled=false
-    local coreGui=game:GetService("CoreGui")
-    for _, name in pairs({"Folder","ESP_Holder","ESP_Folder","ESP"}) do
-        local folder=coreGui:FindFirstChild(name)
-        if folder then folder:Destroy() end
+    
+    if ESP_Connection then
+        ESP_Connection:Disconnect()
+        ESP_Connection = nil
     end
+    
+    for player, data in pairs(ESP_Objects) do
+        pcall(function()
+            if data.Gui and data.Gui.Parent then
+                data.Gui:Destroy()
+            end
+        end)
+    end
+    ESP_Objects = {}
+    ESP_Enabled = false
 end
 
---======================= INVISIBILITY =========================--
+-- Invisibility
 local Invis_Fixed = true
 do
     repeat task.wait() until game:IsLoaded()
@@ -1617,7 +1892,7 @@ do
     _G.IsInvisEnabled = function() return InvisEnabled end
 end
 
---======================= AUTOFARM =========================--
+-- Autofarm
 local autofarmEnabled = false
 local autofarmCooldown = false
 local ignoredSafes = {}
@@ -1811,7 +2086,7 @@ LocalPlayer.CharacterAdded:Connect(function(character)
     Autofarm_Enable()
 end)
 
---======================= SHADOW MODE =========================--
+-- Shadow Mode
 local Shadow_Active = false
 local Shadow_Usable = true
 
@@ -1951,15 +2226,14 @@ end
 
 
 -- ============================================================
--- 5. UI FONKSİYONLARI (Toggle Row ve Kategoriler)
+-- UI TOGGLE FONKSİYONU
 -- ============================================================
 
-local buttonHoverColor = Color3.fromRGB(40, 30, 35)
-local buttonColor = Color3.fromRGB(20, 18, 20)
-local buttonStrokeColor = Color3.fromRGB(180, 20, 20)
-local buttonTextColor = Color3.fromRGB(210, 200, 200)
+local buttonColor = Color3.fromRGB(15, 10, 12)
+local buttonHoverColor = Color3.fromRGB(35, 20, 25)
 local buttonOnColor = Color3.fromRGB(200, 30, 30)
-local buttonOffColor = Color3.fromRGB(60, 40, 40)
+local buttonOffColor = Color3.fromRGB(50, 35, 35)
+local buttonTextColor = Color3.fromRGB(210, 190, 190)
 
 local activeBinds = {}
 local currentRowWaitingForKey = nil
@@ -1968,289 +2242,129 @@ local keyBindGetters = {}
 local keyBindSetters = {}
 local rowFunctionData = {}
 
-local function createToggleRowFrame(scriptName, canToggle, isEnabledFn, onEnable, onDisable, getKeyBindFn, setKeyBindFn)
+local function createToggleRow(name, getState, onEnable, onDisable, getBind, setBind)
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(1, -20, 0, 35)
+    frame.Size = UDim2.new(1, -16, 0, 32)
     frame.BackgroundTransparency = 1
-    frame.Name = scriptName:gsub("%s+", "")
+    frame.Parent = scrollFrame
 
-    local horizontalLayout = Instance.new("UIListLayout")
-    horizontalLayout.FillDirection = Enum.FillDirection.Horizontal
-    horizontalLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-    horizontalLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
-    horizontalLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    horizontalLayout.Padding = UDim.new(0, 5)
-    horizontalLayout.Parent = frame
+    local layout = Instance.new("UIListLayout")
+    layout.FillDirection = Enum.FillDirection.Horizontal
+    layout.VerticalAlignment = Enum.VerticalAlignment.Center
+    layout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+    layout.Padding = UDim.new(0, 4)
+    layout.Parent = frame
 
     local label = Instance.new("TextLabel")
     label.Size = UDim2.new(0.45, 0, 1, 0)
     label.BackgroundTransparency = 1
-    label.Text = " " .. scriptName
+    label.Text = name
     label.TextColor3 = buttonTextColor
-    label.Font = Enum.Font.GothamSemibold
+    label.Font = Enum.Font.Gotham
     label.TextSize = 13
     label.TextXAlignment = Enum.TextXAlignment.Left
-    label.LayoutOrder = 1
     label.Parent = frame
 
-    local toggleButton = Instance.new("TextButton")
-    toggleButton.Size = UDim2.new(0.25, 0, 0.8, 0)
-    toggleButton.Font = Enum.Font.GothamBold
-    toggleButton.TextSize = 11
-    toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    toggleButton.BackgroundColor3 = buttonColor
-    toggleButton.BorderSizePixel = 0
-    toggleButton.AutoButtonColor = false
-    toggleButton.LayoutOrder = 2
-    toggleButton.Parent = frame
+    local toggleBtn = Instance.new("TextButton")
+    toggleBtn.Size = UDim2.new(0.25, 0, 0.8, 0)
+    toggleBtn.Font = Enum.Font.GothamBold
+    toggleBtn.TextSize = 11
+    toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    toggleBtn.BackgroundColor3 = buttonOffColor
+    toggleBtn.BorderSizePixel = 0
+    toggleBtn.AutoButtonColor = false
+    toggleBtn.Parent = frame
 
-    local toggleCorner = Instance.new("UICorner")
-    toggleCorner.CornerRadius = UDim.new(0, 6)
-    toggleCorner.Parent = toggleButton
-    local toggleStroke = Instance.new("UIStroke")
-    toggleStroke.Color = buttonStrokeColor
-    toggleStroke.Thickness = 1
-    toggleStroke.Parent = toggleButton
+    local btnCorner = Instance.new("UICorner", toggleBtn)
+    btnCorner.CornerRadius = UDim.new(0, 6)
 
-    local bindButton = nil
-    local updateToggleButtonVisuals
+    local btnStroke = Instance.new("UIStroke", toggleBtn)
+    btnStroke.Color = Color3.fromRGB(200, 30, 30)
+    btnStroke.Thickness = 1
+    btnStroke.Transparency = 0.3
 
-    local function getTargetToggleColor()
-        local enabledState = false
-        if type(isEnabledFn) == 'function' then
-            local success, result = pcall(isEnabledFn)
-            if success then enabledState = result end
-        end
-        if not canToggle then return Color3.fromRGB(80, 80, 200)
-        elseif enabledState then return buttonOnColor
-        else return buttonOffColor end
+    local bindBtn = nil
+    if getBind and setBind then
+        bindBtn = Instance.new("TextButton")
+        bindBtn.Size = UDim2.new(0.25, 0, 0.8, 0)
+        bindBtn.Font = Enum.Font.Gotham
+        bindBtn.TextSize = 10
+        bindBtn.TextColor3 = buttonTextColor
+        bindBtn.BackgroundColor3 = Color3.fromRGB(25, 18, 20)
+        bindBtn.BorderSizePixel = 0
+        bindBtn.AutoButtonColor = false
+        bindBtn.Parent = frame
+
+        local bindCorner = Instance.new("UICorner", bindBtn)
+        bindCorner.CornerRadius = UDim.new(0, 6)
+        local bindStroke = Instance.new("UIStroke", bindBtn)
+        bindStroke.Color = Color3.fromRGB(200, 30, 30)
+        bindStroke.Thickness = 1
+        bindStroke.Transparency = 0.3
+
+        bindButtonReferences[frame] = bindBtn
+        keyBindGetters[frame] = getBind
+        keyBindSetters[frame] = setBind
     end
 
-    updateToggleButtonVisuals = function()
-        local enabledState = false
-        if type(isEnabledFn) == 'function' then
-            local success, result = pcall(isEnabledFn)
-            if success then enabledState = result end
+    local function updateToggle()
+        local state = getState()
+        if state then
+            toggleBtn.Text = "ON"
+            toggleBtn.BackgroundColor3 = buttonOnColor
+        else
+            toggleBtn.Text = "OFF"
+            toggleBtn.BackgroundColor3 = buttonOffColor
         end
+    end
 
-        local targetColor
-        if not canToggle then toggleButton.Text = "RUN"; targetColor = Color3.fromRGB(80, 80, 200)
-        elseif enabledState then toggleButton.Text = "ON"; targetColor = buttonOnColor
-        else toggleButton.Text = "OFF"; targetColor = buttonOffColor end
-
-        toggleButton.BackgroundColor3 = targetColor
+    local function updateBindText()
+        if not bindBtn then return end
+        local kb = getBind()
+        bindBtn.Text = kb and typeof(kb)=="EnumItem" and kb.Name~="Unknown" and "["..kb.Name.."]" or "Bind"
     end
 
     rowFunctionData[frame] = {
-        isEnabledFn = isEnabledFn,
+        getState = getState,
         onEnable = onEnable,
         onDisable = onDisable,
-        canToggle = canToggle,
-        updateFn = updateToggleButtonVisuals
+        updateFn = updateToggle,
+        bindUpdate = updateBindText,
+        bindBtn = bindBtn
     }
 
-    if getKeyBindFn and setKeyBindFn then
-        bindButton = Instance.new("TextButton")
-        bindButton.Size = UDim2.new(0.25, 0, 0.8, 0)
-        bindButton.Font = Enum.Font.GothamMedium
-        bindButton.TextSize = 11
-        bindButton.TextColor3 = buttonTextColor
-        bindButton.BackgroundColor3 = Color3.fromRGB(35, 28, 30)
-        bindButton.BorderSizePixel = 0
-        bindButton.AutoButtonColor = false
-        bindButton.LayoutOrder = 3
-        bindButton.Parent = frame
-
-        local bindCorner = Instance.new("UICorner"); bindCorner.CornerRadius = UDim.new(0, 6); bindCorner.Parent = bindButton
-        local bindStroke = Instance.new("UIStroke"); bindStroke.Color = buttonStrokeColor; bindStroke.Thickness = 1; bindStroke.Parent = bindButton
-
-        bindButtonReferences[frame] = bindButton
-        keyBindGetters[frame] = getKeyBindFn
-        keyBindSetters[frame] = setKeyBindFn
-
-        local initialKey = nil
-        local success, result = pcall(getKeyBindFn)
-        if success and result and typeof(result)=="EnumItem" then
-            initialKey = result
-            if rowFunctionData[frame] then
-                activeBinds[initialKey] = {
-                    frame = frame,
-                    toggleButton = toggleButton,
-                    isEnabledFn = rowFunctionData[frame].isEnabledFn,
-                    onEnable = rowFunctionData[frame].onEnable,
-                    onDisable = rowFunctionData[frame].onDisable,
-                    canToggle = rowFunctionData[frame].canToggle,
-                    updateFn = rowFunctionData[frame].updateFn
-                }
-            end
+    toggleBtn.MouseButton1Click:Connect(function()
+        local state = getState()
+        if state then
+            if onDisable then pcall(onDisable) end
+        else
+            if onEnable then pcall(onEnable) end
         end
-    else
-        toggleButton.Size = UDim2.new(0.5, 0, 0.8, 0)
-        horizontalLayout.Padding = UDim.new(0, 10)
-    end
-
-    local function updateBindButtonText()
-        if not bindButton then return end
-        local kb = nil
-        if type(getKeyBindFn) == 'function' then
-            local success, result = pcall(getKeyBindFn)
-            if success then kb = result end
-        end
-        bindButton.Text = kb and typeof(kb)=="EnumItem" and kb.Name~="Unknown" and "["..kb.Name.."]" or "Bind"
-    end
-
-    updateToggleButtonVisuals()
-    updateBindButtonText()
-
-    toggleButton.MouseEnter:Connect(function()
-        local targetColor = getTargetToggleColor()
-        local hoverTargetColor = targetColor:Lerp(Color3.new(1, 1, 1), 0.15)
-        TweenService:Create(toggleButton, TweenInfo.new(0.1), { BackgroundColor3 = hoverTargetColor }):Play()
-    end)
-    toggleButton.MouseLeave:Connect(function()
-        local targetColor = getTargetToggleColor()
-        TweenService:Create(toggleButton, TweenInfo.new(0.1), { BackgroundColor3 = targetColor }):Play()
+        updateToggle()
     end)
 
-    if bindButton then
-        bindButton.MouseEnter:Connect(function()
-            TweenService:Create(bindButton, TweenInfo.new(0.1), { BackgroundColor3 = Color3.fromRGB(55, 40, 45) }):Play()
-        end)
-        bindButton.MouseLeave:Connect(function()
-            TweenService:Create(bindButton, TweenInfo.new(0.1), { BackgroundColor3 = Color3.fromRGB(35, 28, 30) }):Play()
-        end)
-
-        local capturingKey = false
-        bindButton.MouseButton1Click:Connect(function()
+    if bindBtn then
+        bindBtn.MouseButton1Click:Connect(function()
             if currentRowWaitingForKey and currentRowWaitingForKey ~= frame then
-                local prevBindButton=bindButtonReferences[currentRowWaitingForKey]
-                if prevBindButton then
-                    local getter=keyBindGetters[currentRowWaitingForKey]
-                    local prevKeyText="Bind"; if getter then local s,r=pcall(getter); if s and r and typeof(r)=="EnumItem" then prevKeyText="["..r.Name.."]" end end
-                    prevBindButton.Text=prevKeyText
+                local prevData = rowFunctionData[currentRowWaitingForKey]
+                if prevData and prevData.bindBtn then
+                    prevData.bindUpdate()
                 end
             end
-            if capturingKey then
-                capturingKey=false; updateBindButtonText(); currentRowWaitingForKey=nil
-            else
-                capturingKey=true; bindButton.Text="..."; currentRowWaitingForKey=frame
-                task.delay(5, function()
-                    if capturingKey and currentRowWaitingForKey==frame then
-                        capturingKey=false; updateBindButtonText(); currentRowWaitingForKey=nil
-                    end
-                end)
-            end
+            currentRowWaitingForKey = frame
+            bindBtn.Text = "..."
+            task.delay(5, function()
+                if currentRowWaitingForKey == frame then
+                    currentRowWaitingForKey = nil
+                    updateBindText()
+                end
+            end)
         end)
     end
 
-    toggleButton.MouseButton1Click:Connect(function()
-        local enabledState = false
-        if type(isEnabledFn)=='function' then
-            local s,r=pcall(isEnabledFn)
-            if s then enabledState=r end
-        end
-        if not canToggle then
-            if type(onEnable)=='function' then pcall(onEnable) end
-            toggleButton.Text="DONE"
-            toggleButton.BackgroundColor3=buttonOnColor
-            toggleButton.Active=false
-            if bindButton then bindButton.Active=false end
-            return
-        end
-        if enabledState then
-            if type(onDisable)=='function' then pcall(onDisable) end
-        else
-            if type(onEnable)=='function' then pcall(onEnable) end
-        end
-        updateToggleButtonVisuals()
-    end)
-
+    updateToggle()
+    updateBindText()
     return frame
-end
-
-
--- ============================================================
--- 6. KATEGORİLER ve TOGGLE'LAR
--- ============================================================
-
-local Categories = { "Combat", "Movement", "Visuals", "Farming", "Misc", "Rage" }
-local CategoryButtons = {}
-local CategoryFrames = {}
-local ActiveCategoryButton = nil
-local DefaultCategory = "Combat"
-
--- Kategori butonları
-for i, categoryName in ipairs(Categories) do
-    CategoryFrames[categoryName] = {}
-
-    local catButton = Instance.new("TextButton")
-    catButton.Name = categoryName .. "Button"
-    catButton.Size = UDim2.new(1, -10, 0, 30)
-    catButton.BackgroundColor3 = Color3.fromRGB(15, 12, 15)
-    catButton.BorderSizePixel = 0
-    catButton.AutoButtonColor = false
-    catButton.LayoutOrder = i
-    catButton.Parent = sidebarFrame
-
-    local catCorner = Instance.new("UICorner")
-    catCorner.CornerRadius = UDim.new(0, 6)
-    catCorner.Parent = catButton
-
-    local catLabel = Instance.new("TextLabel")
-    catLabel.Name = "TextLabel"
-    catLabel.Size = UDim2.new(1, 0, 1, 0)
-    catLabel.BackgroundTransparency = 1
-    catLabel.Text = categoryName
-    catLabel.Font = Enum.Font.GothamSemibold
-    catLabel.TextSize = 14
-    catLabel.TextColor3 = Color3.fromRGB(180, 160, 160)
-    catLabel.Parent = catButton
-
-    catButton.MouseEnter:Connect(function()
-        if catButton ~= ActiveCategoryButton then
-            TweenService:Create(catButton, TweenInfo.new(0.1), { BackgroundColor3 = Color3.fromRGB(25, 18, 22) }):Play()
-        end
-    end)
-    catButton.MouseLeave:Connect(function()
-        if catButton ~= ActiveCategoryButton then
-            TweenService:Create(catButton, TweenInfo.new(0.1), { BackgroundColor3 = Color3.fromRGB(15, 12, 15) }):Play()
-        end
-    end)
-
-    catButton.MouseButton1Click:Connect(function()
-        local categoryButton = catButton
-        if not categoryButton or categoryButton == ActiveCategoryButton then return end
-
-        if ActiveCategoryButton then
-            TweenService:Create(ActiveCategoryButton, TweenInfo.new(0.2), { BackgroundColor3 = Color3.fromRGB(15, 12, 15) }):Play()
-            ActiveCategoryButton.TextLabel.TextColor3 = Color3.fromRGB(180, 160, 160)
-        end
-
-        TweenService:Create(categoryButton, TweenInfo.new(0.2), { BackgroundColor3 = Color3.fromRGB(35, 25, 30) }):Play()
-        categoryButton.TextLabel.TextColor3 = Color3.fromRGB(220, 200, 200)
-        ActiveCategoryButton = categoryButton
-
-        for _, child in ipairs(contentFrame:GetChildren()) do
-            if child:IsA("Frame") and child.Name ~= "UIListLayout" and child.Name ~= "UICorner" then
-                child.Parent = nil
-            end
-        end
-
-        if CategoryFrames[categoryName] then
-            for i, frame in ipairs(CategoryFrames[categoryName]) do
-                frame.Parent = contentFrame
-                frame.LayoutOrder = i
-            end
-            local numItems = #CategoryFrames[categoryName]
-            local itemHeight = 35
-            local padding = contentLayout.Padding.Offset
-            contentFrame.CanvasSize = UDim2.new(0, 0, 0, numItems * itemHeight + (numItems > 0 and (numItems - 1) * padding or 0) + 10)
-        else
-            contentFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-        end
-    end)
-
-    CategoryButtons[categoryName] = catButton
 end
 
 -- Keybind handler
@@ -2261,76 +2375,126 @@ UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
 
     if currentRowWaitingForKey then
         local frame = currentRowWaitingForKey
-        local bindButton = bindButtonReferences[frame]
-        local getKeyFn = keyBindGetters[frame]
-        local setKeyFn = keyBindSetters[frame]
-        local frameData = rowFunctionData[frame]
-
-        if bindButton and getKeyFn and setKeyFn and frameData then
-            local oldKey = nil
-            local successGet, resultGet = pcall(getKeyFn)
-            if successGet then oldKey = resultGet end
-
-            if oldKey and activeBinds[oldKey] and activeBinds[oldKey].frame == frame then
-                activeBinds[oldKey] = nil
+        local data = rowFunctionData[frame]
+        if data and data.bindBtn then
+            local getBind = keyBindGetters[frame]
+            local setBind = keyBindSetters[frame]
+            
+            if getBind and setBind then
+                local oldKey = getBind()
+                if oldKey and activeBinds[oldKey] then
+                    activeBinds[oldKey] = nil
+                end
+                
+                if activeBinds[keyCode] then
+                    local oldFrame = activeBinds[keyCode].frame
+                    local oldData = rowFunctionData[oldFrame]
+                    if oldData and oldData.bindBtn then
+                        pcall(keyBindSetters[oldFrame], nil)
+                        oldData.bindUpdate()
+                    end
+                    activeBinds[keyCode] = nil
+                end
+                
+                pcall(setBind, keyCode)
+                activeBinds[keyCode] = { frame = frame, data = data }
+                data.bindUpdate()
+                currentRowWaitingForKey = nil
             end
-
-            if activeBinds[keyCode] and activeBinds[keyCode].frame ~= frame then
-                local otherFrame = activeBinds[keyCode].frame
-                local otherBindButton = bindButtonReferences[otherFrame]
-                local otherSetKeyFn = keyBindSetters[otherFrame]
-                if otherSetKeyFn then pcall(otherSetKeyFn, nil) end
-                if otherBindButton then otherBindButton.Text = "Bind" end
-                activeBinds[keyCode] = nil
-            end
-
-            pcall(setKeyFn, keyCode)
-
-            local toggleButton
-            for _, child in ipairs(frame:GetChildren()) do
-                if child:IsA("TextButton") and child ~= bindButton then toggleButton = child; break end
-            end
-
-            if toggleButton then
-                activeBinds[keyCode] = {
-                    frame = frame,
-                    toggleButton = toggleButton,
-                    isEnabledFn = frameData.isEnabledFn,
-                    onEnable = frameData.onEnable,
-                    onDisable = frameData.onDisable,
-                    canToggle = frameData.canToggle,
-                    updateFn = frameData.updateFn
-                }
-            end
-
-            bindButton.Text = "[" .. input.KeyCode.Name .. "]"
-            currentRowWaitingForKey = nil
-        else
-            if bindButton then bindButton.Text = "Bind" end
-            currentRowWaitingForKey = nil
         end
     elseif activeBinds[keyCode] then
-        local bindInfo = activeBinds[keyCode]
-        if bindInfo.frame and bindInfo.isEnabledFn and bindInfo.onEnable and bindInfo.onDisable and bindInfo.updateFn and bindInfo.canToggle ~= nil then
-            if bindInfo.canToggle then
-                local success, currentState = pcall(bindInfo.isEnabledFn)
-                if success then
-                    if currentState then
-                        pcall(bindInfo.onDisable)
-                    else
-                        pcall(bindInfo.onEnable)
-                    end
-                    task.wait()
-                    pcall(bindInfo.updateFn)
-                end
+        local bindData = activeBinds[keyCode]
+        if bindData and bindData.data then
+            local d = bindData.data
+            local state = d.getState()
+            if state then
+                if d.onDisable then pcall(d.onDisable) end
+            else
+                if d.onEnable then pcall(d.onEnable) end
             end
+            d.updateFn()
         end
     end
 end)
 
--- Tüm modülleri kategorilere ekle
-local function addToCategory(category, name, getState, enable, disable, getBind, setBind)
-    table.insert(CategoryFrames[category], createToggleRowFrame(name, true, getState, enable, disable, getBind, setBind))
+
+-- ============================================================
+-- KATEGORİLER
+-- ============================================================
+
+local Categories = { "Combat", "Movement", "Visuals", "Farming", "Misc", "Rage" }
+local CategoryButtons = {}
+local CategoryFrames = {}
+local ActiveCategoryButton = nil
+
+-- Kategori butonları
+for i, cat in ipairs(Categories) do
+    CategoryFrames[cat] = {}
+    
+    local btn = Instance.new("TextButton")
+    btn.Name = cat .. "Btn"
+    btn.Size = UDim2.new(1, -10, 0, 30)
+    btn.BackgroundColor3 = Color3.fromRGB(10, 6, 8)
+    btn.BorderSizePixel = 0
+    btn.AutoButtonColor = false
+    btn.LayoutOrder = i
+    btn.Parent = menuFrame
+
+    local btnCorner = Instance.new("UICorner", btn)
+    btnCorner.CornerRadius = UDim.new(0, 6)
+
+    local btnLabel = Instance.new("TextLabel")
+    btnLabel.Size = UDim2.new(1, 0, 1, 0)
+    btnLabel.BackgroundTransparency = 1
+    btnLabel.Text = cat
+    btnLabel.TextColor3 = Color3.fromRGB(180, 160, 160)
+    btnLabel.Font = Enum.Font.GothamSemibold
+    btnLabel.TextSize = 13
+    btnLabel.Parent = btn
+
+    btn.MouseEnter:Connect(function()
+        if btn ~= ActiveCategoryButton then
+            TweenService:Create(btn, TweenInfo.new(0.1), { BackgroundColor3 = Color3.fromRGB(22, 14, 16) }):Play()
+        end
+    end)
+    btn.MouseLeave:Connect(function()
+        if btn ~= ActiveCategoryButton then
+            TweenService:Create(btn, TweenInfo.new(0.1), { BackgroundColor3 = Color3.fromRGB(10, 6, 8) }):Play()
+        end
+    end)
+
+    btn.MouseButton1Click:Connect(function()
+        if ActiveCategoryButton then
+            TweenService:Create(ActiveCategoryButton, TweenInfo.new(0.2), { BackgroundColor3 = Color3.fromRGB(10, 6, 8) }):Play()
+            ActiveCategoryButton.TextLabel.TextColor3 = Color3.fromRGB(180, 160, 160)
+        end
+        
+        TweenService:Create(btn, TweenInfo.new(0.2), { BackgroundColor3 = Color3.fromRGB(30, 18, 22) }):Play()
+        btn.TextLabel.TextColor3 = Color3.fromRGB(220, 200, 200)
+        ActiveCategoryButton = btn
+
+        for _, child in ipairs(scrollFrame:GetChildren()) do
+            if child:IsA("Frame") and child.Name ~= "UIListLayout" and child.Name ~= "UICorner" then
+                child.Parent = nil
+            end
+        end
+
+        if CategoryFrames[cat] then
+            for i, frame in ipairs(CategoryFrames[cat]) do
+                frame.Parent = scrollFrame
+                frame.LayoutOrder = i
+            end
+            local numItems = #CategoryFrames[cat]
+            scrollFrame.CanvasSize = UDim2.new(0, 0, 0, numItems * 38 + 10)
+        end
+    end)
+
+    CategoryButtons[cat] = btn
+end
+
+-- Modülleri kategorilere ekle
+local function addToCategory(cat, name, getState, enable, disable, getBind, setBind)
+    table.insert(CategoryFrames[cat], createToggleRow(name, getState, enable, disable, getBind, setBind))
 end
 
 -- Combat
@@ -2364,28 +2528,25 @@ addToCategory("Misc", "Anti AFK", function() return AntiAFK_Enabled_Dummy end, A
 -- Rage
 addToCategory("Rage", "Ragebot", function() return Ragebot_Enabled end, Ragebot_Enable, Ragebot_Disable)
 
--- Default kategoriyi göster
-local function switchToDefault()
-    local defaultBtn = CategoryButtons[DefaultCategory]
-    if defaultBtn then
-        defaultBtn.MouseButton1Click:Fire()
-    end
+-- Varsayılan kategori
+local function switchDefault()
+    local defaultBtn = CategoryButtons["Combat"]
+    if defaultBtn then defaultBtn.MouseButton1Click:Fire() end
 end
 
 -- Animasyonlu açılış
 mainFrame.Size = UDim2.new(0, 0, 0, 0)
 task.wait(0.1)
-local openTween = TweenService:Create(mainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-    Size = UDim2.new(0, 450, 0, 350)
+local openTween = TweenService:Create(mainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+    Size = UDim2.new(0, 460, 0, 400)
 })
 openTween:Play()
 
 task.wait(0.5)
-switchToDefault()
+switchDefault()
 
 print("SANTES HUB v2.0 Loaded Successfully!")
 
-end -- StartSantesHub fonksiyonu sonu
+end
 
--- ========== LOADER'ı BAŞLAT ==========
 StartLoader()
