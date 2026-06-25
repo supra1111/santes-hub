@@ -184,13 +184,12 @@ local function StartLoader()
 
     loaderGui:Destroy()
     
-    -- ========== ANA SCRIPTİ BAŞLAT ==========
     StartSantesHub()
 end
 
 
 -- ============================================================
--- SANTES HUB ANA SCRIPT
+-- SANTES HUB ANA SCRIPT (Kategorili UI)
 -- ============================================================
 
 function StartSantesHub()
@@ -216,122 +215,183 @@ local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 local oldGui = PlayerGui:FindFirstChild("SantesHubScreenGui")
 if oldGui then oldGui:Destroy() end
 
+local oldCategorizedGui = PlayerGui:FindFirstChild("SantesHubScreenGui_Categorized")
+if oldCategorizedGui then oldCategorizedGui:Destroy() end
+
+
 -- ============================================================
--- ANA UI (Kırmızı-Siyah Tema)
+-- 1. ANA UI (Kategorili - Kırmızı/Siyah Tema)
 -- ============================================================
 
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "SantesHubScreenGui"
+screenGui.Name = "SantesHubScreenGui_Categorized"
 screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-screenGui.DisplayOrder = 50
 screenGui.Parent = PlayerGui
 
-local panel = Instance.new("Frame")
-panel.Name = "MainPanel"
-panel.Size = UDim2.new(0, 320, 0, 380)
-panel.Position = UDim2.new(0.5, -160, 0.5, -190)
-panel.AnchorPoint = Vector2.new(0, 0)
-panel.BackgroundColor3 = Color3.fromRGB(14, 10, 11)
-panel.BorderSizePixel = 0
-panel.Parent = screenGui
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "SantesHubMainFrame"
+mainFrame.Size = UDim2.new(0, 450, 0, 350)
+mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+mainFrame.BackgroundColor3 = Color3.fromRGB(10, 8, 10)
+mainFrame.BorderSizePixel = 0
+mainFrame.ClipsDescendants = true
+mainFrame.Visible = true
+mainFrame.Active = true
+mainFrame.Draggable = false
+mainFrame.Parent = screenGui
 
-local panelCorner = Instance.new("UICorner", panel)
-panelCorner.CornerRadius = UDim.new(0, 12)
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 12)
+corner.Parent = mainFrame
 
-local panelStroke = Instance.new("UIStroke", panel)
-panelStroke.Color = Color3.fromRGB(220, 40, 40)
-panelStroke.Thickness = 1.5
-panelStroke.Transparency = 0.45
-
-local panelGradient = Instance.new("UIGradient", panel)
-panelGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(22, 16, 17)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 8, 8)),
-})
-panelGradient.Rotation = 90
-
--- Title Bar
-local titleBar = Instance.new("Frame")
-titleBar.Name = "TitleBar"
-titleBar.Size = UDim2.new(1, 0, 0, 35)
-titleBar.BackgroundTransparency = 1
-titleBar.Parent = panel
+local stroke = Instance.new("UIStroke")
+stroke.Color = Color3.fromRGB(180, 20, 20)
+stroke.Thickness = 1
+stroke.Transparency = 0.4
+stroke.Parent = mainFrame
 
 local titleLabel = Instance.new("TextLabel")
-titleLabel.Size = UDim2.new(1, -70, 1, 0)
-titleLabel.Position = UDim2.new(0, 12, 0, 0)
+titleLabel.Name = "Title"
+titleLabel.Size = UDim2.new(1, -40, 0, 40)
+titleLabel.Position = UDim2.new(0, 20, 0, 5)
 titleLabel.BackgroundTransparency = 1
-titleLabel.Text = "SANTES HUB"
+titleLabel.Text = "SANTES HUB v.2.0"
+titleLabel.Font = Enum.Font.GothamSemibold
+titleLabel.TextColor3 = Color3.fromRGB(200, 30, 30)
+titleLabel.TextSize = 20
 titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-titleLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
-titleLabel.TextSize = 16
-titleLabel.Font = Enum.Font.GothamBold
-titleLabel.Parent = titleBar
+titleLabel.Parent = mainFrame
 
-local minimizeBtn = Instance.new("TextButton")
-minimizeBtn.Name = "MinimizeButton"
-minimizeBtn.Size = UDim2.new(0, 24, 0, 24)
-minimizeBtn.Position = UDim2.new(1, -60, 0, 5)
-minimizeBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-minimizeBtn.BackgroundTransparency = 0.95
-minimizeBtn.Text = "-"
-minimizeBtn.TextColor3 = Color3.fromRGB(220, 220, 220)
-minimizeBtn.TextSize = 16
-minimizeBtn.Font = Enum.Font.GothamBold
-minimizeBtn.AutoButtonColor = false
-minimizeBtn.Parent = titleBar
+local line = Instance.new("Frame")
+line.Name = "Divider"
+line.Size = UDim2.new(1, -40, 0, 1)
+line.Position = UDim2.new(0, 20, 0, 40)
+line.BackgroundColor3 = Color3.fromRGB(180, 20, 20)
+line.BorderSizePixel = 0
+line.Parent = mainFrame
 
-local minBtnCorner = Instance.new("UICorner", minimizeBtn)
-minBtnCorner.CornerRadius = UDim.new(0, 6)
+local footerLabel = Instance.new("TextLabel")
+footerLabel.Name = "Footer"
+footerLabel.Size = UDim2.new(1, -20, 0, 20)
+footerLabel.Position = UDim2.new(0, 10, 1, -25)
+footerLabel.BackgroundTransparency = 1
+footerLabel.Text = "By Santes | Press K to Toggle"
+footerLabel.Font = Enum.Font.Gotham
+footerLabel.TextSize = 10
+footerLabel.TextColor3 = Color3.fromRGB(120, 80, 80)
+footerLabel.TextXAlignment = Enum.TextXAlignment.Right
+footerLabel.Parent = mainFrame
 
-local closeBtn = Instance.new("TextButton")
-closeBtn.Name = "CloseButton"
-closeBtn.Size = UDim2.new(0, 24, 0, 24)
-closeBtn.Position = UDim2.new(1, -30, 0, 5)
-closeBtn.BackgroundColor3 = Color3.fromRGB(220, 40, 40)
-closeBtn.BackgroundTransparency = 0.85
-closeBtn.Text = "✕"
-closeBtn.TextColor3 = Color3.fromRGB(255, 120, 120)
-closeBtn.TextSize = 14
-closeBtn.Font = Enum.Font.GothamBold
-closeBtn.AutoButtonColor = false
-closeBtn.Parent = titleBar
+local sidebarFrame = Instance.new("Frame")
+sidebarFrame.Name = "SidebarFrame"
+sidebarFrame.Size = UDim2.new(0, 120, 1, -70)
+sidebarFrame.Position = UDim2.new(0, 10, 0, 50)
+sidebarFrame.BackgroundColor3 = Color3.fromRGB(15, 12, 15)
+sidebarFrame.BorderSizePixel = 0
+sidebarFrame.Parent = mainFrame
 
-local closeBtnCorner = Instance.new("UICorner", closeBtn)
-closeBtnCorner.CornerRadius = UDim.new(0, 6)
+local sidebarCorner = Instance.new("UICorner")
+sidebarCorner.CornerRadius = UDim.new(0, 8)
+sidebarCorner.Parent = sidebarFrame
 
-local divider = Instance.new("Frame")
-divider.Size = UDim2.new(1, -24, 0, 1)
-divider.Position = UDim2.new(0, 12, 0, 37)
-divider.BackgroundColor3 = Color3.fromRGB(220, 40, 40)
-divider.BackgroundTransparency = 0.75
-divider.BorderSizePixel = 0
-divider.Parent = panel
+local sidebarLayout = Instance.new("UIListLayout")
+sidebarLayout.Padding = UDim.new(0, 5)
+sidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
+sidebarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+sidebarLayout.Parent = sidebarFrame
 
-local contentScroll = Instance.new("ScrollingFrame")
-contentScroll.Name = "ContentScroll"
-contentScroll.Size = UDim2.new(1, -16, 1, -50)
-contentScroll.Position = UDim2.new(0, 8, 0, 45)
-contentScroll.BackgroundTransparency = 1
-contentScroll.BorderSizePixel = 0
-contentScroll.ScrollingDirection = Enum.ScrollingDirection.Y
-contentScroll.ScrollBarThickness = 4
-contentScroll.ScrollBarImageColor3 = Color3.fromRGB(220, 40, 40)
-contentScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
-contentScroll.Parent = panel
+local contentFrame = Instance.new("ScrollingFrame")
+contentFrame.Name = "ContentFrame"
+contentFrame.Size = UDim2.new(1, -150, 1, -70)
+contentFrame.Position = UDim2.new(0, 140, 0, 50)
+contentFrame.BackgroundColor3 = Color3.fromRGB(15, 12, 15)
+contentFrame.BorderSizePixel = 0
+contentFrame.ScrollingDirection = Enum.ScrollingDirection.Y
+contentFrame.ScrollBarThickness = 6
+contentFrame.ScrollBarImageColor3 = Color3.fromRGB(180, 20, 20)
+contentFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+contentFrame.Parent = mainFrame
+
+local contentCorner = Instance.new("UICorner")
+contentCorner.CornerRadius = UDim.new(0, 8)
+contentCorner.Parent = contentFrame
 
 local contentLayout = Instance.new("UIListLayout")
-contentLayout.Padding = UDim.new(0, 6)
+contentLayout.Padding = UDim.new(0, 8)
 contentLayout.SortOrder = Enum.SortOrder.LayoutOrder
 contentLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-contentLayout.Parent = contentScroll
+contentLayout.Parent = contentFrame
+
 
 -- ============================================================
--- TÜM MODÜLLER
+-- 2. PENCERE SÜRÜKLEME
+-- ============================================================
+do
+    local dragging = false
+    local dragInput = nil
+    local dragStart = nil
+    local startPos = nil
+
+    local function update(input)
+        local delta = input.Position - dragStart
+        local newX = startPos.X.Offset + delta.X
+        local newY = startPos.Y.Offset + delta.Y
+        mainFrame.Position = UDim2.new(startPos.X.Scale, newX, startPos.Y.Scale, newY)
+    end
+
+    mainFrame.InputBegan:Connect(function(input)
+        if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+            local absPos = mainFrame.AbsolutePosition
+            local absSize = mainFrame.AbsoluteSize
+            local headerHeight = 45
+
+            if input.Position.Y < absPos.Y + headerHeight and input.Position.Y > absPos.Y and input.Position.X > absPos.X and input.Position.X < absPos.X + absSize.X then
+                dragging = true
+                dragStart = input.Position
+                startPos = mainFrame.Position
+
+                input.Changed:Connect(function()
+                    if input.UserInputState == Enum.UserInputState.End then
+                        dragging = false
+                    end
+                end)
+            end
+        end
+    end)
+
+    mainFrame.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            update(input)
+        end
+    end)
+end
+
+
+-- ============================================================
+-- 3. [K] TUŞU İLE GÖSTER/GİZLE
+-- ============================================================
+UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
+    if not gameProcessedEvent then
+        if input.KeyCode == Enum.KeyCode.K then
+            mainFrame.Visible = not mainFrame.Visible
+        end
+    end
+end)
+
+
+-- ============================================================
+-- 4. TÜM MODÜLLER
 -- ============================================================
 
--- MODÜL: No Fail Lockpick
+--======================= NO FAIL LOCKPICK =========================--
 local NoFailLockpick_Enabled = false
 local lockpickAddedConnection = nil
 
@@ -384,7 +444,7 @@ function NoFailLockpick_Disable()
     end
 end
 
--- MODÜL: Safe/Register ESP
+--======================= SAFE/REGISTER ESP =========================--
 local BredMakurz_Enabled = false
 local bredMakurzConnection = nil
 
@@ -401,6 +461,7 @@ local function ApplyBredMakurzModification()
     local character = LocalPlayer.Character
     if not character or not character:FindFirstChild("HumanoidRootPart") then return end
     local playerPosition = character.HumanoidRootPart.Position
+
     for _, v in pairs(bredMakurzFolder:GetChildren()) do
         local objectPosition
         if v.PrimaryPart and v.PrimaryPart:IsA("BasePart") then
@@ -409,8 +470,10 @@ local function ApplyBredMakurzModification()
             local part = v:FindFirstChildOfClass("BasePart")
             if part then objectPosition = part.Position else continue end
         end
+        
         local distance = (objectPosition - playerPosition).magnitude
         local existingGui = v:FindFirstChild("Ahh")
+
         if distance <= 200 then
             if not existingGui then
                 local x = Instance.new('BillboardGui', v)
@@ -459,7 +522,7 @@ function BredMakurz_Disable()
     end
 end
 
--- MODÜL: Open/Unlock Nearby Doors
+--======================= OPEN/UNLOCK NEARBY DOORS =========================--
 local OpenNearbyDoors_Enabled = false
 local UnlockNearbyDoors_Enabled = false
 local NearbyDoorInteraction_Coroutine = nil
@@ -471,14 +534,17 @@ local function NearbyDoorInteraction_Loop()
         local hrp = char and char:FindFirstChild("HumanoidRootPart")
         local hum = char and char:FindFirstChildOfClass("Humanoid")
         if not hrp or not hum or hum.Health <= 0 then task.wait(waitTime * 2) continue end
+
         local doorsFolder = workspace.Map:FindFirstChild("Doors")
         if not doorsFolder then
             if OpenNearbyDoors_Enabled then OpenNearbyDoors_Disable() end
             if UnlockNearbyDoors_Enabled then UnlockNearbyDoors_Disable() end
             break
         end
+
         local playerPos = hrp.Position
         local checkRadius = 6
+
         for _, doorInstance in ipairs(doorsFolder:GetChildren()) do
             local doorBase = doorInstance:FindFirstChild("DoorBase")
             local valuesFolder = doorInstance:FindFirstChild("Values")
@@ -486,6 +552,7 @@ local function NearbyDoorInteraction_Loop()
             if doorBase and valuesFolder and eventsFolder and (playerPos - doorBase.Position).Magnitude <= checkRadius then
                 local toggleEvent = eventsFolder:FindFirstChild("Toggle")
                 if not toggleEvent then continue end
+
                 if UnlockNearbyDoors_Enabled then
                     local lockedValue = valuesFolder:FindFirstChild("Locked")
                     local lockArgument = doorInstance:FindFirstChild("Lock")
@@ -493,6 +560,7 @@ local function NearbyDoorInteraction_Loop()
                         pcall(function() toggleEvent:FireServer("Unlock", lockArgument) end)
                     end
                 end
+
                 if OpenNearbyDoors_Enabled then
                     local openValue = valuesFolder:FindFirstChild("Open")
                     local knobArgument = doorInstance:FindFirstChild("Knob2") or doorInstance:FindFirstChild("Knob")
@@ -541,7 +609,7 @@ function UnlockNearbyDoors_Disable()
     StartStopDoorInteractionLoop()
 end
 
--- MODÜL: Auto Pickup Money
+--======================= AUTO PICKUP MONEY =========================--
 local AutoPickupMoney_Enabled = false
 local AutoPickupMoney_Connection = nil
 local AutoPickupMoney_Coroutine = nil
@@ -553,11 +621,13 @@ local function AutoPickupMoney_Logic()
     local remoteEvent = game:GetService("ReplicatedStorage").Events:FindFirstChild("CZDPZUS")
     if not cashFolder then AutoPickupMoney_Disable() return end
     if not remoteEvent then AutoPickupMoney_Disable() return end
+
     AutoPickupMoney_Connection = RunService.RenderStepped:Connect(function()
         if not AutoPickupMoney_Enabled or Settings.IsDead then return end
         local char = LocalPlayer.Character
         local hrp = char and char:FindFirstChild("HumanoidRootPart")
         if not hrp or CoolDowns.AutoPickUps.MoneyCooldown then return end
+
         local rootPosition = hrp.Position
         for _, v in ipairs(cashFolder:GetChildren()) do
             if (rootPosition - v.Position).Magnitude < 5 and not CoolDowns.AutoPickUps.MoneyCooldown then
@@ -588,7 +658,7 @@ function AutoPickupMoney_Disable()
     CoolDowns.AutoPickUps.MoneyCooldown = false
 end
 
--- MODÜL: Fly
+--============================ FLY ============================--
 local Fly_Enabled = false
 local Fly_Connection = nil
 local Fly_Speed = 50
@@ -620,7 +690,7 @@ function Fly_Disable()
     if Fly_Connection then Fly_Connection:Disconnect() Fly_Connection = nil end
 end
 
--- MODÜL: FullBright
+--============================ FULLBRIGHT ============================--
 local FullBright_Enabled = false
 local Lighting = game:GetService("Lighting")
 local FullBright_Connection = nil
@@ -665,7 +735,7 @@ function FullBright_Disable()
     Lighting.FogEnd = OriginalValues.FogEnd
 end
 
--- MODÜL: FOV
+--============================ FOV ============================--
 local Fov_Enabled = false
 local Fov_Value = 80
 local Camera = workspace.CurrentCamera
@@ -684,7 +754,7 @@ RunService.RenderStepped:Connect(function()
     if Fov_Enabled then Camera.FieldOfView = Fov_Value end
 end)
 
--- MODÜL: Noclip
+--============================ NOCLIP ============================--
 local Noclip_Enabled = false
 local Noclip_Connection = nil
 local originalCollisions = {}
@@ -729,59 +799,50 @@ function Noclip_Disable()
     originalCollisions = {}
 end
 
--- MODÜL: Infinite Stamina
-local isInfiniteStaminaEnabled = false
-local oldStaminaFunction = nil
-local targetFunction = nil
-
-do
-    local success_hook, result_hook = pcall(function()
-        local env = nil
-        local success_env1, env1 = pcall(getrenv)
-        if success_env1 then env = env1 else local success_env2, env2 = pcall(getfenv); if success_env2 then env = env2 end end
-        if env and env._G and env._G.S_Take then
-            local success_upval, upval = pcall(getupvalue, env._G.S_Take, 2)
-            if success_upval and type(upval) == 'function' then targetFunction = upval end
-        end
-        if targetFunction then
-            local hookSuccess, hookResult = pcall(function()
-                oldStaminaFunction = hookfunction(targetFunction, function(v1, ...)
-                    local args = {...}
-                    if isInfiniteStaminaEnabled then return oldStaminaFunction(0, unpack(args))
-                    else return oldStaminaFunction(v1, unpack(args)) end
-                end)
-            end)
-            if not hookSuccess then oldStaminaFunction = nil end
-        end
-    end)
-end
-
-function InfiniteStamina_Enable()
-    if not oldStaminaFunction then return end
-    isInfiniteStaminaEnabled = true
-end
-
-function InfiniteStamina_Disable()
-    isInfiniteStaminaEnabled = false
-end
-
--- MODÜL: Anti AFK
-local AntiAFK_Enabled_Dummy = true
-function AntiAFK_Enable() AntiAFK_Enabled_Dummy = true end
-function AntiAFK_Disable() AntiAFK_Enabled_Dummy = false end
-
--- MODÜL: Staff Detector
+--========================== ADMIN CHECK (CRIMINALITY) ===========================--
 local AdminCheck_Enabled = false
 local AdminCheck_Connection = nil
 
 local staffPlayers = {
     groups = {
-        [4165692] = { ["Tester"] = true, ["Contributor"] = true, ["Tester+"] = true, ["Developer"] = true, ["Developer+"] = true, ["Community Manager"] = true, ["Manager"] = true, ["Owner"] = true },
-        [32406137] = { ["Junior"] = true, ["Moderator"] = true, ["Senior"] = true, ["Administrator"] = true, ["Manager"] = true, ["Holder"] = true },
-        [8024440] = { ["zzzz"] = true, ["reshape enjoyer"] = true, ["i heart reshape"] = true, ["reshape superfan"] = true },
-        [14927228] = { ["♞"] = true }
+        -- Criminality Groups
+        [4793755] = { -- Criminality Group
+            ["Tester"] = true, ["Contributor"] = true, ["Tester+"] = true, 
+            ["Developer"] = true, ["Developer+"] = true, 
+            ["Community Manager"] = true, ["Manager"] = true, ["Owner"] = true
+        },
+        [4165692] = { -- crimcorp
+            ["Tester"] = true, ["Contributor"] = true, ["Tester+"] = true, ["Developer"] = true,
+            ["Developer+"] = true, ["Community Manager"] = true, ["Manager"] = true, ["Owner"] = true
+        },
+        [32406137] = { -- staff thing
+            ["Junior"] = true, ["Moderator"] = true, ["Senior"] = true, ["Administrator"] = true,
+            ["Manager"] = true, ["Holder"] = true
+        },
+        [8024440] = { -- r3shape fanclub
+            ["zzzz"] = true, ["reshape enjoyer"] = true, ["i heart reshape"] = true, ["reshape superfan"] = true
+        },
+        [14927228] = { -- War Room
+            ["♞"] = true
+        }
     },
-    users = { 3294804378, 93676120, 54087314, 81275825, 140837601, 1229486091, 46567801, 418086275, 29706395, 3717066084, 1424338327, 5046662686, 5046661126, 5046659439, 418199326, 1024216621, 1810535041, 63238912, 111250044, 63315426, 730176906, 141193516, 194512073, 193945439, 412741116, 195538733, 102045519, 955294, 957835150, 25689921, 366613818, 281593651, 455275714, 208929505, 96783330, 156152502, 93281166, 959606619, 142821118, 632886139, 175931803, 122209625, 278097946, 142989311, 1517131734, 446849296, 87189764, 67180844, 9212846, 47352513, 48058122, 155413858, 10497435, 513615792, 55893752, 55476024, 151691292, 136584758, 16983447, 3111449, 94693025, 271400893, 5005262660, 295331237, 64489098, 244844600, 114332275, 25048901, 69262878, 50801509, 92504899, 42066711, 50585425, 31365111, 166406495, 2457253857, 29761878, 21831137, 948293345, 439942262, 38578487, 1163048, 7713309208, 3659305297, 15598614, 34616594, 626833004, 198610386, 153835477, 3923114296, 3937697838, 102146039, 119861460, 371665775, 1206543842, 93428604, 1863173316, 90814576, 374665997, 423005063, 140172831, 42662179, 9066859, 438805620, 14855669, 727189337, 1871290386, 608073286 }
+    users = {
+        3294804378, 93676120, 54087314, 81275825, 140837601, 1229486091, 46567801, 418086275, 29706395,
+        3717066084, 1424338327, 5046662686, 5046661126, 5046659439, 418199326, 1024216621, 1810535041,
+        63238912, 111250044, 63315426, 730176906, 141193516, 194512073, 193945439, 412741116, 195538733,
+        102045519, 955294, 957835150, 25689921, 366613818, 281593651, 455275714, 208929505, 96783330,
+        156152502, 93281166, 959606619, 142821118, 632886139, 175931803, 122209625, 278097946, 142989311,
+        1517131734, 446849296, 87189764, 67180844, 9212846, 47352513, 48058122, 155413858, 10497435,
+        513615792, 55893752, 55476024, 151691292, 136584758, 16983447, 3111449, 94693025, 271400893,
+        5005262660, 295331237, 64489098, 244844600, 114332275, 25048901, 69262878, 50801509, 92504899,
+        42066711, 50585425, 31365111, 166406495, 2457253857, 29761878, 21831137, 948293345, 439942262,
+        38578487, 1163048, 7713309208, 3659305297, 15598614, 34616594, 626833004, 198610386, 153835477,
+        3923114296, 3937697838, 102146039, 119861460, 371665775, 1206543842, 93428604, 1863173316, 90814576,
+        374665997, 423005063, 140172831, 42662179, 9066859, 438805620, 14855669, 727189337, 1871290386,
+        608073286,
+        -- Criminality Developers (ekstra)
+        111250044, 140172831, 42662179, 9066859, 438805620, 14855669, 727189337
+    }
 }
 
 local function hasTracker(player)
@@ -867,7 +928,7 @@ function AdminCheck_Enable()
     AdminCheck_Enabled = true
     if AdminCheck_Connection then AdminCheck_Connection:Disconnect() end
     AdminCheck_Connection = Players.PlayerAdded:Connect(onPlayerJoining)
-    pcall(function() game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Staff Detection", Text = "Monitoring active", Duration = 5, Icon = "rbxassetid://121588751997553" }) end)
+    pcall(function() game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Staff Detection", Text = "Monitoring active", Duration = 5 }) end)
     task.spawn(function() checkCurrentStaff() end)
 end
 
@@ -877,117 +938,12 @@ function AdminCheck_Disable()
     if AdminCheck_Connection then AdminCheck_Connection:Disconnect() AdminCheck_Connection = nil end
 end
 
--- MODÜL: ESP
-local ESP_Enabled = false
-local ESP_Loading = false
-local LastToggleTime = 0
-local DEBOUNCE_TIME = 0.5
+-- Anti AFK
+local AntiAFK_Enabled_Dummy = true
+function AntiAFK_Enable() AntiAFK_Enabled_Dummy = true end
+function AntiAFK_Disable() AntiAFK_Enabled_Dummy = false end
 
-function ESP_Enable()
-    if os.clock()-LastToggleTime<DEBOUNCE_TIME then return end
-    LastToggleTime=os.clock()
-    if ESP_Loading or ESP_Enabled then return end
-    ESP_Loading=true
-    local success, err=pcall(function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/kskdkdkdmsmdmdm0-dot/lolsjkskf/refs/heads/main/walhaczek", true))()
-        ESP_Enabled=true
-        ESP_Loading=false
-    end)
-    if not success then warn("ESP Error: "..tostring(err)) ESP_Loading=false ESP_Enabled=false end
-end
-
-function ESP_Disable()
-    if os.clock()-LastToggleTime<DEBOUNCE_TIME then return end
-    LastToggleTime=os.clock()
-    if not ESP_Enabled then return end
-    ESP_Enabled=false
-    local coreGui=game:GetService("CoreGui")
-    for _, name in pairs({"Folder","ESP_Holder","ESP_Folder","ESP"}) do
-        local folder=coreGui:FindFirstChild(name)
-        if folder then folder:Destroy() end
-    end
-end
-
--- MODÜL: No Recoil
-local NoRecoil_Enabled=false
-local NoRecoil_Connections={}
-local GlobalOriginalValues={}
-local WeaponCache={}
-local Settings_nr={GunMods={NoRecoil=true,Spread=true,SpreadAmount=0}}
-local Player_nr=LocalPlayer
-
-local function cacheWeapons()
-    WeaponCache={}
-    for _, v in pairs(getgc(true)) do
-        if type(v)=='table' and rawget(v,'EquipTime') then
-            table.insert(WeaponCache, v)
-            if not GlobalOriginalValues[v] then
-                GlobalOriginalValues[v]={
-                    Recoil=v.Recoil,CameraRecoilingEnabled=v.CameraRecoilingEnabled,
-                    AngleX_Min=v.AngleX_Min,AngleX_Max=v.AngleX_Max,
-                    AngleY_Min=v.AngleY_Min,AngleY_Max=v.AngleY_Max,
-                    AngleZ_Min=v.AngleZ_Min,AngleZ_Max=v.AngleZ_Max,
-                    Spread=v.Spread
-                }
-            end
-        end
-    end
-end
-
-local function applyGunMods()
-    for _, weapon in ipairs(WeaponCache) do
-        if Settings_nr.GunMods.NoRecoil then
-            weapon.Recoil=0; weapon.CameraRecoilingEnabled=false;
-            weapon.AngleX_Min=0; weapon.AngleX_Max=0;
-            weapon.AngleY_Min=0; weapon.AngleY_Max=0;
-            weapon.AngleZ_Min=0; weapon.AngleZ_Max=0;
-        end
-        if Settings_nr.GunMods.Spread then weapon.Spread=Settings_nr.GunMods.SpreadAmount end
-    end
-end
-
-local function resetGunMods()
-    for weapon, values in pairs(GlobalOriginalValues) do
-        weapon.Recoil=values.Recoil; weapon.CameraRecoilingEnabled=values.CameraRecoilingEnabled;
-        weapon.AngleX_Min=values.AngleX_Min; weapon.AngleX_Max=values.AngleX_Max;
-        weapon.AngleY_Min=values.AngleY_Min; weapon.AngleY_Max=values.AngleY_Max;
-        weapon.AngleZ_Min=values.AngleZ_Min; weapon.AngleZ_Max=values.AngleZ_Max;
-        weapon.Spread=values.Spread;
-    end
-end
-
-local function handleWeapon(weapon)
-    if NoRecoil_Enabled then
-        task.wait(0.1); cacheWeapons(); applyGunMods()
-    end
-end
-
-local function onCharacterAdded_nr(character)
-    for _, child in ipairs(character:GetChildren()) do if child:IsA("Tool") then handleWeapon(child) end end
-    table.insert(NoRecoil_Connections, character.ChildAdded:Connect(function(child) if child:IsA("Tool") then handleWeapon(child) end end))
-    local humanoid=character:WaitForChild("Humanoid",2)
-    if humanoid then
-        table.insert(NoRecoil_Connections, humanoid.Died:Connect(function() if NoRecoil_Enabled then task.wait(1.5); cacheWeapons(); applyGunMods() end end))
-    end
-end
-
-function NoRecoil_Enable()
-    if NoRecoil_Enabled then return end
-    NoRecoil_Enabled=true
-    cacheWeapons(); applyGunMods()
-    table.insert(NoRecoil_Connections, Player_nr.CharacterAdded:Connect(onCharacterAdded_nr))
-    if Player_nr.Character then onCharacterAdded_nr(Player_nr.Character) end
-end
-
-function NoRecoil_Disable()
-    if not NoRecoil_Enabled then return end
-    NoRecoil_Enabled=false
-    resetGunMods()
-    for _, conn in ipairs(NoRecoil_Connections) do conn:Disconnect() end
-    NoRecoil_Connections={}
-end
-
--- MODÜL: Melee Aura
+--=================== MELEE AURA =====================--
 local MeleeAura_Enabled = false
 local MeleeAura_Connection = nil
 
@@ -1061,7 +1017,7 @@ function MeleeAura_Disable()
     end
 end
 
--- MODÜL: Ragebot
+--======================= RAGEBOT =======================--
 local Ragebot_Enabled = false
 local Ragebot_Coroutine = nil
 local Ragebot_Target = nil
@@ -1147,7 +1103,7 @@ function Ragebot_Disable()
     Ragebot_Enabled = false
 end
 
--- MODÜL: Aimbot
+--======================= AIMBOT =========================--
 local players_aim = Players
 local localPlayer_aim = LocalPlayer
 local CurrentCamera_aim = workspace.CurrentCamera
@@ -1329,7 +1285,157 @@ function Aimbot_Disable()
     else warn("Cannot disable Aimbot: AimBotSettings is nil") end
 end
 
--- MODÜL: Invisibility
+--======================= INFINITE STAMINA =========================--
+local isInfiniteStaminaEnabled = false
+local oldStaminaFunction = nil
+local targetFunction = nil
+
+do
+    local success_hook, result_hook = pcall(function()
+        local env = nil
+        local success_env1, env1 = pcall(getrenv)
+        if success_env1 then env = env1 else local success_env2, env2 = pcall(getfenv); if success_env2 then env = env2 end end
+        if env and env._G and env._G.S_Take then
+            local success_upval, upval = pcall(getupvalue, env._G.S_Take, 2)
+            if success_upval and type(upval) == 'function' then targetFunction = upval end
+        end
+        if targetFunction then
+            local hookSuccess, hookResult = pcall(function()
+                oldStaminaFunction = hookfunction(targetFunction, function(v1, ...)
+                    local args = {...}
+                    if isInfiniteStaminaEnabled then return oldStaminaFunction(0, unpack(args))
+                    else return oldStaminaFunction(v1, unpack(args)) end
+                end)
+            end)
+            if not hookSuccess then oldStaminaFunction = nil end
+        end
+    end)
+end
+
+function InfiniteStamina_Enable()
+    if not oldStaminaFunction then return end
+    isInfiniteStaminaEnabled = true
+end
+
+function InfiniteStamina_Disable()
+    isInfiniteStaminaEnabled = false
+end
+
+--======================= NO RECOIL =========================--
+local NoRecoil_Enabled=false
+local NoRecoil_Connections={}
+local GlobalOriginalValues={}
+local WeaponCache={}
+local Settings_nr={GunMods={NoRecoil=true,Spread=true,SpreadAmount=0}}
+local Player_nr=LocalPlayer
+
+local function cacheWeapons()
+    WeaponCache={}
+    for _, v in pairs(getgc(true)) do
+        if type(v)=='table' and rawget(v,'EquipTime') then
+            table.insert(WeaponCache, v)
+            if not GlobalOriginalValues[v] then
+                GlobalOriginalValues[v]={
+                    Recoil=v.Recoil,CameraRecoilingEnabled=v.CameraRecoilingEnabled,
+                    AngleX_Min=v.AngleX_Min,AngleX_Max=v.AngleX_Max,
+                    AngleY_Min=v.AngleY_Min,AngleY_Max=v.AngleY_Max,
+                    AngleZ_Min=v.AngleZ_Min,AngleZ_Max=v.AngleZ_Max,
+                    Spread=v.Spread
+                }
+            end
+        end
+    end
+end
+
+local function applyGunMods()
+    for _, weapon in ipairs(WeaponCache) do
+        if Settings_nr.GunMods.NoRecoil then
+            weapon.Recoil=0; weapon.CameraRecoilingEnabled=false;
+            weapon.AngleX_Min=0; weapon.AngleX_Max=0;
+            weapon.AngleY_Min=0; weapon.AngleY_Max=0;
+            weapon.AngleZ_Min=0; weapon.AngleZ_Max=0;
+        end
+        if Settings_nr.GunMods.Spread then weapon.Spread=Settings_nr.GunMods.SpreadAmount end
+    end
+end
+
+local function resetGunMods()
+    for weapon, values in pairs(GlobalOriginalValues) do
+        weapon.Recoil=values.Recoil; weapon.CameraRecoilingEnabled=values.CameraRecoilingEnabled;
+        weapon.AngleX_Min=values.AngleX_Min; weapon.AngleX_Max=values.AngleX_Max;
+        weapon.AngleY_Min=values.AngleY_Min; weapon.AngleY_Max=values.AngleY_Max;
+        weapon.AngleZ_Min=values.AngleZ_Min; weapon.AngleZ_Max=values.AngleZ_Max;
+        weapon.Spread=values.Spread;
+    end
+end
+
+local function handleWeapon(weapon)
+    if NoRecoil_Enabled then
+        task.wait(0.1); cacheWeapons(); applyGunMods()
+    end
+end
+
+local function onCharacterAdded_nr(character)
+    for _, child in ipairs(character:GetChildren()) do if child:IsA("Tool") then handleWeapon(child) end end
+    table.insert(NoRecoil_Connections, character.ChildAdded:Connect(function(child) if child:IsA("Tool") then handleWeapon(child) end end))
+    local humanoid=character:WaitForChild("Humanoid",2)
+    if humanoid then
+        table.insert(NoRecoil_Connections, humanoid.Died:Connect(function() if NoRecoil_Enabled then task.wait(1.5); cacheWeapons(); applyGunMods() end end))
+    end
+end
+
+function NoRecoil_Enable()
+    if NoRecoil_Enabled then return end
+    NoRecoil_Enabled=true
+    cacheWeapons(); applyGunMods()
+    table.insert(NoRecoil_Connections, Player_nr.CharacterAdded:Connect(onCharacterAdded_nr))
+    if Player_nr.Character then onCharacterAdded_nr(Player_nr.Character) end
+end
+
+function NoRecoil_Disable()
+    if not NoRecoil_Enabled then return end
+    NoRecoil_Enabled=false
+    resetGunMods()
+    for _, conn in ipairs(NoRecoil_Connections) do conn:Disconnect() end
+    NoRecoil_Connections={}
+end
+
+--======================= ESP (WALLHACK) =========================--
+local ESP_Enabled=false
+local ESP_Loading=false
+local LastToggleTime=0
+local DEBOUNCE_TIME=0.5
+
+function ESP_Enable()
+    if os.clock()-LastToggleTime<DEBOUNCE_TIME then return end
+    LastToggleTime=os.clock()
+    if ESP_Loading or ESP_Enabled then return end
+    ESP_Loading=true
+    local success, err=pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/kskdkdkdmsmdmdm0-dot/lolsjkskf/refs/heads/main/walhaczek", true))()
+        ESP_Enabled=true
+        ESP_Loading=false
+    end)
+    if not success then
+        warn("ESP Error: "..tostring(err))
+        ESP_Loading=false
+        ESP_Enabled=false
+    end
+end
+
+function ESP_Disable()
+    if os.clock()-LastToggleTime<DEBOUNCE_TIME then return end
+    LastToggleTime=os.clock()
+    if not ESP_Enabled then return end
+    ESP_Enabled=false
+    local coreGui=game:GetService("CoreGui")
+    for _, name in pairs({"Folder","ESP_Holder","ESP_Folder","ESP"}) do
+        local folder=coreGui:FindFirstChild(name)
+        if folder then folder:Destroy() end
+    end
+end
+
+--======================= INVISIBILITY =========================--
 local Invis_Fixed = true
 do
     repeat task.wait() until game:IsLoaded()
@@ -1511,7 +1617,7 @@ do
     _G.IsInvisEnabled = function() return InvisEnabled end
 end
 
--- MODÜL: Autofarm
+--======================= AUTOFARM =========================--
 local autofarmEnabled = false
 local autofarmCooldown = false
 local ignoredSafes = {}
@@ -1705,7 +1811,7 @@ LocalPlayer.CharacterAdded:Connect(function(character)
     Autofarm_Enable()
 end)
 
--- MODÜL: Shadow Mode
+--======================= SHADOW MODE =========================--
 local Shadow_Active = false
 local Shadow_Usable = true
 
@@ -1843,158 +1949,439 @@ do
     _G.IsShadowActive = function() return Shadow_Active end
 end
 
+
 -- ============================================================
--- UI TOGGLE BUTONLARI
+-- 5. UI FONKSİYONLARI (Toggle Row ve Kategoriler)
 -- ============================================================
 
-local function createToggleRow(labelText, getState, onEnable, onDisable)
-    local row = Instance.new("Frame")
-    row.Size = UDim2.new(1, -12, 0, 32)
-    row.BackgroundTransparency = 1
-    row.Parent = contentScroll
+local buttonHoverColor = Color3.fromRGB(40, 30, 35)
+local buttonColor = Color3.fromRGB(20, 18, 20)
+local buttonStrokeColor = Color3.fromRGB(180, 20, 20)
+local buttonTextColor = Color3.fromRGB(210, 200, 200)
+local buttonOnColor = Color3.fromRGB(200, 30, 30)
+local buttonOffColor = Color3.fromRGB(60, 40, 40)
+
+local activeBinds = {}
+local currentRowWaitingForKey = nil
+local bindButtonReferences = {}
+local keyBindGetters = {}
+local keyBindSetters = {}
+local rowFunctionData = {}
+
+local function createToggleRowFrame(scriptName, canToggle, isEnabledFn, onEnable, onDisable, getKeyBindFn, setKeyBindFn)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, -20, 0, 35)
+    frame.BackgroundTransparency = 1
+    frame.Name = scriptName:gsub("%s+", "")
+
+    local horizontalLayout = Instance.new("UIListLayout")
+    horizontalLayout.FillDirection = Enum.FillDirection.Horizontal
+    horizontalLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+    horizontalLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+    horizontalLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    horizontalLayout.Padding = UDim.new(0, 5)
+    horizontalLayout.Parent = frame
 
     local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(0.55, 0, 1, 0)
+    label.Size = UDim2.new(0.45, 0, 1, 0)
     label.BackgroundTransparency = 1
-    label.Text = labelText
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.TextColor3 = Color3.fromRGB(200, 190, 190)
+    label.Text = " " .. scriptName
+    label.TextColor3 = buttonTextColor
+    label.Font = Enum.Font.GothamSemibold
     label.TextSize = 13
-    label.Font = Enum.Font.Gotham
-    label.Parent = row
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.LayoutOrder = 1
+    label.Parent = frame
 
-    local toggleBtn = Instance.new("TextButton")
-    toggleBtn.Size = UDim2.new(0.35, 0, 0.8, 0)
-    toggleBtn.Position = UDim2.new(0.65, 0, 0.1, 0)
-    toggleBtn.BackgroundColor3 = Color3.fromRGB(200, 30, 30)
-    toggleBtn.BorderSizePixel = 0
-    toggleBtn.Text = "OFF"
-    toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    toggleBtn.TextSize = 11
-    toggleBtn.Font = Enum.Font.GothamBold
-    toggleBtn.AutoButtonColor = false
-    toggleBtn.Parent = row
+    local toggleButton = Instance.new("TextButton")
+    toggleButton.Size = UDim2.new(0.25, 0, 0.8, 0)
+    toggleButton.Font = Enum.Font.GothamBold
+    toggleButton.TextSize = 11
+    toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    toggleButton.BackgroundColor3 = buttonColor
+    toggleButton.BorderSizePixel = 0
+    toggleButton.AutoButtonColor = false
+    toggleButton.LayoutOrder = 2
+    toggleButton.Parent = frame
 
-    local btnCorner = Instance.new("UICorner", toggleBtn)
-    btnCorner.CornerRadius = UDim.new(0, 6)
+    local toggleCorner = Instance.new("UICorner")
+    toggleCorner.CornerRadius = UDim.new(0, 6)
+    toggleCorner.Parent = toggleButton
+    local toggleStroke = Instance.new("UIStroke")
+    toggleStroke.Color = buttonStrokeColor
+    toggleStroke.Thickness = 1
+    toggleStroke.Parent = toggleButton
 
-    local function updateToggle()
-        local state = getState()
-        if state then
-            toggleBtn.Text = "ON"
-            toggleBtn.BackgroundColor3 = Color3.fromRGB(200, 30, 30)
-        else
-            toggleBtn.Text = "OFF"
-            toggleBtn.BackgroundColor3 = Color3.fromRGB(60, 50, 50)
+    local bindButton = nil
+    local updateToggleButtonVisuals
+
+    local function getTargetToggleColor()
+        local enabledState = false
+        if type(isEnabledFn) == 'function' then
+            local success, result = pcall(isEnabledFn)
+            if success then enabledState = result end
         end
+        if not canToggle then return Color3.fromRGB(80, 80, 200)
+        elseif enabledState then return buttonOnColor
+        else return buttonOffColor end
     end
 
-    toggleBtn.MouseButton1Click:Connect(function()
-        local state = getState()
-        if state then
-            if onDisable then pcall(onDisable) end
-        else
-            if onEnable then pcall(onEnable) end
+    updateToggleButtonVisuals = function()
+        local enabledState = false
+        if type(isEnabledFn) == 'function' then
+            local success, result = pcall(isEnabledFn)
+            if success then enabledState = result end
         end
-        updateToggle()
-    end)
 
-    updateToggle()
-    return row
-end
+        local targetColor
+        if not canToggle then toggleButton.Text = "RUN"; targetColor = Color3.fromRGB(80, 80, 200)
+        elseif enabledState then toggleButton.Text = "ON"; targetColor = buttonOnColor
+        else toggleButton.Text = "OFF"; targetColor = buttonOffColor end
 
--- Tüm modülleri UI'ya ekle
-local modules = {
-    { name = "Autofarm", get = function() return autofarmEnabled end, enable = Autofarm_Enable, disable = Autofarm_Disable },
-    { name = "Fly", get = function() return Fly_Enabled end, enable = Fly_Enable, disable = Fly_Disable },
-    { name = "Noclip", get = function() return Noclip_Enabled end, enable = Noclip_Enable, disable = Noclip_Disable },
-    { name = "FullBright", get = function() return FullBright_Enabled end, enable = FullBright_Enable, disable = FullBright_Disable },
-    { name = "FOV", get = function() return Fov_Enabled end, enable = Fov_Enable, disable = Fov_Disable },
-    { name = "No Fail Lockpick", get = function() return NoFailLockpick_Enabled end, enable = NoFailLockpick_Enable, disable = NoFailLockpick_Disable },
-    { name = "Safe ESP", get = function() return BredMakurz_Enabled end, enable = BredMakurz_Enable, disable = BredMakurz_Disable },
-    { name = "ESP", get = function() return ESP_Enabled end, enable = ESP_Enable, disable = ESP_Disable },
-    { name = "No Recoil", get = function() return NoRecoil_Enabled end, enable = NoRecoil_Enable, disable = NoRecoil_Disable },
-    { name = "Melee Aura", get = function() return MeleeAura_Enabled end, enable = MeleeAura_Enable, disable = MeleeAura_Disable },
-    { name = "Ragebot", get = function() return Ragebot_Enabled end, enable = Ragebot_Enable, disable = Ragebot_Disable },
-    { name = "Aimbot", get = function() return AimBotSettings.Enabled end, enable = Aimbot_Enable, disable = Aimbot_Disable },
-    { name = "Invisibility", get = function() return _G.IsInvisEnabled and _G.IsInvisEnabled() or false end, enable = _G.Invis_Enable, disable = _G.Invis_Disable },
-    { name = "Auto Pickup Money", get = function() return AutoPickupMoney_Enabled end, enable = AutoPickupMoney_Enable, disable = AutoPickupMoney_Disable },
-    { name = "Open Doors", get = function() return OpenNearbyDoors_Enabled end, enable = OpenNearbyDoors_Enable, disable = OpenNearbyDoors_Disable },
-    { name = "Unlock Doors", get = function() return UnlockNearbyDoors_Enabled end, enable = UnlockNearbyDoors_Enable, disable = UnlockNearbyDoors_Disable },
-    { name = "Infinite Stamina", get = function() return isInfiniteStaminaEnabled end, enable = InfiniteStamina_Enable, disable = InfiniteStamina_Disable },
-    { name = "Staff Detector", get = function() return AdminCheck_Enabled end, enable = AdminCheck_Enable, disable = AdminCheck_Disable },
-    { name = "Anti AFK", get = function() return AntiAFK_Enabled_Dummy end, enable = AntiAFK_Enable, disable = AntiAFK_Disable },
-}
+        toggleButton.BackgroundColor3 = targetColor
+    end
 
-for _, mod in ipairs(modules) do
-    createToggleRow(mod.name, mod.get, mod.enable, mod.disable)
-end
+    rowFunctionData[frame] = {
+        isEnabledFn = isEnabledFn,
+        onEnable = onEnable,
+        onDisable = onDisable,
+        canToggle = canToggle,
+        updateFn = updateToggleButtonVisuals
+    }
 
--- Canvas güncelle
-task.wait(0.1)
-local childCount = #contentScroll:GetChildren()
-contentScroll.CanvasSize = UDim2.new(0, 0, 0, childCount * 38 + 20)
+    if getKeyBindFn and setKeyBindFn then
+        bindButton = Instance.new("TextButton")
+        bindButton.Size = UDim2.new(0.25, 0, 0.8, 0)
+        bindButton.Font = Enum.Font.GothamMedium
+        bindButton.TextSize = 11
+        bindButton.TextColor3 = buttonTextColor
+        bindButton.BackgroundColor3 = Color3.fromRGB(35, 28, 30)
+        bindButton.BorderSizePixel = 0
+        bindButton.AutoButtonColor = false
+        bindButton.LayoutOrder = 3
+        bindButton.Parent = frame
 
--- ============================================================
--- SÜRÜKLEME VE KONTROLLER
--- ============================================================
+        local bindCorner = Instance.new("UICorner"); bindCorner.CornerRadius = UDim.new(0, 6); bindCorner.Parent = bindButton
+        local bindStroke = Instance.new("UIStroke"); bindStroke.Color = buttonStrokeColor; bindStroke.Thickness = 1; bindStroke.Parent = bindButton
 
-local function makeDraggable(frame, handle)
-    local dragging = false
-    local dragStart, startPos
+        bindButtonReferences[frame] = bindButton
+        keyBindGetters[frame] = getKeyBindFn
+        keyBindSetters[frame] = setKeyBindFn
 
-    handle.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-            dragStart = input.Position
-            startPos = frame.Position
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then dragging = false end
-            end)
+        local initialKey = nil
+        local success, result = pcall(getKeyBindFn)
+        if success and result and typeof(result)=="EnumItem" then
+            initialKey = result
+            if rowFunctionData[frame] then
+                activeBinds[initialKey] = {
+                    frame = frame,
+                    toggleButton = toggleButton,
+                    isEnabledFn = rowFunctionData[frame].isEnabledFn,
+                    onEnable = rowFunctionData[frame].onEnable,
+                    onDisable = rowFunctionData[frame].onDisable,
+                    canToggle = rowFunctionData[frame].canToggle,
+                    updateFn = rowFunctionData[frame].updateFn
+                }
+            end
         end
-    end)
-
-    UserInputService.InputChanged:Connect(function(input)
-        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-            local delta = input.Position - dragStart
-            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        end
-    end)
-end
-
-makeDraggable(panel, titleBar)
-
--- Minimize
-local minimized = false
-local originalSize = panel.Size
-
-minimizeBtn.MouseButton1Click:Connect(function()
-    if not minimized then
-        panel.Size = UDim2.new(0, 90, 0, 35)
-        contentScroll.Visible = false
-        divider.Visible = false
-        minimized = true
-        minimizeBtn.Text = "+"
     else
-        panel.Size = originalSize
-        contentScroll.Visible = true
-        divider.Visible = true
-        minimized = false
-        minimizeBtn.Text = "-"
+        toggleButton.Size = UDim2.new(0.5, 0, 0.8, 0)
+        horizontalLayout.Padding = UDim.new(0, 10)
     end
-end)
 
--- Close
-closeBtn.MouseButton1Click:Connect(function()
-    screenGui:Destroy()
-end)
+    local function updateBindButtonText()
+        if not bindButton then return end
+        local kb = nil
+        if type(getKeyBindFn) == 'function' then
+            local success, result = pcall(getKeyBindFn)
+            if success then kb = result end
+        end
+        bindButton.Text = kb and typeof(kb)=="EnumItem" and kb.Name~="Unknown" and "["..kb.Name.."]" or "Bind"
+    end
 
--- [K] tuşu ile göster/gizle
+    updateToggleButtonVisuals()
+    updateBindButtonText()
+
+    toggleButton.MouseEnter:Connect(function()
+        local targetColor = getTargetToggleColor()
+        local hoverTargetColor = targetColor:Lerp(Color3.new(1, 1, 1), 0.15)
+        TweenService:Create(toggleButton, TweenInfo.new(0.1), { BackgroundColor3 = hoverTargetColor }):Play()
+    end)
+    toggleButton.MouseLeave:Connect(function()
+        local targetColor = getTargetToggleColor()
+        TweenService:Create(toggleButton, TweenInfo.new(0.1), { BackgroundColor3 = targetColor }):Play()
+    end)
+
+    if bindButton then
+        bindButton.MouseEnter:Connect(function()
+            TweenService:Create(bindButton, TweenInfo.new(0.1), { BackgroundColor3 = Color3.fromRGB(55, 40, 45) }):Play()
+        end)
+        bindButton.MouseLeave:Connect(function()
+            TweenService:Create(bindButton, TweenInfo.new(0.1), { BackgroundColor3 = Color3.fromRGB(35, 28, 30) }):Play()
+        end)
+
+        local capturingKey = false
+        bindButton.MouseButton1Click:Connect(function()
+            if currentRowWaitingForKey and currentRowWaitingForKey ~= frame then
+                local prevBindButton=bindButtonReferences[currentRowWaitingForKey]
+                if prevBindButton then
+                    local getter=keyBindGetters[currentRowWaitingForKey]
+                    local prevKeyText="Bind"; if getter then local s,r=pcall(getter); if s and r and typeof(r)=="EnumItem" then prevKeyText="["..r.Name.."]" end end
+                    prevBindButton.Text=prevKeyText
+                end
+            end
+            if capturingKey then
+                capturingKey=false; updateBindButtonText(); currentRowWaitingForKey=nil
+            else
+                capturingKey=true; bindButton.Text="..."; currentRowWaitingForKey=frame
+                task.delay(5, function()
+                    if capturingKey and currentRowWaitingForKey==frame then
+                        capturingKey=false; updateBindButtonText(); currentRowWaitingForKey=nil
+                    end
+                end)
+            end
+        end)
+    end
+
+    toggleButton.MouseButton1Click:Connect(function()
+        local enabledState = false
+        if type(isEnabledFn)=='function' then
+            local s,r=pcall(isEnabledFn)
+            if s then enabledState=r end
+        end
+        if not canToggle then
+            if type(onEnable)=='function' then pcall(onEnable) end
+            toggleButton.Text="DONE"
+            toggleButton.BackgroundColor3=buttonOnColor
+            toggleButton.Active=false
+            if bindButton then bindButton.Active=false end
+            return
+        end
+        if enabledState then
+            if type(onDisable)=='function' then pcall(onDisable) end
+        else
+            if type(onEnable)=='function' then pcall(onEnable) end
+        end
+        updateToggleButtonVisuals()
+    end)
+
+    return frame
+end
+
+
+-- ============================================================
+-- 6. KATEGORİLER ve TOGGLE'LAR
+-- ============================================================
+
+local Categories = { "Combat", "Movement", "Visuals", "Farming", "Misc", "Rage" }
+local CategoryButtons = {}
+local CategoryFrames = {}
+local ActiveCategoryButton = nil
+local DefaultCategory = "Combat"
+
+-- Kategori butonları
+for i, categoryName in ipairs(Categories) do
+    CategoryFrames[categoryName] = {}
+
+    local catButton = Instance.new("TextButton")
+    catButton.Name = categoryName .. "Button"
+    catButton.Size = UDim2.new(1, -10, 0, 30)
+    catButton.BackgroundColor3 = Color3.fromRGB(15, 12, 15)
+    catButton.BorderSizePixel = 0
+    catButton.AutoButtonColor = false
+    catButton.LayoutOrder = i
+    catButton.Parent = sidebarFrame
+
+    local catCorner = Instance.new("UICorner")
+    catCorner.CornerRadius = UDim.new(0, 6)
+    catCorner.Parent = catButton
+
+    local catLabel = Instance.new("TextLabel")
+    catLabel.Name = "TextLabel"
+    catLabel.Size = UDim2.new(1, 0, 1, 0)
+    catLabel.BackgroundTransparency = 1
+    catLabel.Text = categoryName
+    catLabel.Font = Enum.Font.GothamSemibold
+    catLabel.TextSize = 14
+    catLabel.TextColor3 = Color3.fromRGB(180, 160, 160)
+    catLabel.Parent = catButton
+
+    catButton.MouseEnter:Connect(function()
+        if catButton ~= ActiveCategoryButton then
+            TweenService:Create(catButton, TweenInfo.new(0.1), { BackgroundColor3 = Color3.fromRGB(25, 18, 22) }):Play()
+        end
+    end)
+    catButton.MouseLeave:Connect(function()
+        if catButton ~= ActiveCategoryButton then
+            TweenService:Create(catButton, TweenInfo.new(0.1), { BackgroundColor3 = Color3.fromRGB(15, 12, 15) }):Play()
+        end
+    end)
+
+    catButton.MouseButton1Click:Connect(function()
+        local categoryButton = catButton
+        if not categoryButton or categoryButton == ActiveCategoryButton then return end
+
+        if ActiveCategoryButton then
+            TweenService:Create(ActiveCategoryButton, TweenInfo.new(0.2), { BackgroundColor3 = Color3.fromRGB(15, 12, 15) }):Play()
+            ActiveCategoryButton.TextLabel.TextColor3 = Color3.fromRGB(180, 160, 160)
+        end
+
+        TweenService:Create(categoryButton, TweenInfo.new(0.2), { BackgroundColor3 = Color3.fromRGB(35, 25, 30) }):Play()
+        categoryButton.TextLabel.TextColor3 = Color3.fromRGB(220, 200, 200)
+        ActiveCategoryButton = categoryButton
+
+        for _, child in ipairs(contentFrame:GetChildren()) do
+            if child:IsA("Frame") and child.Name ~= "UIListLayout" and child.Name ~= "UICorner" then
+                child.Parent = nil
+            end
+        end
+
+        if CategoryFrames[categoryName] then
+            for i, frame in ipairs(CategoryFrames[categoryName]) do
+                frame.Parent = contentFrame
+                frame.LayoutOrder = i
+            end
+            local numItems = #CategoryFrames[categoryName]
+            local itemHeight = 35
+            local padding = contentLayout.Padding.Offset
+            contentFrame.CanvasSize = UDim2.new(0, 0, 0, numItems * itemHeight + (numItems > 0 and (numItems - 1) * padding or 0) + 10)
+        else
+            contentFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+        end
+    end)
+
+    CategoryButtons[categoryName] = catButton
+end
+
+-- Keybind handler
 UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
-    if not gameProcessedEvent and input.KeyCode == Enum.KeyCode.K then
-        panel.Visible = not panel.Visible
+    if gameProcessedEvent then return end
+    local keyCode = input.KeyCode
+    if keyCode == Enum.KeyCode.Unknown then return end
+
+    if currentRowWaitingForKey then
+        local frame = currentRowWaitingForKey
+        local bindButton = bindButtonReferences[frame]
+        local getKeyFn = keyBindGetters[frame]
+        local setKeyFn = keyBindSetters[frame]
+        local frameData = rowFunctionData[frame]
+
+        if bindButton and getKeyFn and setKeyFn and frameData then
+            local oldKey = nil
+            local successGet, resultGet = pcall(getKeyFn)
+            if successGet then oldKey = resultGet end
+
+            if oldKey and activeBinds[oldKey] and activeBinds[oldKey].frame == frame then
+                activeBinds[oldKey] = nil
+            end
+
+            if activeBinds[keyCode] and activeBinds[keyCode].frame ~= frame then
+                local otherFrame = activeBinds[keyCode].frame
+                local otherBindButton = bindButtonReferences[otherFrame]
+                local otherSetKeyFn = keyBindSetters[otherFrame]
+                if otherSetKeyFn then pcall(otherSetKeyFn, nil) end
+                if otherBindButton then otherBindButton.Text = "Bind" end
+                activeBinds[keyCode] = nil
+            end
+
+            pcall(setKeyFn, keyCode)
+
+            local toggleButton
+            for _, child in ipairs(frame:GetChildren()) do
+                if child:IsA("TextButton") and child ~= bindButton then toggleButton = child; break end
+            end
+
+            if toggleButton then
+                activeBinds[keyCode] = {
+                    frame = frame,
+                    toggleButton = toggleButton,
+                    isEnabledFn = frameData.isEnabledFn,
+                    onEnable = frameData.onEnable,
+                    onDisable = frameData.onDisable,
+                    canToggle = frameData.canToggle,
+                    updateFn = frameData.updateFn
+                }
+            end
+
+            bindButton.Text = "[" .. input.KeyCode.Name .. "]"
+            currentRowWaitingForKey = nil
+        else
+            if bindButton then bindButton.Text = "Bind" end
+            currentRowWaitingForKey = nil
+        end
+    elseif activeBinds[keyCode] then
+        local bindInfo = activeBinds[keyCode]
+        if bindInfo.frame and bindInfo.isEnabledFn and bindInfo.onEnable and bindInfo.onDisable and bindInfo.updateFn and bindInfo.canToggle ~= nil then
+            if bindInfo.canToggle then
+                local success, currentState = pcall(bindInfo.isEnabledFn)
+                if success then
+                    if currentState then
+                        pcall(bindInfo.onDisable)
+                    else
+                        pcall(bindInfo.onEnable)
+                    end
+                    task.wait()
+                    pcall(bindInfo.updateFn)
+                end
+            end
+        end
     end
 end)
+
+-- Tüm modülleri kategorilere ekle
+local function addToCategory(category, name, getState, enable, disable, getBind, setBind)
+    table.insert(CategoryFrames[category], createToggleRowFrame(name, true, getState, enable, disable, getBind, setBind))
+end
+
+-- Combat
+addToCategory("Combat", "Melee Aura", function() return MeleeAura_Enabled end, MeleeAura_Enable, MeleeAura_Disable)
+addToCategory("Combat", "Aimbot", function() return AimBotSettings.Enabled end, Aimbot_Enable, Aimbot_Disable)
+addToCategory("Combat", "No Recoil", function() return NoRecoil_Enabled end, NoRecoil_Enable, NoRecoil_Disable)
+
+-- Movement
+addToCategory("Movement", "Fly", function() return Fly_Enabled end, Fly_Enable, Fly_Disable)
+addToCategory("Movement", "Noclip", function() return Noclip_Enabled end, Noclip_Enable, Noclip_Disable)
+addToCategory("Movement", "Infinite Stamina", function() return isInfiniteStaminaEnabled end, InfiniteStamina_Enable, InfiniteStamina_Disable)
+
+-- Visuals
+addToCategory("Visuals", "ESP", function() return ESP_Enabled end, ESP_Enable, ESP_Disable)
+addToCategory("Visuals", "Invisibility", function() return _G.IsInvisEnabled and _G.IsInvisEnabled() or false end, _G.Invis_Enable, _G.Invis_Disable)
+addToCategory("Visuals", "Safe ESP", function() return BredMakurz_Enabled end, BredMakurz_Enable, BredMakurz_Disable)
+addToCategory("Visuals", "FullBright", function() return FullBright_Enabled end, FullBright_Enable, FullBright_Disable)
+addToCategory("Visuals", "FOV", function() return Fov_Enabled end, Fov_Enable, Fov_Disable)
+
+-- Farming
+addToCategory("Farming", "Autofarm", function() return autofarmEnabled end, Autofarm_Enable, Autofarm_Disable)
+addToCategory("Farming", "Auto Pickup Money", function() return AutoPickupMoney_Enabled end, AutoPickupMoney_Enable, AutoPickupMoney_Disable)
+
+-- Misc
+addToCategory("Misc", "Staff Detector", function() return AdminCheck_Enabled end, AdminCheck_Enable, AdminCheck_Disable)
+addToCategory("Misc", "No Fail Lockpick", function() return NoFailLockpick_Enabled end, NoFailLockpick_Enable, NoFailLockpick_Disable)
+addToCategory("Misc", "Auto Unlock Doors", function() return UnlockNearbyDoors_Enabled end, UnlockNearbyDoors_Enable, UnlockNearbyDoors_Disable)
+addToCategory("Misc", "Auto Open Doors", function() return OpenNearbyDoors_Enabled end, OpenNearbyDoors_Enable, OpenNearbyDoors_Disable)
+addToCategory("Misc", "Anti AFK", function() return AntiAFK_Enabled_Dummy end, AntiAFK_Enable, AntiAFK_Disable)
+
+-- Rage
+addToCategory("Rage", "Ragebot", function() return Ragebot_Enabled end, Ragebot_Enable, Ragebot_Disable)
+
+-- Default kategoriyi göster
+local function switchToDefault()
+    local defaultBtn = CategoryButtons[DefaultCategory]
+    if defaultBtn then
+        defaultBtn.MouseButton1Click:Fire()
+    end
+end
+
+-- Animasyonlu açılış
+mainFrame.Size = UDim2.new(0, 0, 0, 0)
+task.wait(0.1)
+local openTween = TweenService:Create(mainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+    Size = UDim2.new(0, 450, 0, 350)
+})
+openTween:Play()
+
+task.wait(0.5)
+switchToDefault()
 
 print("SANTES HUB v2.0 Loaded Successfully!")
 
