@@ -1,8 +1,6 @@
 -- ============================================
--- SANTES HUB LOADER + YENİ UI (Kırmızı-Siyah)
+-- SANTES HUB LOADER (Sadece Card - 7 Saniye)
 -- ============================================
-
--- ========== LOADER (CoreGui) ==========
 
 local loaderGui = Instance.new("ScreenGui")
 loaderGui.Name = "SantesHubLoader"
@@ -12,24 +10,7 @@ loaderGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 loaderGui.DisplayOrder = 1000
 loaderGui.Parent = game:GetService("CoreGui")
 
-local backdrop = Instance.new("Frame")
-backdrop.Name = "Backdrop"
-backdrop.Size = UDim2.new(1, 0, 1, 0)
-backdrop.BackgroundColor3 = Color3.fromRGB(5, 5, 6)
-backdrop.BorderSizePixel = 0
-backdrop.Parent = loaderGui
-
-local glow = Instance.new("ImageLabel")
-glow.Name = "AmbientGlow"
-glow.AnchorPoint = Vector2.new(0.5, 0.5)
-glow.Position = UDim2.new(0.5, 0, 0.5, 0)
-glow.Size = UDim2.new(0, 700, 0, 700)
-glow.BackgroundTransparency = 1
-glow.Image = "rbxassetid://5028857084"
-glow.ImageColor3 = Color3.fromRGB(180, 20, 20)
-glow.ImageTransparency = 0.55
-glow.Parent = backdrop
-
+-- Sadece Card (Arka plan yok, transparan)
 local card = Instance.new("Frame")
 card.Name = "Card"
 card.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -37,7 +18,7 @@ card.Position = UDim2.new(0.5, 0, 0.5, 0)
 card.Size = UDim2.new(0, 380, 0, 220)
 card.BackgroundColor3 = Color3.fromRGB(12, 10, 12)
 card.BorderSizePixel = 0
-card.Parent = backdrop
+card.Parent = loaderGui
 
 local cardCorner = Instance.new("UICorner", card)
 cardCorner.CornerRadius = UDim.new(0, 16)
@@ -54,6 +35,7 @@ cardGradient.Color = ColorSequence.new({
 })
 cardGradient.Rotation = 90
 
+-- Top accent bar (kırmızı)
 local accentBar = Instance.new("Frame")
 accentBar.Name = "AccentBar"
 accentBar.Size = UDim2.new(1, 0, 0, 3)
@@ -72,6 +54,7 @@ accentGradient.Color = ColorSequence.new({
     ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 10, 10)),
 })
 
+-- Title
 local title = Instance.new("TextLabel")
 title.Name = "Title"
 title.Size = UDim2.new(1, 0, 0, 44)
@@ -101,6 +84,7 @@ subtitle.TextSize = 13
 subtitle.Font = Enum.Font.Gotham
 subtitle.Parent = card
 
+-- Loading bar
 local barBg = Instance.new("Frame")
 barBg.Name = "BarBackground"
 barBg.Size = UDim2.new(0.8, 0, 0, 6)
@@ -128,6 +112,7 @@ barGradient.Color = ColorSequence.new({
     ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 60, 60)),
 })
 
+-- Bar glow
 local barGlow = Instance.new("Frame")
 barGlow.Name = "BarGlow"
 barGlow.AnchorPoint = Vector2.new(1, 0.5)
@@ -142,6 +127,7 @@ barGlow.Parent = bar
 local barGlowCorner = Instance.new("UICorner", barGlow)
 barGlowCorner.CornerRadius = UDim.new(1, 0)
 
+-- Status text
 local statusText = Instance.new("TextLabel")
 statusText.Name = "StatusText"
 statusText.Size = UDim2.new(1, 0, 0, 18)
@@ -153,6 +139,7 @@ statusText.TextSize = 12
 statusText.Font = Enum.Font.Code
 statusText.Parent = card
 
+-- Footer
 local footer = Instance.new("TextLabel")
 footer.Name = "Footer"
 footer.Size = UDim2.new(1, 0, 0, 18)
@@ -164,67 +151,54 @@ footer.TextSize = 10
 footer.Font = Enum.Font.Gotham
 footer.Parent = card
 
-local function pulseGlow()
-    task.spawn(function()
-        while glow.Parent do
-            local tweenIn = TweenService:Create(glow, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-                ImageTransparency = 0.4,
-            })
-            local tweenOut = TweenService:Create(glow, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-                ImageTransparency = 0.65,
-            })
-            tweenIn:Play()
-            tweenIn.Completed:Wait()
-            tweenOut:Play()
-            tweenOut.Completed:Wait()
-        end
-    end)
-end
-
+-- ===== Loading sequence (7 saniye) =====
 local function animateLoader()
-    pulseGlow()
-
     local steps = {
-        { progress = 0.15, text = "Loading Santes Hub..." },
-        { progress = 0.35, text = "Loading modules..." },
-        { progress = 0.55, text = "Connecting to server..." },
-        { progress = 0.75, text = "Finalizing setup..." },
-        { progress = 0.90, text = "Preparing UI..." },
+        { progress = 0.10, text = "Loading Santes Hub..." },
+        { progress = 0.25, text = "Loading modules..." },
+        { progress = 0.40, text = "Connecting to server..." },
+        { progress = 0.55, text = "Finalizing setup..." },
+        { progress = 0.70, text = "Preparing UI..." },
+        { progress = 0.85, text = "Almost ready..." },
         { progress = 1.0, text = "Ready!" },
     }
 
+    local totalTime = 7 -- 7 saniye
+    local stepTime = totalTime / #steps
+
     for _, step in ipairs(steps) do
         statusText.Text = step.text
-        local tween = TweenService:Create(bar, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        local tween = TweenService:Create(bar, TweenInfo.new(stepTime * 0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
             Size = UDim2.new(step.progress, 0, 1, 0),
         })
         tween:Play()
         tween.Completed:Wait()
-        task.wait(0.2)
+        task.wait(stepTime * 0.4)
     end
 
     statusText.Text = "✓ Santes Hub Loaded!"
     statusText.TextColor3 = Color3.fromRGB(255, 80, 80)
     task.wait(0.5)
 
-    local fadeOut = TweenService:Create(backdrop, TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+    -- Fade out
+    local cardFade = TweenService:Create(card, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
         BackgroundTransparency = 1,
     })
-    local cardFade = TweenService:Create(card, TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
-        BackgroundTransparency = 1,
-    })
-    fadeOut:Play()
     cardFade:Play()
-    fadeOut.Completed:Wait()
+    cardFade.Completed:Wait()
 
     loaderGui:Destroy()
     
+    -- ========== ANA SCRIPTİ BAŞLAT ==========
     StartSantesHub()
 end
 
+-- Loader'ı başlat
+animateLoader()
+
 
 -- ============================================================
--- SANTES HUB ANA UI (Yeni UI Tasarımı)
+-- SANTES HUB ANA SCRIPT (Tüm Modüller ile)
 -- ============================================================
 
 function StartSantesHub()
@@ -251,7 +225,7 @@ local oldGui = PlayerGui:FindFirstChild("SantesHubScreenGui")
 if oldGui then oldGui:Destroy() end
 
 -- ============================================================
--- YENİ UI (Stats Overlay Tasarımından Uyarlanmış)
+-- ANA UI (Kırmızı-Siyah Tema)
 -- ============================================================
 
 local screenGui = Instance.new("ScreenGui")
@@ -261,7 +235,6 @@ screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.DisplayOrder = 50
 screenGui.Parent = PlayerGui
 
--- Ana Panel (Kırmızı-Siyah)
 local panel = Instance.new("Frame")
 panel.Name = "MainPanel"
 panel.Size = UDim2.new(0, 320, 0, 380)
@@ -304,7 +277,6 @@ titleLabel.TextSize = 16
 titleLabel.Font = Enum.Font.GothamBold
 titleLabel.Parent = titleBar
 
--- Minimize Button
 local minimizeBtn = Instance.new("TextButton")
 minimizeBtn.Name = "MinimizeButton"
 minimizeBtn.Size = UDim2.new(0, 24, 0, 24)
@@ -321,7 +293,6 @@ minimizeBtn.Parent = titleBar
 local minBtnCorner = Instance.new("UICorner", minimizeBtn)
 minBtnCorner.CornerRadius = UDim.new(0, 6)
 
--- Close Button
 local closeBtn = Instance.new("TextButton")
 closeBtn.Name = "CloseButton"
 closeBtn.Size = UDim2.new(0, 24, 0, 24)
@@ -338,7 +309,6 @@ closeBtn.Parent = titleBar
 local closeBtnCorner = Instance.new("UICorner", closeBtn)
 closeBtnCorner.CornerRadius = UDim.new(0, 6)
 
--- Divider
 local divider = Instance.new("Frame")
 divider.Size = UDim2.new(1, -24, 0, 1)
 divider.Position = UDim2.new(0, 12, 0, 37)
@@ -347,7 +317,6 @@ divider.BackgroundTransparency = 0.75
 divider.BorderSizePixel = 0
 divider.Parent = panel
 
--- Scrollable Content Area
 local contentScroll = Instance.new("ScrollingFrame")
 contentScroll.Name = "ContentScroll"
 contentScroll.Size = UDim2.new(1, -16, 1, -50)
@@ -367,7 +336,7 @@ contentLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 contentLayout.Parent = contentScroll
 
 -- ============================================================
--- FUNKSIYONLAR (Modüller)
+-- TÜM MODÜLLER (Aynen korundu)
 -- ============================================================
 
 -- MODÜL: No Fail Lockpick
@@ -498,7 +467,7 @@ function BredMakurz_Disable()
     end
 end
 
--- MODÜL: Open Nearby Doors
+-- MODÜL: Open/Unlock Nearby Doors
 local OpenNearbyDoors_Enabled = false
 local UnlockNearbyDoors_Enabled = false
 local NearbyDoorInteraction_Coroutine = nil
@@ -768,7 +737,7 @@ function Noclip_Disable()
     originalCollisions = {}
 end
 
--- MODÜL: Infinite Stamina (Hook)
+-- MODÜL: Infinite Stamina
 local isInfiniteStaminaEnabled = false
 local oldStaminaFunction = nil
 local targetFunction = nil
@@ -916,7 +885,7 @@ function AdminCheck_Disable()
     if AdminCheck_Connection then AdminCheck_Connection:Disconnect() AdminCheck_Connection = nil end
 end
 
--- MODÜL: ESP / Wallhack
+-- MODÜL: ESP
 local ESP_Enabled = false
 local ESP_Loading = false
 local LastToggleTime = 0
@@ -1719,7 +1688,7 @@ local function Collector_Deactivate()
     AutoPickupMoney_Disable()
 end
 
-local function Autofarm_Enable()
+function Autofarm_Enable()
     if autofarmEnabled then return end
     autofarmEnabled = true
     _G.Invis_Enable()
@@ -1883,7 +1852,7 @@ do
 end
 
 -- ============================================================
--- UI ELEMANLARI (Toggle Butonları)
+-- UI TOGGLE BUTONLARI
 -- ============================================================
 
 local function createToggleRow(labelText, getState, onEnable, onDisable)
@@ -2038,6 +2007,3 @@ end)
 print("SANTES HUB v2.0 Loaded Successfully!")
 
 end -- StartSantesHub fonksiyonu sonu
-
--- Loader'ı başlat
-animateLoader()
