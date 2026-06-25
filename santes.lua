@@ -2,6 +2,8 @@
 -- SANTES HUB LOADER (Sadece Card - 7 Saniye)
 -- ============================================
 
+local TweenService = game:GetService("TweenService")
+
 local loaderGui = Instance.new("ScreenGui")
 loaderGui.Name = "SantesHubLoader"
 loaderGui.ResetOnSpawn = false
