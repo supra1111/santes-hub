@@ -26,110 +26,89 @@ if LocalPlayer then
     end)
 end
 
--- ============================================================
--- NO RECOIL MODÜLÜ (ÇALIŞIYOR)
--- ============================================================
-local NoRecoilEnabled = false
-local NoRecoil_Connections = {}
-local NoRecoil_WeaponCache = {}
-local NoRecoil_GlobalOriginal = {}
-local NoRecoil_Player = LocalPlayer
+--======================= NO RECOIL =========================--
+local NoRecoil_Enabled=false
+local NoRecoil_Connections={}
+local GlobalOriginalValues={}
+local WeaponCache={}
+local Settings={GunMods={NoRecoil=true,Spread=true,SpreadAmount=0}}
+local Player_nr=LocalPlayer
 
-local function NoRecoil_CacheWeapons()
-    NoRecoil_WeaponCache = {}
+local function cacheWeapons()
+    WeaponCache={};
     for _, v in pairs(getgc(true)) do
-        if type(v) == 'table' and rawget(v, 'EquipTime') then
-            table.insert(NoRecoil_WeaponCache, v)
-            if not NoRecoil_GlobalOriginal[v] then
-                NoRecoil_GlobalOriginal[v] = {
-                    Recoil = v.Recoil,
-                    CameraRecoilingEnabled = v.CameraRecoilingEnabled,
-                    AngleX_Min = v.AngleX_Min,
-                    AngleX_Max = v.AngleX_Max,
-                    AngleY_Min = v.AngleY_Min,
-                    AngleY_Max = v.AngleY_Max,
-                    AngleZ_Min = v.AngleZ_Min,
-                    AngleZ_Max = v.AngleZ_Max,
-                    Spread = v.Spread
+        if type(v)=='table' and rawget(v,'EquipTime') then
+            table.insert(WeaponCache, v);
+            if not GlobalOriginalValues[v] then
+                GlobalOriginalValues[v]={
+                    Recoil=v.Recoil,CameraRecoilingEnabled=v.CameraRecoilingEnabled,
+                    AngleX_Min=v.AngleX_Min,AngleX_Max=v.AngleX_Max,
+                    AngleY_Min=v.AngleY_Min,AngleY_Max=v.AngleY_Max,
+                    AngleZ_Min=v.AngleZ_Min,AngleZ_Max=v.AngleZ_Max,
+                    Spread=v.Spread
                 }
             end
         end
     end
 end
 
-local function NoRecoil_Apply()
-    for _, weapon in pairs(NoRecoil_WeaponCache) do
-        weapon.Recoil = 0
-        weapon.CameraRecoilingEnabled = false
-        weapon.AngleX_Min = 0
-        weapon.AngleX_Max = 0
-        weapon.AngleY_Min = 0
-        weapon.AngleY_Max = 0
-        weapon.AngleZ_Min = 0
-        weapon.AngleZ_Max = 0
+local function applyGunMods()
+    for _, weapon in ipairs(WeaponCache) do
+        if Settings.GunMods.NoRecoil then
+            weapon.Recoil=0; weapon.CameraRecoilingEnabled=false;
+            weapon.AngleX_Min=0; weapon.AngleX_Max=0;
+            weapon.AngleY_Min=0; weapon.AngleY_Max=0;
+            weapon.AngleZ_Min=0; weapon.AngleZ_Max=0;
+        end;
+        if Settings.GunMods.Spread then
+            weapon.Spread=Settings.GunMods.SpreadAmount
+        end
     end
 end
 
-local function NoRecoil_Reset()
-    for weapon, values in pairs(NoRecoil_GlobalOriginal) do
-        weapon.Recoil = values.Recoil
-        weapon.CameraRecoilingEnabled = values.CameraRecoilingEnabled
-        weapon.AngleX_Min = values.AngleX_Min
-        weapon.AngleX_Max = values.AngleX_Max
-        weapon.AngleY_Min = values.AngleY_Min
-        weapon.AngleY_Max = values.AngleY_Max
-        weapon.AngleZ_Min = values.AngleZ_Min
-        weapon.AngleZ_Max = values.AngleZ_Max
-        weapon.Spread = values.Spread
+local function resetGunMods()
+    for weapon, values in pairs(GlobalOriginalValues) do
+        weapon.Recoil=values.Recoil; weapon.CameraRecoilingEnabled=values.CameraRecoilingEnabled;
+        weapon.AngleX_Min=values.AngleX_Min; weapon.AngleX_Max=values.AngleX_Max;
+        weapon.AngleY_Min=values.AngleY_Min; weapon.AngleY_Max=values.AngleY_Max;
+        weapon.AngleZ_Min=values.AngleZ_Min; weapon.AngleZ_Max=values.AngleZ_Max;
+        weapon.Spread=values.Spread;
     end
 end
 
-local function NoRecoil_HandleWeapon(weapon)
-    if NoRecoilEnabled then
-        task.wait(0.1)
-        NoRecoil_CacheWeapons()
-        NoRecoil_Apply()
+local function handleWeapon(weapon)
+    if NoRecoil_Enabled then
+        task.wait(0.1);
+        cacheWeapons();
+        applyGunMods()
     end
 end
 
-local function NoRecoil_OnCharacterAdded(character)
-    for _, child in ipairs(character:GetChildren()) do
-        if child:IsA("Tool") then NoRecoil_HandleWeapon(child) end
-    end
-    table.insert(NoRecoil_Connections, character.ChildAdded:Connect(function(child)
-        if child:IsA("Tool") then NoRecoil_HandleWeapon(child) end
-    end))
-    local humanoid = character:WaitForChild("Humanoid", 2)
+local function onCharacterAdded_nr(character)
+    for _, child in ipairs(character:GetChildren()) do if child:IsA("Tool") then handleWeapon(child) end end;
+    table.insert(NoRecoil_Connections, character.ChildAdded:Connect(function(child) if child:IsA("Tool") then handleWeapon(child) end end));
+    local humanoid=character:WaitForChild("Humanoid",2);
     if humanoid then
-        table.insert(NoRecoil_Connections, humanoid.Died:Connect(function()
-            if NoRecoilEnabled then
-                task.wait(1.5)
-                NoRecoil_CacheWeapons()
-                NoRecoil_Apply()
-            end
-        end))
+        table.insert(NoRecoil_Connections, humanoid.Died:Connect(function() if NoRecoil_Enabled then task.wait(1.5); cacheWeapons(); applyGunMods() end end))
     end
 end
 
 function NoRecoil_Enable()
-    if NoRecoilEnabled then return end
-    NoRecoilEnabled = true
-    NoRecoil_CacheWeapons()
-    NoRecoil_Apply()
-    table.insert(NoRecoil_Connections, NoRecoil_Player.CharacterAdded:Connect(NoRecoil_OnCharacterAdded))
-    if NoRecoil_Player.Character then NoRecoil_OnCharacterAdded(NoRecoil_Player.Character) end
+    if NoRecoil_Enabled then return end;
+    NoRecoil_Enabled=true;
+    cacheWeapons();
+    applyGunMods();
+    table.insert(NoRecoil_Connections, Player_nr.CharacterAdded:Connect(onCharacterAdded_nr));
+    if Player_nr.Character then onCharacterAdded_nr(Player_nr.Character) end
 end
 
 function NoRecoil_Disable()
-    if not NoRecoilEnabled then return end
-    NoRecoilEnabled = false
-    NoRecoil_Reset()
-    for _, conn in ipairs(NoRecoil_Connections) do
-        pcall(function() conn:Disconnect() end)
-    end
-    NoRecoil_Connections = {}
+    if not NoRecoil_Enabled then return end;
+    NoRecoil_Enabled=false;
+    resetGunMods();
+    for _, conn in ipairs(NoRecoil_Connections) do conn:Disconnect() end;
+    NoRecoil_Connections={};
 end
-
 -- ============================================================
 -- RENKLER
 -- ============================================================
