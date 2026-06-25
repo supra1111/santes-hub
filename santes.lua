@@ -1,13 +1,14 @@
 --[[
-    SantesHub UI
-    No Recoil toggle + Minimize + Close
-    Kırmızı/Siyah tema, glow efektli
+    SantesHub UI v2
+    No Recoil Toggle + Anti AFK (Otomatik)
+    Kırmızı/Siyah tema, kenarlarda glow
 --]]
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local VirtualUser = game:GetService("VirtualUser")
 local LocalPlayer = Players.LocalPlayer
 
 -- Eski UI varsa kaldır
@@ -15,20 +16,20 @@ if LocalPlayer.PlayerGui:FindFirstChild("SantesHub_UI") then
     LocalPlayer.PlayerGui.SantesHub_UI:Destroy()
 end
 
--- Renkler
-local COLOR_BG       = Color3.fromRGB(15, 15, 15)
-local COLOR_ACCENT   = Color3.fromRGB(255, 25, 35)
-local COLOR_ACCENT_D = Color3.fromRGB(120, 10, 15)
-local COLOR_TEXT     = Color3.fromRGB(240, 240, 240)
-local COLOR_OFF      = Color3.fromRGB(40, 40, 40)
-
--- State
-local NoRecoilEnabled = false
+-- ============================================================
+-- ANTI AFK (Otomatik açık)
+-- ============================================================
+if LocalPlayer then
+    LocalPlayer.Idled:Connect(function()
+        VirtualUser:CaptureController()
+        VirtualUser:ClickButton2(Vector2.new())
+    end)
+end
 
 -- ============================================================
 -- NO RECOIL MODÜLÜ
 -- ============================================================
-local NoRecoil_Enabled = false
+local NoRecoilEnabled = false
 local NoRecoil_Connections = {}
 local NoRecoil_WeaponCache = {}
 local NoRecoil_GlobalOriginal = {}
@@ -84,7 +85,7 @@ local function NoRecoil_Reset()
 end
 
 local function NoRecoil_HandleWeapon(weapon)
-    if NoRecoil_Enabled then
+    if NoRecoilEnabled then
         task.wait(0.1)
         NoRecoil_CacheWeapons()
         NoRecoil_Apply()
@@ -101,7 +102,7 @@ local function NoRecoil_OnCharacterAdded(character)
     local humanoid = character:WaitForChild("Humanoid", 2)
     if humanoid then
         table.insert(NoRecoil_Connections, humanoid.Died:Connect(function()
-            if NoRecoil_Enabled then
+            if NoRecoilEnabled then
                 task.wait(1.5)
                 NoRecoil_CacheWeapons()
                 NoRecoil_Apply()
@@ -111,8 +112,8 @@ local function NoRecoil_OnCharacterAdded(character)
 end
 
 function NoRecoil_Enable()
-    if NoRecoil_Enabled then return end
-    NoRecoil_Enabled = true
+    if NoRecoilEnabled then return end
+    NoRecoilEnabled = true
     NoRecoil_CacheWeapons()
     NoRecoil_Apply()
     table.insert(NoRecoil_Connections, NoRecoil_Player.CharacterAdded:Connect(NoRecoil_OnCharacterAdded))
@@ -120,14 +121,25 @@ function NoRecoil_Enable()
 end
 
 function NoRecoil_Disable()
-    if not NoRecoil_Enabled then return end
-    NoRecoil_Enabled = false
+    if not NoRecoilEnabled then return end
+    NoRecoilEnabled = false
     NoRecoil_Reset()
     for _, conn in ipairs(NoRecoil_Connections) do
         pcall(function() conn:Disconnect() end)
     end
     NoRecoil_Connections = {}
 end
+
+-- ============================================================
+-- RENKLER (Hafif değiştirilmiş tema)
+-- ============================================================
+local COLOR_BG       = Color3.fromRGB(12, 10, 12)
+local COLOR_ACCENT   = Color3.fromRGB(220, 30, 35)
+local COLOR_ACCENT_D = Color3.fromRGB(140, 15, 20)
+local COLOR_ACCENT_G = Color3.fromRGB(255, 50, 55)
+local COLOR_TEXT     = Color3.fromRGB(235, 230, 230)
+local COLOR_TEXT_D   = Color3.fromRGB(170, 160, 160)
+local COLOR_OFF      = Color3.fromRGB(45, 40, 42)
 
 -- ============================================================
 -- UI
@@ -142,10 +154,11 @@ ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 -- Main Frame
 local Main = Instance.new("Frame")
 Main.Name = "Main"
-Main.Size = UDim2.new(0, 240, 0, 140)
-Main.Position = UDim2.new(0.5, -120, 0.5, -70)
+Main.Size = UDim2.new(0, 250, 0, 155)
+Main.Position = UDim2.new(0.5, -125, 0.5, -77)
 Main.BackgroundColor3 = COLOR_BG
 Main.BorderSizePixel = 0
+Main.ClipsDescendants = true
 Main.Parent = ScreenGui
 
 local MainCorner = Instance.new("UICorner")
@@ -155,22 +168,36 @@ MainCorner.Parent = Main
 local MainStroke = Instance.new("UIStroke")
 MainStroke.Color = COLOR_ACCENT
 MainStroke.Thickness = 1.5
+MainStroke.Transparency = 0.3
 MainStroke.Parent = Main
 
--- Glow (dış parlama efekti)
-local Glow = Instance.new("ImageLabel")
-Glow.Name = "Glow"
-Glow.BackgroundTransparency = 1
-Glow.Image = "rbxassetid://5028857084"
-Glow.ImageColor3 = COLOR_ACCENT
-Glow.ImageTransparency = 0.55
-Glow.Size = UDim2.new(1, 60, 1, 60)
-Glow.Position = UDim2.new(0.5, 0, 0.5, 0)
-Glow.AnchorPoint = Vector2.new(0.5, 0.5)
-Glow.ZIndex = 0
-Glow.Parent = Main
+-- Glow efekti (dikdörtgenin etrafında)
+local GlowOuter = Instance.new("ImageLabel")
+GlowOuter.Name = "GlowOuter"
+GlowOuter.BackgroundTransparency = 1
+GlowOuter.Image = "rbxassetid://5028857084"
+GlowOuter.ImageColor3 = COLOR_ACCENT
+GlowOuter.ImageTransparency = 0.5
+GlowOuter.Size = UDim2.new(1, 20, 1, 20)
+GlowOuter.Position = UDim2.new(0.5, 0, 0.5, 0)
+GlowOuter.AnchorPoint = Vector2.new(0.5, 0.5)
+GlowOuter.ZIndex = 0
+GlowOuter.Parent = Main
 
--- Title Bar (sürükleme alanı)
+-- İkinci glow (içteki)
+local GlowInner = Instance.new("ImageLabel")
+GlowInner.Name = "GlowInner"
+GlowInner.BackgroundTransparency = 1
+GlowInner.Image = "rbxassetid://5028857084"
+GlowInner.ImageColor3 = COLOR_ACCENT_G
+GlowInner.ImageTransparency = 0.6
+GlowInner.Size = UDim2.new(1, 10, 1, 10)
+GlowInner.Position = UDim2.new(0.5, 0, 0.5, 0)
+GlowInner.AnchorPoint = Vector2.new(0.5, 0.5)
+GlowInner.ZIndex = 0
+GlowInner.Parent = Main
+
+-- Title Bar
 local TitleBar = Instance.new("Frame")
 TitleBar.Name = "TitleBar"
 TitleBar.Size = UDim2.new(1, 0, 0, 38)
@@ -184,13 +211,13 @@ Title.BackgroundTransparency = 1
 Title.Size = UDim2.new(1, -80, 1, 0)
 Title.Position = UDim2.new(0, 12, 0, 0)
 Title.Font = Enum.Font.GothamBold
-Title.Text = "SantesHub"
+Title.Text = "SANTES HUB"
 Title.TextColor3 = COLOR_ACCENT
-Title.TextSize = 18
+Title.TextSize = 17
 Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.Parent = TitleBar
 
--- Kapatma Butonu
+-- Kapatma
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Name = "CloseBtn"
 CloseBtn.Size = UDim2.new(0, 26, 0, 26)
@@ -210,7 +237,7 @@ CloseCorner.CornerRadius = UDim.new(0, 6)
 CloseCorner.Parent = CloseBtn
 
 CloseBtn.MouseEnter:Connect(function()
-    TweenService:Create(CloseBtn, TweenInfo.new(0.1), { BackgroundTransparency = 0.3 }):Play()
+    TweenService:Create(CloseBtn, TweenInfo.new(0.1), { BackgroundTransparency = 0.2 }):Play()
 end)
 CloseBtn.MouseLeave:Connect(function()
     TweenService:Create(CloseBtn, TweenInfo.new(0.1), { BackgroundTransparency = 0.75 }):Play()
@@ -219,12 +246,12 @@ CloseBtn.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
 end)
 
--- Küçültme Butonu
+-- Küçültme
 local MinBtn = Instance.new("TextButton")
 MinBtn.Name = "MinBtn"
 MinBtn.Size = UDim2.new(0, 26, 0, 26)
 MinBtn.Position = UDim2.new(1, -62, 0.5, -13)
-MinBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+MinBtn.BackgroundColor3 = Color3.fromRGB(60, 55, 58)
 MinBtn.BackgroundTransparency = 0.6
 MinBtn.Text = "−"
 MinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -275,23 +302,39 @@ Content.Position = UDim2.new(0, 0, 0, 44)
 Content.BackgroundTransparency = 1
 Content.Parent = Main
 
--- No Recoil Label
+-- ============================================================
+-- NO RECOIL TOGGLE
+-- ============================================================
+
+-- "No Recoil" başlığı
 local NRLabel = Instance.new("TextLabel")
 NRLabel.BackgroundTransparency = 1
-NRLabel.Size = UDim2.new(0.6, 0, 0, 40)
-NRLabel.Position = UDim2.new(0.06, 0, 0, 8)
-NRLabel.Font = Enum.Font.Gotham
+NRLabel.Size = UDim2.new(1, -20, 0, 22)
+NRLabel.Position = UDim2.new(0, 12, 0, 6)
+NRLabel.Font = Enum.Font.GothamSemibold
 NRLabel.Text = "No Recoil"
 NRLabel.TextColor3 = COLOR_TEXT
-NRLabel.TextSize = 15
+NRLabel.TextSize = 14
 NRLabel.TextXAlignment = Enum.TextXAlignment.Left
 NRLabel.Parent = Content
 
--- Toggle Switch
+-- "No Recoil" alt açıklama
+local NRSub = Instance.new("TextLabel")
+NRSub.BackgroundTransparency = 1
+NRSub.Size = UDim2.new(1, -20, 0, 16)
+NRSub.Position = UDim2.new(0, 12, 0, 28)
+NRSub.Font = Enum.Font.Gotham
+NRSub.Text = "Weapon recoil reduction"
+NRSub.TextColor3 = COLOR_TEXT_D
+NRSub.TextSize = 11
+NRSub.TextXAlignment = Enum.TextXAlignment.Left
+NRSub.Parent = Content
+
+-- Toggle BG (butonun arkası)
 local ToggleBG = Instance.new("Frame")
 ToggleBG.Name = "ToggleBG"
-ToggleBG.Size = UDim2.new(0, 46, 0, 22)
-ToggleBG.Position = UDim2.new(1, -58, 0, 16)
+ToggleBG.Size = UDim2.new(0, 50, 0, 26)
+ToggleBG.Position = UDim2.new(1, -62, 0, 14)
 ToggleBG.BackgroundColor3 = COLOR_OFF
 ToggleBG.BorderSizePixel = 0
 ToggleBG.Parent = Content
@@ -305,10 +348,11 @@ ToggleBGStroke.Color = COLOR_ACCENT_D
 ToggleBGStroke.Thickness = 1
 ToggleBGStroke.Parent = ToggleBG
 
+-- Toggle Knob (yuvarlak kısım)
 local ToggleKnob = Instance.new("Frame")
 ToggleKnob.Name = "Knob"
-ToggleKnob.Size = UDim2.new(0, 18, 0, 18)
-ToggleKnob.Position = UDim2.new(0, 2, 0.5, -9)
+ToggleKnob.Size = UDim2.new(0, 20, 0, 20)
+ToggleKnob.Position = UDim2.new(0, 3, 0.5, -10)
 ToggleKnob.BackgroundColor3 = COLOR_TEXT
 ToggleKnob.BorderSizePixel = 0
 ToggleKnob.Parent = ToggleBG
@@ -317,20 +361,47 @@ local KnobCorner = Instance.new("UICorner")
 KnobCorner.CornerRadius = UDim.new(1, 0)
 KnobCorner.Parent = ToggleKnob
 
+-- Toggle Knob iç glow
+local KnobGlow = Instance.new("ImageLabel")
+KnobGlow.BackgroundTransparency = 1
+KnobGlow.Image = "rbxassetid://5028857084"
+KnobGlow.ImageColor3 = COLOR_ACCENT
+KnobGlow.ImageTransparency = 0.5
+KnobGlow.Size = UDim2.new(1, 10, 1, 10)
+KnobGlow.Position = UDim2.new(0.5, 0, 0.5, 0)
+KnobGlow.AnchorPoint = Vector2.new(0.5, 0.5)
+KnobGlow.ZIndex = 0
+KnobGlow.Parent = ToggleKnob
+
+-- Toggle Butonu (tıklama alanı)
 local ToggleButton = Instance.new("TextButton")
 ToggleButton.BackgroundTransparency = 1
 ToggleButton.Size = UDim2.new(1, 0, 1, 0)
 ToggleButton.Text = ""
 ToggleButton.Parent = ToggleBG
 
+-- ON / OFF yazısı (knobun içinde)
+local ToggleText = Instance.new("TextLabel")
+ToggleText.BackgroundTransparency = 1
+ToggleText.Size = UDim2.new(1, 0, 1, 0)
+ToggleText.Font = Enum.Font.GothamBold
+ToggleText.Text = "OFF"
+ToggleText.TextColor3 = Color3.fromRGB(40, 40, 40)
+ToggleText.TextSize = 10
+ToggleText.Parent = ToggleKnob
+
 -- Toggle fonksiyonu
 local function SetToggle(state)
     NoRecoilEnabled = state
     local bgColor = state and COLOR_ACCENT or COLOR_OFF
-    local knobPos = state and UDim2.new(0, 26, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)
+    local knobPos = state and UDim2.new(0, 27, 0.5, -10) or UDim2.new(0, 3, 0.5, -10)
+    local textColor = state and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(40, 40, 40)
+    local text = state and "ON" or "OFF"
 
-    TweenService:Create(ToggleBG, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {BackgroundColor3 = bgColor}):Play()
-    TweenService:Create(ToggleKnob, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {Position = knobPos}):Play()
+    TweenService:Create(ToggleBG, TweenInfo.new(0.25, Enum.EasingStyle.Quad), {BackgroundColor3 = bgColor}):Play()
+    TweenService:Create(ToggleKnob, TweenInfo.new(0.25, Enum.EasingStyle.Quad), {Position = knobPos}):Play()
+    TweenService:Create(ToggleText, TweenInfo.new(0.15), {TextColor3 = textColor}):Play()
+    ToggleText.Text = text
 
     if state then
         NoRecoil_Enable()
@@ -343,15 +414,37 @@ ToggleButton.MouseButton1Click:Connect(function()
     SetToggle(not NoRecoilEnabled)
 end)
 
--- Hover glow animasyonu
-Main.MouseEnter:Connect(function()
-    TweenService:Create(MainStroke, TweenInfo.new(0.25), {Thickness = 2.2}):Play()
-end)
-Main.MouseLeave:Connect(function()
-    TweenService:Create(MainStroke, TweenInfo.new(0.25), {Thickness = 1.5}):Play()
+-- ============================================================
+-- GLOW PULSE ANİMASYONU
+-- ============================================================
+task.spawn(function()
+    while Main.Parent do
+        local t1 = TweenService:Create(GlowOuter, TweenInfo.new(2.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+            ImageTransparency = 0.3,
+            Size = UDim2.new(1, 30, 1, 30)
+        })
+        local t2 = TweenService:Create(GlowOuter, TweenInfo.new(2.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+            ImageTransparency = 0.6,
+            Size = UDim2.new(1, 12, 1, 12)
+        })
+        local t3 = TweenService:Create(GlowInner, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+            ImageTransparency = 0.5,
+        })
+        local t4 = TweenService:Create(GlowInner, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+            ImageTransparency = 0.7,
+        })
+        t1:Play()
+        t3:Play()
+        t1.Completed:Wait()
+        t2:Play()
+        t4:Play()
+        t2.Completed:Wait()
+    end
 end)
 
--- Sürükleme
+-- ============================================================
+-- SÜRÜKLEME
+-- ============================================================
 do
     local dragging, dragInput, startPos, dragStart
     TitleBar.InputBegan:Connect(function(input)
@@ -377,4 +470,23 @@ do
     end)
 end
 
-print("SantesHub No Recoil Loaded!")
+-- ============================================================
+-- HOVER EFEKTİ (Stroke parlasın)
+-- ============================================================
+Main.MouseEnter:Connect(function()
+    TweenService:Create(MainStroke, TweenInfo.new(0.25), {Thickness = 2.5, Transparency = 0.1}):Play()
+end)
+Main.MouseLeave:Connect(function()
+    TweenService:Create(MainStroke, TweenInfo.new(0.25), {Thickness = 1.5, Transparency = 0.3}):Play()
+end)
+
+-- K tuşu ile göster/gizle
+UserInputService.InputBegan:Connect(function(input, gpe)
+    if not gpe and input.KeyCode == Enum.KeyCode.K then
+        Main.Visible = not Main.Visible
+    end
+end)
+
+print("SantesHub UI v2 Loaded!")
+print("Anti AFK: Active (Auto)")
+print("No Recoil: Toggle with switch")
