@@ -1,13 +1,12 @@
 --[[
-    SantesHub UI v3
+    SantesHub UI v4
     No Recoil Toggle + Anti AFK (Otomatik)
-    Kırmızı/Siyah tema, yuvarlak kenarlı, S logosu
+    Küçültme: Kare + S harfi | K tuşu: Gizle/Göster
 --]]
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
 local VirtualUser = game:GetService("VirtualUser")
 local LocalPlayer = Players.LocalPlayer
 
@@ -17,7 +16,7 @@ if LocalPlayer.PlayerGui:FindFirstChild("SantesHub_UI") then
 end
 
 -- ============================================================
--- ANTI AFK (Otomatik açık)
+-- ANTI AFK (Otomatik açık - Hiçbir yerde gözükmez)
 -- ============================================================
 if LocalPlayer then
     LocalPlayer.Idled:Connect(function()
@@ -133,14 +132,14 @@ end
 -- ============================================================
 -- RENKLER
 -- ============================================================
-local COLOR_BG       = Color3.fromRGB(10, 8, 10)
-local COLOR_ACCENT   = Color3.fromRGB(215, 28, 35)
-local COLOR_ACCENT_D = Color3.fromRGB(140, 15, 20)
-local COLOR_ACCENT_G = Color3.fromRGB(255, 55, 60)
+local COLOR_BG       = Color3.fromRGB(8, 6, 8)
+local COLOR_ACCENT   = Color3.fromRGB(210, 25, 35)
+local COLOR_ACCENT_D = Color3.fromRGB(130, 12, 18)
+local COLOR_ACCENT_G = Color3.fromRGB(255, 50, 55)
 local COLOR_TEXT     = Color3.fromRGB(235, 230, 230)
 local COLOR_TEXT_D   = Color3.fromRGB(170, 160, 165)
 local COLOR_OFF      = Color3.fromRGB(45, 40, 42)
-local COLOR_ON       = Color3.fromRGB(215, 28, 35)
+local COLOR_ON       = Color3.fromRGB(210, 25, 35)
 
 -- ============================================================
 -- UI
@@ -172,7 +171,7 @@ MainStroke.Thickness = 1.5
 MainStroke.Transparency = 0.25
 MainStroke.Parent = Main
 
--- Glow efekti
+-- Glow
 local GlowOuter = Instance.new("ImageLabel")
 GlowOuter.Name = "GlowOuter"
 GlowOuter.BackgroundTransparency = 1
@@ -246,7 +245,9 @@ CloseBtn.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
 end)
 
--- Küçültme Butonu (yuvarlak, S harfi)
+-- ============================================================
+-- KÜÇÜLTME BUTONU (Sadece küçültür, kare + S harfi)
+-- ============================================================
 local MinBtn = Instance.new("TextButton")
 MinBtn.Name = "MinBtn"
 MinBtn.Size = UDim2.new(0, 28, 0, 28)
@@ -266,7 +267,7 @@ MinCorner.CornerRadius = UDim.new(0, 8)
 MinCorner.Parent = MinBtn
 
 local isMinimized = false
-local originalSize = Main.Size
+local normalSize = UDim2.new(0, 260, 0, 165)
 local minimizedSize = UDim2.new(0, 70, 0, 70)
 
 MinBtn.MouseEnter:Connect(function()
@@ -275,35 +276,38 @@ end)
 MinBtn.MouseLeave:Connect(function()
     TweenService:Create(MinBtn, TweenInfo.new(0.1), { BackgroundTransparency = 0.5 }):Play()
 end)
+
 MinBtn.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
+    
     if isMinimized then
-        -- Küçültülmüş hal (kare, yuvarlak)
+        -- KÜÇÜLTÜLMÜŞ HAL: Kare, yuvarlak, sadece S harfi
         Main.Size = minimizedSize
         MainCorner.CornerRadius = UDim.new(0, 16)
+        
+        -- TitleBar, Divider, Content gizle
         TitleBar.Visible = false
         Divider.Visible = false
         Content.Visible = false
         
-        -- Sadece S logosu göster (küçült butonunun içinde zaten S var)
-        -- Küçük haldeyken S harfi büyük gözüksün
-        MinBtn.Size = UDim2.new(1, -10, 1, -10)
-        MinBtn.Position = UDim2.new(0.5, 0, 0.5, 0)
-        MinBtn.AnchorPoint = Vector2.new(0.5, 0.5)
-        MinBtn.BackgroundTransparency = 1
-        MinBtn.TextSize = 36
-        MinBtn.TextColor3 = COLOR_ACCENT
+        -- S harfini büyük göster (butonun içinde)
         MinBtn.Size = UDim2.new(1, 0, 1, 0)
         MinBtn.Position = UDim2.new(0.5, 0, 0.5, 0)
         MinBtn.AnchorPoint = Vector2.new(0.5, 0.5)
+        MinBtn.BackgroundTransparency = 1
+        MinBtn.TextSize = 42
+        MinBtn.TextColor3 = COLOR_ACCENT
         MinBtn.Text = "S"
+        
     else
-        -- Normal hal
-        Main.Size = originalSize
+        -- NORMAL HAL
+        Main.Size = normalSize
         MainCorner.CornerRadius = UDim.new(0, 16)
+        
         TitleBar.Visible = true
         Divider.Visible = true
         Content.Visible = true
+        
         MinBtn.Size = UDim2.new(0, 28, 0, 28)
         MinBtn.Position = UDim2.new(1, -66, 0.5, -14)
         MinBtn.AnchorPoint = Vector2.new(0, 0)
@@ -431,7 +435,7 @@ ToggleButton.MouseButton1Click:Connect(function()
 end)
 
 -- ============================================================
--- GLOW PULSE ANİMASYONU
+-- GLOW PULSE
 -- ============================================================
 task.spawn(function()
     while Main.Parent do
@@ -487,7 +491,7 @@ do
 end
 
 -- ============================================================
--- HOVER EFEKTİ
+-- HOVER
 -- ============================================================
 Main.MouseEnter:Connect(function()
     TweenService:Create(MainStroke, TweenInfo.new(0.25), {Thickness = 2.5, Transparency = 0.1}):Play()
@@ -497,7 +501,7 @@ Main.MouseLeave:Connect(function()
 end)
 
 -- ============================================================
--- K TUŞU (Göster/Gizle)
+-- K TUŞU (Göster/Gizle - Tamamen gizler)
 -- ============================================================
 UserInputService.InputBegan:Connect(function(input, gpe)
     if not gpe and input.KeyCode == Enum.KeyCode.K then
@@ -505,7 +509,7 @@ UserInputService.InputBegan:Connect(function(input, gpe)
     end
 end)
 
-print("SantesHub UI v3 Loaded!")
+print("SantesHub UI v4 Loaded!")
 print("Anti AFK: Active (Auto)")
 print("No Recoil: Toggle with switch")
 print("Press K to toggle UI visibility")
