@@ -1,10 +1,18 @@
 -- ============================================
--- SANTES HUB - COMPLETE PACKAGE
+-- SANTES HUB - COMPLETE (2550 SATIR)
 -- ============================================
 
 local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
--- ========== LOADER ==========
+-- ============================================================
+-- LOADER
+-- ============================================================
+
 local loaderGui = Instance.new("ScreenGui")
 loaderGui.Name = "SantesLoader"
 loaderGui.ResetOnSpawn = false
@@ -95,7 +103,6 @@ footer.TextSize = 10
 footer.Font = Enum.Font.Gotham
 footer.Parent = card
 
--- LOADER ANIMASYONU
 local function RunLoader()
     local steps = {
         { p = 0.15, t = "Loading Santes Hub..." },
@@ -132,7 +139,6 @@ end
 
 task.spawn(RunLoader)
 
-
 -- ============================================================
 -- SANTES HUB ANA SCRIPT
 -- ============================================================
@@ -141,28 +147,19 @@ function StartSantesHub()
 
 -- Anti-Idle
 local VirtualUser = game:GetService('VirtualUser')
-if game:GetService('Players').LocalPlayer then
-    game:GetService('Players').LocalPlayer.Idled:Connect(function()
+if Players.LocalPlayer then
+    Players.LocalPlayer.Idled:Connect(function()
         VirtualUser:CaptureController()
         VirtualUser:ClickButton2(Vector2.new())
     end)
 end
 
--- Services
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
-local LocalPlayer = Players.LocalPlayer
-local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
-
 -- Eski UI temizle
 local oldGui = PlayerGui:FindFirstChild("SantesHubGui")
 if oldGui then oldGui:Destroy() end
 
-
 -- ============================================================
--- ANA UI (MODERN - KIRMIZI/SİYAH)
+-- ANA UI
 -- ============================================================
 
 local screenGui = Instance.new("ScreenGui")
@@ -187,7 +184,6 @@ mainStroke.Color = Color3.fromRGB(200, 30, 30)
 mainStroke.Thickness = 1.5
 mainStroke.Transparency = 0.3
 
--- HEADER
 local header = Instance.new("Frame")
 header.Size = UDim2.new(1, 0, 0, 50)
 header.BackgroundColor3 = Color3.fromRGB(10, 6, 8)
@@ -215,7 +211,6 @@ titleLabel.Font = Enum.Font.GothamBold
 titleLabel.TextXAlignment = Enum.TextXAlignment.Left
 titleLabel.Parent = header
 
--- Kapatma
 local closeBtn = Instance.new("TextButton")
 closeBtn.Size = UDim2.new(0, 28, 0, 28)
 closeBtn.Position = UDim2.new(1, -38, 0.5, -14)
@@ -236,7 +231,6 @@ closeBtn.MouseButton1Click:Connect(function()
     screenGui:Destroy()
 end)
 
--- Küçültme
 local minBtn = Instance.new("TextButton")
 minBtn.Size = UDim2.new(0, 28, 0, 28)
 minBtn.Position = UDim2.new(1, -72, 0.5, -14)
@@ -269,14 +263,12 @@ minBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- İçerik
 local contentContainer = Instance.new("Frame")
 contentContainer.Size = UDim2.new(1, -20, 1, -60)
 contentContainer.Position = UDim2.new(0, 10, 0, 55)
 contentContainer.BackgroundTransparency = 1
 contentContainer.Parent = mainFrame
 
--- Sol Menü
 local menuFrame = Instance.new("Frame")
 menuFrame.Size = UDim2.new(0, 100, 1, 0)
 menuFrame.BackgroundColor3 = Color3.fromRGB(10, 6, 8)
@@ -297,7 +289,6 @@ menuLayout.SortOrder = Enum.SortOrder.LayoutOrder
 menuLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 menuLayout.Parent = menuFrame
 
--- Scroll
 local scrollFrame = Instance.new("ScrollingFrame")
 scrollFrame.Size = UDim2.new(1, -115, 1, 0)
 scrollFrame.Position = UDim2.new(0, 110, 0, 0)
@@ -323,10 +314,7 @@ scrollLayout.SortOrder = Enum.SortOrder.LayoutOrder
 scrollLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 scrollLayout.Parent = scrollFrame
 
-
--- ============================================================
--- SÜRÜKLEME
--- ============================================================
+-- Sürükleme
 do
     local dragging = false
     local dragStart = nil
@@ -357,7 +345,6 @@ UserInputService.InputBegan:Connect(function(input, gpe)
         mainFrame.Visible = not mainFrame.Visible
     end
 end)
-
 
 -- ============================================================
 -- TÜM MODÜLLER
@@ -1174,7 +1161,7 @@ function NoRecoil_Disable()
     NoRecoil_Enabled = false
 end
 
--- ESP (DÜZELTİLDİ - ÇALIŞIYOR)
+-- ESP (ÇALIŞIYOR)
 local ESP_Enabled = false
 local ESP_Objects = {}
 local ESP_Connection = nil
@@ -1182,7 +1169,6 @@ local ESP_Connection = nil
 function ESP_Enable()
     if ESP_Enabled then return end
     
-    -- Temizlik
     for _, data in pairs(ESP_Objects) do
         pcall(function() data.Gui:Destroy() end)
     end
@@ -1237,7 +1223,6 @@ function ESP_Enable()
         
         ESP_Objects[p] = { Gui = gui, Name = nameL, Dist = distL, Health = healthBar }
         
-        -- Update loop
         task.spawn(function()
             while ESP_Enabled and ESP_Objects[p] do
                 task.wait(0.15)
@@ -1544,9 +1529,8 @@ end
 _G.ActivateShadow = Shadow_Enable
 _G.DeactivateShadow = Shadow_Disable
 
-
 -- ============================================================
--- UI TOGGLE OLUŞTURUCU
+-- UI TOGGLE
 -- ============================================================
 
 local activeBinds = {}
@@ -1670,7 +1654,6 @@ local function createToggle(name, getState, onEnable, onDisable, getBind, setBin
     return frame
 end
 
--- Keybind handler
 UserInputService.InputBegan:Connect(function(input, gpe)
     if gpe then return end
     local key = input.KeyCode
@@ -1713,7 +1696,6 @@ UserInputService.InputBegan:Connect(function(input, gpe)
         end
     end
 end)
-
 
 -- ============================================================
 -- KATEGORİLER
