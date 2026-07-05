@@ -4,15 +4,13 @@
     ║         Premium BOOSTER v3.0                ║
     ╚══════════════════════════════════════════════╝
     
-    ✦ ESP FIXLENDİ - ÇALIŞIYOR
+    ✦ ESP ÇALIŞIYOR
+    ✦ Glow UI ÜZERİNDE
     ✦ Recoil Control (Slider)
+    ✦ FullBright (Toggle)
     ✦ Anti AFK (Otomatik)
-    ✦ EXECUTOR İÇİN OPTİMİZE EDİLDİ
 ]]
 
--- ============================================================
--- LOADSTRING İÇİN HAZIR
--- ============================================================
 local function SantesHub()
     local Players = game:GetService("Players")
     local TweenService = game:GetService("TweenService")
@@ -20,6 +18,7 @@ local function SantesHub()
     local UserInputService = game:GetService("UserInputService")
     local VirtualUser = game:GetService("VirtualUser")
     local CoreGui = game:GetService("CoreGui")
+    local Lighting = game:GetService("Lighting")
 
     local LocalPlayer = Players.LocalPlayer
     local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
@@ -37,6 +36,66 @@ local function SantesHub()
             VirtualUser:CaptureController()
             VirtualUser:ClickButton2(Vector2.new())
         end)
+    end
+
+    -- ============================================================
+    -- FULLBRIGHT MODÜLÜ
+    -- ============================================================
+    local FullBrightEnabled = false
+    local FullBrightConnection = nil
+    local OriginalValues = {
+        Brightness = Lighting.Brightness,
+        ClockTime = Lighting.ClockTime,
+        Ambient = Lighting.Ambient,
+        OutdoorAmbient = Lighting.OutdoorAmbient,
+        ColorShift_Top = Lighting.ColorShift_Top,
+        FogStart = Lighting.FogStart,
+        FogEnd = Lighting.FogEnd,
+    }
+
+    local function FullBright_Enable()
+        if FullBrightEnabled then return end
+        FullBrightEnabled = true
+        
+        Lighting.Brightness = 5
+        Lighting.ClockTime = 14
+        Lighting.Ambient = Color3.new(1, 1, 1)
+        Lighting.OutdoorAmbient = Color3.new(1, 1, 1)
+        Lighting.ColorShift_Top = Color3.new(0, 0, 0)
+        Lighting.FogStart = 100000
+        Lighting.FogEnd = 100000
+        
+        FullBrightConnection = RunService.RenderStepped:Connect(function()
+            if not FullBrightEnabled then
+                FullBrightConnection:Disconnect()
+                return
+            end
+            Lighting.Brightness = 5
+            Lighting.ClockTime = 14
+            Lighting.Ambient = Color3.new(1, 1, 1)
+            Lighting.OutdoorAmbient = Color3.new(1, 1, 1)
+            Lighting.ColorShift_Top = Color3.new(0, 0, 0)
+            Lighting.FogStart = 100000
+            Lighting.FogEnd = 100000
+        end)
+    end
+
+    local function FullBright_Disable()
+        if not FullBrightEnabled then return end
+        FullBrightEnabled = false
+        
+        if FullBrightConnection then
+            FullBrightConnection:Disconnect()
+            FullBrightConnection = nil
+        end
+        
+        Lighting.Brightness = OriginalValues.Brightness
+        Lighting.ClockTime = OriginalValues.ClockTime
+        Lighting.Ambient = OriginalValues.Ambient
+        Lighting.OutdoorAmbient = OriginalValues.OutdoorAmbient
+        Lighting.ColorShift_Top = OriginalValues.ColorShift_Top
+        Lighting.FogStart = OriginalValues.FogStart
+        Lighting.FogEnd = OriginalValues.FogEnd
     end
 
     -- ============================================================
@@ -239,7 +298,7 @@ local function SantesHub()
         g.Image             = "rbxassetid://5028857084"
         g.ImageColor3       = color or Color3.fromRGB(255, 20, 35)
         g.ImageTransparency = transparency or 0.38
-        g.Size              = size or UDim2.new(1, 110, 1, 110)
+        g.Size              = size or UDim2.new(1, 0, 1, 0)
         g.Position          = UDim2.new(0.5, 0, 0.5, 0)
         g.AnchorPoint       = Vector2.new(0.5, 0.5)
         g.ZIndex            = 0
@@ -262,7 +321,7 @@ local function SantesHub()
     corner(LoaderFrame, UDim.new(0, 22))
     stroke(LoaderFrame, C.Red, 1.5, 0.08)
 
-    local LGlow = makeGlow(LoaderFrame)
+    local LGlow = makeGlow(LoaderFrame, Color3.fromRGB(255, 20, 35), UDim2.new(1, 0, 1, 0), 0.3)
 
     local LogoRow = Instance.new("Frame")
     LogoRow.BackgroundTransparency = 1
@@ -491,10 +550,11 @@ local function SantesHub()
         corner(Main, UDim.new(0, 18))
         stroke(Main, C.Red, 1.5, 0.1)
 
-        local MainGlow = makeGlow(Main, Color3.fromRGB(255, 20, 35), UDim2.new(1, 100, 1, 100), 0.42)
+        -- GLOW (UI ÜZERİNDE)
+        local MainGlow = makeGlow(Main, Color3.fromRGB(255, 20, 35), UDim2.new(1, 0, 1, 0), 0.35)
 
         task.delay(0.05, function()
-            tween(Main, { Size = UDim2.new(0, 320, 0, 320) }, 0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+            tween(Main, { Size = UDim2.new(0, 320, 0, 350) }, 0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
         end)
 
         -- TOP BAR
@@ -567,6 +627,9 @@ local function SantesHub()
         ProfileCard.Parent = Content
         corner(ProfileCard, UDim.new(0, 12))
         stroke(ProfileCard, Color3.fromRGB(30, 30, 38), 1, 0.2)
+
+        -- Profil glow
+        local ProfileGlow = makeGlow(ProfileCard, Color3.fromRGB(255, 30, 45), UDim2.new(1, 0, 1, 0), 0.15)
 
         local ProfileAccent = Instance.new("Frame")
         ProfileAccent.Size             = UDim2.new(0, 2, 0.7, 0)
@@ -717,11 +780,92 @@ local function SantesHub()
         StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
         StatusLabel.Parent = RowText
 
+        -- ============================================================
+        -- FULLBRIGHT TOGGLE
+        -- ============================================================
+        local FBRow = Instance.new("Frame")
+        FBRow.BackgroundTransparency = 1
+        FBRow.Size     = UDim2.new(1, -32, 0, 48)
+        FBRow.Position = UDim2.new(0, 16, 0, 160)
+        FBRow.Parent = Content
+
+        local FBSwitchOuter = Instance.new("TextButton")
+        FBSwitchOuter.Size             = UDim2.new(0, 76, 0, 36)
+        FBSwitchOuter.Position         = UDim2.new(1, -76, 0.5, -18)
+        FBSwitchOuter.BackgroundColor3 = C.Gray
+        FBSwitchOuter.Text             = ""
+        FBSwitchOuter.AutoButtonColor  = false
+        FBSwitchOuter.Parent = FBRow
+        corner(FBSwitchOuter, UDim.new(1, 0))
+
+        local FBSwitchStroke = stroke(FBSwitchOuter, Color3.fromRGB(75, 75, 85), 1.2, 0.3)
+
+        local FBKnob = Instance.new("Frame")
+        FBKnob.Size             = UDim2.new(0, 28, 0, 28)
+        FBKnob.Position         = UDim2.new(0, 4, 0.5, -14)
+        FBKnob.BackgroundColor3 = C.KnobOff
+        FBKnob.BorderSizePixel  = 0
+        FBKnob.Parent = FBSwitchOuter
+        corner(FBKnob, UDim.new(1, 0))
+
+        local FBRowText = Instance.new("Frame")
+        FBRowText.BackgroundTransparency = 1
+        FBRowText.Size     = UDim2.new(1, -90, 1, 0)
+        FBRowText.Parent = FBRow
+
+        local FBFeatureLabel = Instance.new("TextLabel")
+        FBFeatureLabel.BackgroundTransparency = 1
+        FBFeatureLabel.Size      = UDim2.new(1, 0, 0, 22)
+        FBFeatureLabel.Font      = Enum.Font.GothamBold
+        FBFeatureLabel.Text      = "FULLBRIGHT"
+        FBFeatureLabel.TextColor3 = C.OffWhite
+        FBFeatureLabel.TextSize  = 12
+        FBFeatureLabel.TextXAlignment = Enum.TextXAlignment.Left
+        FBFeatureLabel.Parent = FBRowText
+
+        local FBStatusLabel = Instance.new("TextLabel")
+        FBStatusLabel.BackgroundTransparency = 1
+        FBStatusLabel.Size      = UDim2.new(1, 0, 0, 16)
+        FBStatusLabel.Position  = UDim2.new(0, 0, 0, 22)
+        FBStatusLabel.Font      = Enum.Font.Gotham
+        FBStatusLabel.Text      = "● KAPALI"
+        FBStatusLabel.TextColor3 = Color3.fromRGB(72, 72, 84)
+        FBStatusLabel.TextSize  = 10
+        FBStatusLabel.TextXAlignment = Enum.TextXAlignment.Left
+        FBStatusLabel.Parent = FBRowText
+
+        local fbToggled = false
+
+        local function setFBToggle(state)
+            fbToggled = state
+            if fbToggled then
+                tween(FBSwitchOuter, { BackgroundColor3 = C.RedDark })
+                tween(FBSwitchStroke, { Color = C.Red, Transparency = 0 })
+                tween(FBKnob, { Position = UDim2.new(1, -32, 0.5, -14), BackgroundColor3 = C.Red })
+                FBStatusLabel.Text = "● AÇIK"
+                FBStatusLabel.TextColor3 = C.Red
+                FullBright_Enable()
+            else
+                tween(FBSwitchOuter, { BackgroundColor3 = C.Gray })
+                tween(FBSwitchStroke, { Color = Color3.fromRGB(75, 75, 85), Transparency = 0.3 })
+                tween(FBKnob, { Position = UDim2.new(0, 4, 0.5, -14), BackgroundColor3 = C.KnobOff })
+                FBStatusLabel.Text = "● KAPALI"
+                FBStatusLabel.TextColor3 = Color3.fromRGB(72, 72, 84)
+                FullBright_Disable()
+            end
+        end
+
+        FBSwitchOuter.MouseButton1Click:Connect(function()
+            setFBToggle(not fbToggled)
+        end)
+
+        -- ============================================================
         -- RECOIL CONTROL
+        -- ============================================================
         local RecoilLabel = Instance.new("TextLabel")
         RecoilLabel.BackgroundTransparency = 1
         RecoilLabel.Size      = UDim2.new(1, -32, 0, 14)
-        RecoilLabel.Position  = UDim2.new(0, 16, 0, 160)
+        RecoilLabel.Position  = UDim2.new(0, 16, 0, 216)
         RecoilLabel.Font      = Enum.Font.GothamBold
         RecoilLabel.Text      = "RECOIL CONTROL"
         RecoilLabel.TextColor3 = Color3.fromRGB(50, 50, 62)
@@ -729,12 +873,12 @@ local function SantesHub()
         RecoilLabel.TextXAlignment = Enum.TextXAlignment.Left
         RecoilLabel.Parent = Content
 
-        makeSeparator(Content, 176)
+        makeSeparator(Content, 232)
 
         local RecoilRow = Instance.new("Frame")
         RecoilRow.BackgroundTransparency = 1
         RecoilRow.Size     = UDim2.new(1, -32, 0, 50)
-        RecoilRow.Position = UDim2.new(0, 16, 0, 182)
+        RecoilRow.Position = UDim2.new(0, 16, 0, 238)
         RecoilRow.Parent = Content
 
         local RecoilText = Instance.new("TextLabel")
@@ -901,7 +1045,7 @@ local function SantesHub()
         local InfoRow = Instance.new("Frame")
         InfoRow.BackgroundTransparency = 0
         InfoRow.Size     = UDim2.new(1, -24, 0, 22)
-        InfoRow.Position = UDim2.new(0, 12, 0, 248)
+        InfoRow.Position = UDim2.new(0, 12, 0, 300)
         InfoRow.BackgroundColor3 = Color3.fromRGB(14, 14, 18)
         InfoRow.BorderSizePixel  = 0
         InfoRow.Parent = Content
@@ -918,12 +1062,12 @@ local function SantesHub()
         InfoLabel.TextXAlignment = Enum.TextXAlignment.Center
         InfoLabel.Parent = InfoRow
 
-        makeSeparator(Content, 280)
+        makeSeparator(Content, 330)
 
         local FootRow = Instance.new("Frame")
         FootRow.BackgroundTransparency = 1
         FootRow.Size     = UDim2.new(1, -32, 0, 14)
-        FootRow.Position = UDim2.new(0, 16, 0, 286)
+        FootRow.Position = UDim2.new(0, 16, 0, 336)
         FootRow.Parent = Content
 
         local FootLeft = Instance.new("TextLabel")
@@ -959,7 +1103,7 @@ local function SantesHub()
         corner(MiniFrame, UDim.new(0, 13))
         stroke(MiniFrame, C.Red, 1.5, 0.08)
 
-        makeGlow(MiniFrame, Color3.fromRGB(255, 20, 35), UDim2.new(1, 60, 1, 60), 0.38)
+        local MiniGlow = makeGlow(MiniFrame, Color3.fromRGB(255, 20, 35), UDim2.new(1, 0, 1, 0), 0.3)
 
         local MiniAvatar = Instance.new("ImageLabel")
         MiniAvatar.Size             = UDim2.new(0, 32, 0, 32)
@@ -1021,7 +1165,7 @@ local function SantesHub()
         end)
 
         -- ============================================================
-        -- ESP (FIXLENDİ - ÇALIŞIYOR)
+        -- ESP (ÇALIŞIYOR)
         -- ============================================================
         local ESPHolder = Instance.new("Folder")
         ESPHolder.Name   = "SantesESP"
@@ -1034,9 +1178,7 @@ local function SantesHub()
             bb.StudsOffset      = Vector3.new(0, 2.8, 0)
             bb.MaxDistance      = 500
             bb.ClipsDescendants = false
-            bb.Parent = nil
 
-            -- Arka plan
             local bg = Instance.new("Frame")
             bg.BackgroundColor3    = Color3.fromRGB(0, 0, 0)
             bg.BackgroundTransparency = 0.55
@@ -1051,7 +1193,6 @@ local function SantesHub()
             bgStroke.Thickness    = 1
             bgStroke.Parent = bg
 
-            -- İsim
             local nameTag = Instance.new("TextLabel")
             nameTag.Name               = "NameTag"
             nameTag.BackgroundTransparency = 1
@@ -1066,7 +1207,6 @@ local function SantesHub()
             nameTag.TextXAlignment     = Enum.TextXAlignment.Center
             nameTag.Parent = bb
 
-            -- DisplayName
             local dispTag = Instance.new("TextLabel")
             dispTag.Name               = "DispTag"
             dispTag.BackgroundTransparency = 1
@@ -1094,7 +1234,6 @@ local function SantesHub()
             
             if not head or not root then return end
 
-            -- Eski ESP'yi temizle
             local old = ESPHolder:FindFirstChild(plr.Name)
             if old then old:Destroy() end
 
@@ -1102,7 +1241,6 @@ local function SantesHub()
             folder.Name = plr.Name
             folder.Parent = ESPHolder
 
-            -- Highlight (glow efekti)
             local hl = Instance.new("Highlight")
             hl.Name = "ESPHighlight"
             hl.Adornee = char
@@ -1113,7 +1251,6 @@ local function SantesHub()
             hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
             hl.Parent = folder
 
-            -- BillboardGui
             local tag = makeTagTemplate()
             tag.Adornee = head
             tag.Parent = folder
@@ -1173,12 +1310,10 @@ local function SantesHub()
             end
         end
 
-        -- Mevcut oyuncuları izle
         for _, plr in ipairs(Players:GetPlayers()) do
             watchPlayerForESP(plr)
         end
 
-        -- Yeni oyuncuları izle
         Players.PlayerAdded:Connect(function(plr)
             watchPlayerForESP(plr)
             if toggled then
@@ -1187,7 +1322,6 @@ local function SantesHub()
             end
         end)
 
-        -- Oyuncu çıkınca temizle
         Players.PlayerRemoving:Connect(function(plr)
             unwatchPlayerForESP(plr)
             removeESPForPlayer(plr)
@@ -1226,6 +1360,7 @@ local function SantesHub()
                 unwatchPlayerForESP(plr)
             end
             Recoil_Disable()
+            FullBright_Disable()
         end)
 
     end
