@@ -763,7 +763,7 @@ local function SantesHub()
         FeatureLabel.BackgroundTransparency = 1
         FeatureLabel.Size      = UDim2.new(1, 0, 0, 22)
         FeatureLabel.Font      = Enum.Font.GothamBold
-        FeatureLabel.Text      = "USERNAME ESP"
+        FeatureLabel.Text      = "ESP"
         FeatureLabel.TextColor3 = C.OffWhite
         FeatureLabel.TextSize  = 12
         FeatureLabel.TextXAlignment = Enum.TextXAlignment.Left
